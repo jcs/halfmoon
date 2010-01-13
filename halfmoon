@@ -27,6 +27,7 @@ create () {
 	echo -n "creating skeleton directory structure... " && \
 		cp -rp $1/halfmoon/skel/. $1/ && \
 		mkdir $1/models && \
+		rm -rf $1/halfmoon/.git && \
 		echo "done."
 
 	echo ""
