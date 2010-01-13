@@ -14,7 +14,7 @@ it has a similar directory structure to a rails project, with the root
 level containing models, views, and controllers directories.  it
 supports a concept of environments like rails, defaulting to a
 development environment which logs things to apache's error log and
-presenting errors in the browser.
+displays errors in the browser.
 
 its url routing works similar as well, supporting a catch-all default
 route of :controller/:action/:id and a root url ("/") route.
@@ -25,7 +25,9 @@ route of :controller/:action/:id and a root url ("/") route.
 -	php 5.3 or higher, along with the database extensions you wish to
 	use (mysql, sqlite3, etc.)
 
--	apache 1 or 2, with mod_rewrite enabled
+-	apache 1 or 2, with mod_rewrite enabled.  development of halfmoon is
+	done on openbsd in a chroot()'d apache 1 server, so any other
+	environment should work fine.
 
 
 ## installation ##
