@@ -5,9 +5,9 @@
 
 ## overview ##
 
-halfmoon, combined with php-activerecord, is a tiny mvc framework for
-php 5.3 that tries to use the conventions of ruby on rails wherever
-possible and reasonable.
+halfmoon, combined with [php-activerecord](http://github.com/kla/php-activerecord),
+is a tiny mvc framework for php 5.3 that tries to use the conventions of
+ruby on rails wherever possible and reasonable.
 
 it has a similar directory structure to a rails project, with the root
 level containing models, views, and controllers directories.  it
