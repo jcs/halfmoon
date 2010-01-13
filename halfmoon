@@ -1,0 +1,46 @@
+#!/bin/sh
+
+prog=`basename "$0"`
+hmdir=`dirname "$0"`
+
+usage () {
+	echo "usage: $prog <\"create\" dir>"
+	exit 1
+}
+
+create () {
+	if [ X"$1" = X"" ]; then
+		usage
+	fi
+
+	if ! [ -d $1 ]; then
+		echo -n "creating $1... " && \
+			(mkdir $1 || exit) && \
+			echo "done."
+	fi
+
+	echo -n "copying halfmoon framework... " && \
+		mkdir $1/halfmoon && \
+		cp -rp $hmdir/. $1/halfmoon/ && \
+		echo "done."
+
+	echo -n "creating skeleton directory structure... " && \
+		cp -rp $1/halfmoon/skel/. $1/ && \
+		mkdir $1/models && \
+		echo "done."
+
+	echo ""
+	echo "   $1:"
+	ls -lF $1 | sed 's/^/   /'
+	echo ""
+
+	echo "welcome to halfmoon!"
+}
+
+case $1 in
+"create")
+	create $2
+	;;
+*)
+	usage
+esac
