@@ -29,8 +29,12 @@ class Router extends Singleton {
 		/* trim again just in case some were hiding */
 		$url = trim($url);
 
-		if ($url == "")
+		if ($url == "") {
+			if (!$this->rootRoute)
+				die("no root route defined");
+
 			return $this->takeRoute($this->rootRoute, $url, $params);
+		}
 
 		$url_pieces = split("/", $url);
 
@@ -87,6 +91,9 @@ class Router extends Singleton {
 	public function takeRoute($route, $url, $params) {
 		if ($route["action"] == "")
 			$route["action"] = "index";
+
+		if ($route["controller"] == "")
+			die("no controller specified");
 
 		foreach ($route as $k => $v)
 			$params[$k] = $v;
