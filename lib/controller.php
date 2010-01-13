@@ -30,8 +30,8 @@ class ApplicationController {
 		else
 			$template_file = $template;
 
-		if (file_exists($full_file = HALFMOON_ROOT . "/lib/views/"
-		. $template_file . ".phtml")) {
+		if (file_exists($full_file = HALFMOON_ROOT . "/views/" . $template_file
+		. ".phtml")) {
 			/* import the keys/values into the namespace of this partial */
 			foreach ($vars as $vname => $vdata)
 				$$vname = $vdata;
