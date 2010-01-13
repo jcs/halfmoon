@@ -49,12 +49,12 @@ class ApplicationController {
 
 		/* call any before_filters first, bailing if any return false */
 		foreach ((array)self::$before_filter as $filter)
-			if (!call_user_method_array($filter, $this, array()))
+			if (!call_user_func_array(array($this, $filter), array()))
 				return false;
 
         ob_start();
 
-        call_user_method_array($action, $this, array());
+        call_user_func_array(array($this, $action), array());
 
 		if ($this->did_render)
 			ob_end_flush();
