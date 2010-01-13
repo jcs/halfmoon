@@ -1,8 +1,24 @@
-# vim:ts=4:tw=72
+# vim:ts=4:tw=72:ft=markdown
 
 	 ,-.
 	( (  halfmoon tiny mvc framework for php
 	 `-'
+
+## overview ##
+
+halfmoon, combined with php-activerecord, is a tiny mvc framework for
+php 5.3 that tries to use the conventions of ruby on rails wherever
+possible and reasonable.
+
+it has a similar directory structure to a rails project, with the root
+level containing models, views, and controllers directories.  it
+supports a concept of environments like rails, defaulting to a
+development environment which logs things to apache's error log and
+presenting errors in the browser.
+
+its url routing works similar as well, supporting a catch-all default
+route of :controller/:action/:id and a root url ("/") route.
+
 
 ## requirements ##
 
@@ -18,18 +34,33 @@
 	everything.  halfmoon will do this for you but if you are creating
 	it somewhere where you need sudo permissions, do it manually:
 
-		sudo mkdir /var/www/example/
-		sudo chown `whoami` /var/www/example
+		$:~> sudo mkdir /var/www/example/
+		$:~> sudo chown `whoami` /var/www/example
 
 2.	fetch the halfmoon source code:
 
-		git pull git://github.com/jcs/halfmoon.git
+		$:~> git pull git://github.com/jcs/halfmoon.git
 
 3.	run the halfmoon script to create your skeleton directory at your
 	root directory created in step 1:
 
-		cd halfmoon
-		./halfmoon create /var/www/example/
+		$:~> halfmoon/halfmoon create /var/www/example/
+		copying halfmoon framework... done.
+		creating skeleton directory structure... done.
+
+		   /var/www/example/:
+		   total 12
+		   drwxr-xr-x  2 jcs  users  512 Jan 13 14:42 config/
+		   drwxr-xr-x  2 jcs  users  512 Jan 13 11:31 controllers/
+		   drwxr-xr-x  6 jcs  users  512 Jan 13 15:43 halfmoon/
+		   drwxr-xr-x  2 jcs  users  512 Jan 13 15:43 models/
+		   drwxr-xr-x  4 jcs  users  512 Jan 13 15:16 public/
+		   drwxr-xr-x  3 jcs  users  512 Jan 13 11:26 views/
+
+		welcome to halfmoon!
+
+	at a later point, halfmoon will be installed system-wide, so that
+	running "halfmoon create ..." will work from anywhere.
 
 4.	setup an apache virtual host with a DocumentRoot pointing to the
     public/ directory:
