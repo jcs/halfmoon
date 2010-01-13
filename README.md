@@ -1,4 +1,3 @@
-# vim:ts=4:tw=72:ft=markdown
 
 	 ,-.
 	( (  halfmoon tiny mvc framework for php
@@ -214,3 +213,6 @@ route of :controller/:action/:id and a root url ("/") route.
 	production group, and any settings you have changed in
 	config/boot.php that are environment-specific (such as disabling
 	logging).
+
+
+### vim:ts=4:tw=72:ft=markdown
