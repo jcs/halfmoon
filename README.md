@@ -15,7 +15,7 @@ supports a concept of environments like rails, defaulting to a
 development environment which logs things to apache's error log and
 displays errors in the browser.
 
-its url routing works similar as well, supporting a catch-all default
+its url routing works similarly as well, supporting a catch-all default
 route of :controller/:action/:id and a root url ("/") route.
 
 
