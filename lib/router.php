@@ -36,16 +36,10 @@ class Router extends Singleton {
 			return $this->takeRoute($this->rootRoute, $url, $params);
 		}
 
-		$url_pieces = split("/", $url);
+		$url_pieces = explode("/", $url);
 
 		foreach ($this->routes as $route) {
-			$route_pieces = split("/", $route["url"]);
-
-			/* can't possibly match, skip over it */
-			if (count($route_pieces) != count($url_pieces))
-				continue;
-
-			$controller = $action = $id = "";
+			$route_pieces = explode("/", $route["url"]);
 
 			$match = true;
 			for ($x = 0; $x < count($route_pieces); $x++) {
@@ -56,7 +50,9 @@ class Router extends Singleton {
 					if ($reg && !preg_match($reg, $url_pieces[$x]))
 						$match = false;
 					else
-						$$m[1] = $url_pieces[$x];
+						/* store this named parameter (e.g. "/:blah" route on a
+						 * url of "/hi" defines $route["blah"] to be "hi") */
+						$route[$m[1]] = $url_pieces[$x];
 				}
 
 				/* else it must match exactly */
@@ -68,33 +64,28 @@ class Router extends Singleton {
 			}
 
 			if ($match) {
-				if ($route["controller"])
-					$controller = $route["controller"];
+				/* we need at least a valid controller */
+				if ($route["controller"] == "" ||
+				!class_exists(ucfirst($route["controller"]) . "Controller"))
+					continue;
 
-				if ($route["action"])
-					$action = $route["action"];
-
-				if ($route["id"])
-					$id = $route["id"];
-
-				if ($controller == "" || $action == "" || $id == "")
-					die("matched but missing a component?");
-				else
-					return $this->takeRoute(array("controller" => $controller,
-						"action" => $action, "id" => $id), $url, $params);
+				return $this->takeRoute($route, $url, $params);
 			}
 		}
 
-		die("can't understand url " . $url);
+		die("no route for url \"" . $url . "\"");
 	}
 
 	public function takeRoute($route, $url, $params) {
-		if ($route["action"] == "")
-			$route["action"] = "index";
-
+		/* we need at least a controller */
 		if ($route["controller"] == "")
 			die("no controller specified");
 
+		/* but we can deal with no action by calling the index action */
+		if ($route["action"] == "")
+			$route["action"] = "index";
+
+		/* store the parameters named in the route with data from the url */
 		foreach ($route as $k => $v)
 			$params[$k] = $v;
 
