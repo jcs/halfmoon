@@ -48,9 +48,14 @@ class ApplicationController {
 		session_start();
 
 		/* call any before_filters first, bailing if any return false */
-		foreach ((array)self::$before_filter as $filter)
+		foreach ((array)$this::$before_filter as $filter) {
+			if (!method_exists($this, $filter))
+				die("before_filter \"" . $filter . "\" function does not "
+					. "exist");
+
 			if (!call_user_func_array(array($this, $filter), array()))
 				return false;
+		}
 
         ob_start();
 
