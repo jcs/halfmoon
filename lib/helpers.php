@@ -46,6 +46,22 @@ function link_to($text, $obj_or_link, $options = array()) {
 		. ">" . $text . "</a>";
 }
 
+function redirect_to($obj_or_link) {
+	if (is_object($obj_or_link)) {
+		$class = get_class($obj_or_link);
+		$link_dest = $class::table()->table . "/show/" . $obj_or_link->id;
+	} else
+		$link_dest = $obj_or_link;
+
+	/* prevent any content from getting to the user */
+	ob_end_clean();
+
+	header("Location: " . $link_dest);
+
+	/* and bail */
+	exit;
+}
+
 function stylesheet_link_tag($files) {
 	$out = "";
 
