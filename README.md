@@ -119,17 +119,19 @@ route of :controller/:action/:id and a root url ("/") route.
 2.	create controllers in the controllers/ directory to map urls to
 	actions.
 
-		controllers/posts_controller.rb:
+	example controllers/posts_controller.rb:
 
-			<?php
+		<?php
 
-			class PostsController extends ApplicationController {
-				public function index() {
-					$this->posts = Post::find("all");
-				}
+		class PostsController extends ApplicationController {
+			static $before_filter = array("authenticate_user");
+
+			public function index() {
+				$this->posts = Post::find("all");
 			}
+		}
 
-			?>
+		?>
 
 	to set variables in the namespace of the view, use "$this->varname".
 	in the above example, $posts is an array of all posts and is visible
@@ -137,6 +139,12 @@ route of :controller/:action/:id and a root url ("/") route.
 
 	the index action will be called by default when a route does
     not specify an action.
+
+	defining a $before_filter array of functions will call them before
+	processing the action.  if any of them return false (such as one
+	failing to authenticate the user and wanting to redirect to a login
+	page), processing will stop, no other before_filters will be run,
+	and the controller action will not be run.
 
 3.	create views in the views/ directory.  by default, controller
 	actions will try to render views/(controller)/(action).phtml.
