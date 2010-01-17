@@ -20,9 +20,9 @@ function error_log_r($param) {
 
 /* when passed a closure containing print/<?=?> code, execute it, capture the
  * output, and return it as a string */
-function to_s($closure) {
+function to_s($obj, $closure) {
 	ob_start();
-	$closure();
+	$closure($obj);
 	$str = ob_get_contents();
 	ob_end_clean();
 
