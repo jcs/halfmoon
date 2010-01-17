@@ -30,28 +30,41 @@ class ApplicationController {
 
 	/* render(array("partial" => "somedir/file"), array("v" => $v)) */
 	public function render($template, $vars = array()) {
-		if (is_array($template) && $template["partial"])
-			$template_file = dirname($template["partial"]) . "/_"
-				. basename($template["partial"]);
+		/* just render text */
+		if (is_array($template) && $template["text"])
+			print $template["text"];
 
-		elseif (is_array($template) && $template["action"])
-			$template_file = $template["action"];
+		/* assume we're dealing with files */
+		else {
+			$template_file = "";
 
-		elseif (is_array($template))
-			$template_file = join("", array_values($template));
+			/* render a partial template */
+			if (is_array($template) && $template["partial"])
+				$template_file = dirname($template["partial"]) . "/_"
+					. basename($template["partial"]);
 
-		else
-			$template_file = $template;
+			/* render an action template */
+			elseif (is_array($template) && $template["action"])
+				$template_file = $template["action"];
 
-		if (file_exists($full_file = HALFMOON_ROOT . "/views/" . $template_file
-		. ".phtml")) {
-			/* import the keys/values into the namespace of this partial */
-			foreach ($vars as $vname => $vdata)
-				$$vname = $vdata;
+			/* just a filename, render it as an action */
+			elseif (is_array($template))
+				$template_file = join("", array_values($template));
 
-			require($full_file);
-		} else
-			throw new RenderException("no template file " . $full_file);
+			/* just a filename, render it as an action */
+			else
+				$template_file = $template;
+
+			if (file_exists($full_file = HALFMOON_ROOT . "/views/"
+			. $template_file . ".phtml")) {
+				/* import the keys/values into the namespace of this partial */
+				foreach ($vars as $vname => $vdata)
+					$$vname = $vdata;
+
+				require($full_file);
+			} else
+				throw new RenderException("no template file " . $full_file);
+		}
 
 		$this->did_render = true;
 	}
