@@ -38,7 +38,7 @@ class ApplicationController {
 
 			require($full_file);
 		} else
-			die("no template file " . $full_file);
+			throw new RenderException("no template file " . $full_file);
 
 		$this->did_render = true;
 	}
@@ -50,16 +50,20 @@ class ApplicationController {
 		/* call any before_filters first, bailing if any return false */
 		foreach ((array)$this::$before_filter as $filter) {
 			if (!method_exists($this, $filter))
-				die("before_filter \"" . $filter . "\" function does not "
-					. "exist");
+				throw new RenderException("before_filter \"" . $filter . "\" "
+					. "function does not exist");
 
 			if (!call_user_func_array(array($this, $filter), array()))
 				return false;
 		}
 
-        ob_start();
+		ob_start();
 
-        call_user_func_array(array($this, $action), array());
+		if (!method_exists($this, $action))
+			throw new RenderException("controller \"" . get_class($this)
+				. "\" does not have an action \"" . $action . "\"");
+
+		call_user_func_array(array($this, $action), array());
 
 		if ($this->did_render)
 			ob_end_flush();

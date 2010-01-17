@@ -3,18 +3,9 @@
 	helper functions available everywhere
 */
 
-function A($data, $index) {
-	return $data[$index];
-}
-
-/* print_r() to the error log */
-function error_log_r($param) {
-	ob_start();
-	print_r($param);
-	$lines = explode("\n", ob_get_clean());
-
-	foreach ($lines as $line)
-		error_log($line);
+function form_for() {
+	return call_user_func_array(array(new HalfMoon\FormHelper, "form_for"),
+		func_get_args());
 }
 
 /* alias htmlspecialchars() to something smaller */
@@ -22,6 +13,30 @@ function h($text) {
 	return htmlspecialchars($text);
 }
 
+/* create a link to a javascript file, appending its modification time to force
+ * clients to reload it when it's modified */
+function javascript_include_tag($files) {
+	$out = "";
+
+	if (!is_array($files))
+		$files = array($files);
+
+	foreach ($files as $file) {
+		$file .= ".js";
+
+		$mtime = 0;
+		if (file_exists(HALFMOON_ROOT . "/public/javascripts/" . $file))
+			$mtime = filemtime(HALFMOON_ROOT . "/public/javascripts/" . $file);
+
+		$out .= "<script type=\"text/javascript\" src=\"/javascripts/" . $file
+			. ($mtime ? "?" . $mtime : "") . "\"></script>\n";
+	}
+
+	return $out;
+}
+
+/* create an <a href> tag for a given url or object (defaulting to
+ * the (table)/show/(id) */
 function link_to($text, $obj_or_link, $options = array()) {
 	$link_options = array();
 	$link_dest = "";
@@ -46,6 +61,7 @@ function link_to($text, $obj_or_link, $options = array()) {
 		. ">" . $text . "</a>";
 }
 
+/* cancel all buffered output, send a location: header, and exit */
 function redirect_to($obj_or_link) {
 	if (is_object($obj_or_link)) {
 		$class = get_class($obj_or_link);
@@ -62,6 +78,8 @@ function redirect_to($obj_or_link) {
 	exit;
 }
 
+/* create a link to a css file, appending its modification time to force
+ * clients to reload it when it's modified */
 function stylesheet_link_tag($files) {
 	$out = "";
 
@@ -78,26 +96,6 @@ function stylesheet_link_tag($files) {
 		$out .= "<link href=\"/stylesheets/" . $file
 			. ($mtime ? "?" . $mtime : "") . "\" media=\"screen\" "
 			. "rel=\"stylesheet\" type=\"text/css\"/>\n";
-	}
-
-	return $out;
-}
-
-function javascript_include_tag($files) {
-	$out = "";
-
-	if (!is_array($files))
-		$files = array($files);
-
-	foreach ($files as $file) {
-		$file .= ".js";
-
-		$mtime = 0;
-		if (file_exists(HALFMOON_ROOT . "/public/javascripts/" . $file))
-			$mtime = filemtime(HALFMOON_ROOT . "/public/javascripts/" . $file);
-
-		$out .= "<script type=\"text/javascript\" src=\"/javascripts/" . $file
-			. ($mtime ? "?" . $mtime : "") . "\"></script>\n";
 	}
 
 	return $out;

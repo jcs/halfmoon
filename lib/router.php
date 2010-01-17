@@ -16,7 +16,7 @@ class Router extends Singleton {
 
 	public function addRoute($route) {
 		if (!is_array($route))
-			die("invalid route of " . var_export($route));
+			throw new RoutingException("invalid route of " . var_export($route));
 
 		array_push($this->routes, $route);
 	}
@@ -31,7 +31,7 @@ class Router extends Singleton {
 
 		if ($url == "") {
 			if (!$this->rootRoute)
-				die("no root route defined");
+				throw new RoutingException("no root route defined");
 
 			return $this->takeRoute($this->rootRoute, $url, $params);
 		}
@@ -69,17 +69,21 @@ class Router extends Singleton {
 				!class_exists(ucfirst($route["controller"]) . "Controller"))
 					continue;
 
+				/* note that we pass the action to the controller even if it
+				 * doesn't exist, that way at least the backtrace will show
+				 * what controller we resolved it to */
+
 				return $this->takeRoute($route, $url, $params);
 			}
 		}
 
-		die("no route for url \"" . $url . "\"");
+		throw new RoutingException("no route for url \"" . $url . "\"");
 	}
 
 	public function takeRoute($route, $url, $params) {
 		/* we need at least a controller */
 		if ($route["controller"] == "")
-			die("no controller specified");
+			throw new RoutingException("no controller specified");
 
 		/* but we can deal with no action by calling the index action */
 		if ($route["action"] == "")

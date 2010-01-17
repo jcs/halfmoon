@@ -19,8 +19,14 @@ session_name("halfmoon_session");
 if (!defined("HALFMOON_ENV"))
     define("HALFMOON_ENV", "development");
 
-require_once(HALFMOON_ROOT . "/halfmoon/lib/helpers.php");
+require_once(HALFMOON_ROOT . "/halfmoon/lib/exceptions.php");
+require_once(HALFMOON_ROOT . "/halfmoon/lib/rescue.php");
+
+require_once(HALFMOON_ROOT . "/halfmoon/lib/utilities.php");
 require_once(HALFMOON_ROOT . "/halfmoon/lib/singleton.php");
+
+require_once(HALFMOON_ROOT . "/halfmoon/lib/form_helper.php");
+require_once(HALFMOON_ROOT . "/halfmoon/lib/helpers.php");
 require_once(HALFMOON_ROOT . "/halfmoon/lib/controller.php");
 require_once(HALFMOON_ROOT . "/halfmoon/lib/router.php");
 
@@ -45,8 +51,8 @@ ActiveRecord\Config::initialize(function($cfg) {
 	$db_config = parse_ini_file(HALFMOON_ROOT . "/config/db.ini", true);
 
 	if (!$db_config[HALFMOON_ENV])
-		die("no database configuration found for \"" . HALFMOON_ENV . "\" "
-			. "environment");
+		throw new Halfmoon\ConfigException("no database configuration found "
+			. "for \"" . HALFMOON_ENV . "\" environment");
 
 	$db = array_merge($db, $db_config[HALFMOON_ENV]);
 
