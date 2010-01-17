@@ -18,6 +18,24 @@ displays errors in the browser.
 its url routing works similarly as well, supporting a catch-all default
 route of :controller/:action/:id and a root url ("/") route.
 
+form helpers work similar to rails.  for example, doing this in rails:
+
+	<% form_for :post, @post, :url => "/posts/update" do |f| %>
+		<%= f.label :title, "Post Title" %>
+		<%= f.text_field :title, :size => 20 %>
+
+		<%= submit_tag "Submit" %>
+	<% end %>
+
+is similar to this in halfmoon:
+
+	<? form_for($post, "/posts/update", array(), function($f) { ?>
+		<?= $f->label("title", "Post Title"); ?>
+		<?= $f->text_field("title", array("size" => 20)); ?>
+
+		<?= submit_tag("Login") ?>
+	<? }); ?>
+
 
 ## requirements ##
 
