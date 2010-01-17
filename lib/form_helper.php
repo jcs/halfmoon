@@ -8,6 +8,9 @@ namespace HalfMoon;
 class FormHelper {
 	public $form_object = null;
 
+	/* output a <form>..</form> wrapped around a closure, to which this
+	 * FormHelper object is passed, which should output the actual form
+	 * content, using things like <?= $f->text_field(...) ?> */
 	public function form_for($obj, $url, $options = array(),
 	\Closure $form_content) {
 		$this->form_object = $obj;
@@ -27,9 +30,25 @@ class FormHelper {
 		return strtolower(get_class($this->form_object));
 	}
 
+	/* create a <label> that references a real column */
 	public function label($column, $caption) {
 		return "<label for=\"" . $this->form_prefix() . "_" . $column . "\">"
 			. $caption . "</label>";
+	}
+
+	/* create an <input> password field, *not including any value* */
+	public function password_field($field, $options = array()) {
+		$type = ($options["type"] ? $options["type"] : "password");
+
+		$opts_s = "";
+		foreach ($options as $k => $v)
+			$opts_s .= " " . $k . "=\"" . $v . "\"";
+
+		return "<input type=\"" . $type . "\""
+			. " id=\"" . $this->form_prefix() . "_" . $field . "\""
+			. " name=\"" . $this->form_prefix() . "[" . $field .  "]\""
+			. $opts_s
+			. " />";
 	}
 
 	/* create an <input> submit button */
