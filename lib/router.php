@@ -89,7 +89,27 @@ class Router extends Singleton {
 		if ($route["action"] == "")
 			$route["action"] = "index";
 
-		/* store the parameters named in the route with data from the url */
+		/* store get and post vars in $params first according to php's
+		 * variables_order setting (EGPCS by default) */
+		foreach (str_split(ini_get("variables_order")) as $vtype) {
+			$varray = null;
+
+			switch (strtoupper($vtype)) {
+			case "P":
+				$varray = &$_POST;
+				break;
+			case "G":
+				$varray = &$_GET;
+				break;
+			}
+
+			if ($varray)
+				foreach ($varray as $k => $v)
+					$params[$k] = $v;
+		}
+
+		/* then store the parameters named in the route with data from the url,
+		 * overriding anything passed by the user as get/post */
 		foreach ($route as $k => $v)
 			$params[$k] = $v;
 
