@@ -3,7 +3,20 @@
 namespace HalfMoon;
 
 class ApplicationController {
+	/* array of methods to call before processing any actions, bailing if any
+	 * return false */
 	static $before_filter = array();
+
+	/* array of arrays to verify before processing any actions
+	 * e.g. $verify = array(
+	 *          array("method" => "post",
+	 *              "only" => array("login"),
+	 *              "redirect_to" => "/",
+	 *          ),
+	 *          array("method" => "get",
+	 *          ...
+	 */
+	static $verify = array();
 
 	public $params = array();
 	public $locals = array();
@@ -46,6 +59,29 @@ class ApplicationController {
 	/* the main entry point for the controller, sent by the router */
 	public function render_action($action) {
 		session_start();
+
+		/* verify any options requiring verification */
+		foreach ((array)$this::$verify as $verification) {
+			/* if this action isn't in the include list, skip */
+			if ($verification["only"] &&
+			!in_array($action, (array)$verification["only"]))
+				continue;
+
+			/* if this action is exempted, skip */
+			if ($verification["except"] &&
+			in_array($action, (array)$verification["except"]))
+				continue;
+
+			/* if the method passed from the server matches, skip */
+			if ($verification["method"] &&
+			(strtolower($_SERVER["REQUEST_METHOD"]) ==
+			strtolower($verification["method"])))
+				continue;
+
+			/* still here, do any actions */
+			if ($verification["redirect_to"])
+				return redirect_to($verification["redirect_to"]);
+		}
 
 		/* call any before_filters first, bailing if any return false */
 		foreach ((array)$this::$before_filter as $filter) {
