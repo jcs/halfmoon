@@ -4,6 +4,7 @@
 */
 
 namespace HalfMoon;
+
 use Closure;
 
 class Router extends Singleton {
@@ -96,10 +97,10 @@ class Router extends Singleton {
 
 			switch (strtoupper($vtype)) {
 			case "P":
-				$varray = &$_POST;
+				$varray = $_POST;
 				break;
 			case "G":
-				$varray = &$_GET;
+				$varray = $_GET;
 				break;
 			}
 
