@@ -13,6 +13,9 @@ class FormHelper {
 	 * content, using things like <?= $f->text_field(...) ?> */
 	public function form_for($obj, $url, $options = array(),
 	\Closure $form_content) {
+		if (!$obj)
+			throw new HalfmoonException("invalid object passed to form_for()");
+
 		$this->form_object = $obj;
 
 		$method = ($options["method"] ? $options["method"] : "post");
