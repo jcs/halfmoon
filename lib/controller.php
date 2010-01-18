@@ -87,16 +87,32 @@ class ApplicationController {
 
 	/* a private function to avoid taining the variable space after the
 	 * require() */
-	private function _really_render_file($file, $vars) {
+	private function _really_render_file($__file, $__vars) {
+		/* XXX: should this be checking for more special variable names? */
+
 		/* export variables set in the controller to the view */
-		foreach ($this->locals as $k => $v)
+		foreach ($this->locals as $k => $v) {
+			if (in_array($k, array("__vars", "__file"))) {
+				error_log("tried to redefine " . $k . " passed from "
+					. "controller");
+				continue;
+			}
+
 			$$k = $v;
+		}
 
 		/* and any passed as locals to the render() function */
-		foreach ($vars as $k => $v)
-			$$k = $v;
+		foreach ($__vars as $k => $v) {
+			if ($k == "__file")  {
+				error_log("tried to redefine " . $k . " passed from "
+					. "render() call");
+				continue;
+			}
 
-		require($file);
+			$$k = $v;
+		}
+
+		require($__file);
 	}
 
 	/* the main entry point for the controller, sent by the router */
