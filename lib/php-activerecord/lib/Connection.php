@@ -203,8 +203,14 @@ abstract class Connection
 	 */
 	public function query($sql, &$values=array())
 	{
-		if (isset($GLOBALS['ACTIVERECORD_LOG']) && $GLOBALS['ACTIVERECORD_LOG'])
-			$GLOBALS['ACTIVERECORD_LOGGER']->log($sql, PEAR_LOG_INFO);
+		if (isset($GLOBALS['ACTIVERECORD_LOG']) && $GLOBALS['ACTIVERECORD_LOG']) {
+			$query = $sql;
+
+			if (count($values))
+				$query .= " (" . implode(", ", $values) . ")";
+
+			$GLOBALS['ACTIVERECORD_LOGGER']->log($query, PEAR_LOG_INFO);
+		}
 
 		$this->last_query = $sql;
 
