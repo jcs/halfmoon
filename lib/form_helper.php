@@ -60,6 +60,26 @@ class FormHelper {
 			. "\" />";
 	}
 
+	/* create a <textarea> field */
+	public function text_area($field, $options = array()) {
+		if ($options["size"]) {
+			list($options["cols"], $options["rows"]) = explode("x",
+				$options["size"], 2);
+
+			unset($options["size"]);
+		}
+
+		$opts_s = "";
+		foreach ($options as $k => $v)
+			$opts_s .= " " . $k . "=\"" . $v . "\"";
+
+		return "<textarea "
+			. " id=\"" . $this->form_prefix() . "_" . $field . "\""
+			. " name=\"" . $this->form_prefix() . "[" . $field .  "]\""
+			. $opts_s
+			. ">" . h($this->form_object->$field) . "</textarea>";
+	}
+
 	/* create an <input> text field */
 	public function text_field($field, $options = array()) {
 		$type = ($options["type"] ? $options["type"] : "text");
