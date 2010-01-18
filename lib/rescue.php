@@ -42,30 +42,26 @@ function halfmoon_exception_handler($exception) {
 		array_shift($backtrace);
 
 		foreach ($backtrace as $call) {
-			$fileparts = explode("/", $call["file"]);
+			if ($call["file"]) {
+				$fileparts = explode("/", $call["file"]);
 
-			for ($x = 0; $x < count($fileparts); $x++) {
-				$fileparts[$x] = h($fileparts[$x]);
+				for ($x = 0; $x < count($fileparts); $x++) {
+					$fileparts[$x] = h($fileparts[$x]);
 
-				if ($x == count($fileparts) - 1)
-					$fileparts[$x] = "<strong>" . $fileparts[$x]
-						. "</strong>";
+					if ($x == count($fileparts) - 1)
+						$fileparts[$x] = "<strong>" . $fileparts[$x]
+							. "</strong>";
+				}
+
+				?>
+				<?= join("/", $fileparts); ?><?
+			} else {
+				?><?= h($call["class"]) ?><?
 			}
-
-			?>
-			<?= join("/", $fileparts); ?>:<?= h($call["line"]) ?>
+			
+			?>:<?= h($call["line"]) ?>
 			in
-			<?
-
-			$args_s = "";
-			foreach ($call["args"] as $arg)
-				$args_s .= ($args_s == "" ? "" : ", ")
-					. (is_array($arg) ? "" : "\"")
-					. h(print_r($arg, true))
-					. (is_array($arg) ? "" : "\"");
-
-			?>
-			<strong><?= h($call["function"]) ?>(<?= $args_s ?>)</strong>
+			<strong><?= h($call["function"]) ?>()</strong>
 			<br />
 			<?
 		}
