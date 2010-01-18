@@ -73,7 +73,7 @@ usort($controllers, function($a, $b) {
 foreach ($controllers as $controller)
 	require_once($controller);
 
-/* bring in the route table */
+/* bring in the route table and route our request */
 HalfMoon\Router::initialize(function($router) {
 	require_once(HALFMOON_ROOT . "/config/routes.php");
 });
