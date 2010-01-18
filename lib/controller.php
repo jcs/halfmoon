@@ -50,6 +50,9 @@ class ApplicationController {
 	public function render($template, $vars = array()) {
 		/* render(array("partial" => "somedir/file"), array("v" => $v)) */
 
+		if ($template["status"])
+			header($_SERVER["SERVER_PROTOCOL"] . " " . $template["status"]);
+
 		/* just render text */
 		if (is_array($template) && $template["text"])
 			print $template["text"];
@@ -174,6 +177,8 @@ class ApplicationController {
 		$content_for_layout = ob_get_contents();
 		ob_end_clean();
 
+		/* look for a layout specific to this controller, otherwise use
+		 * "application" */
 		$layout = "application";
 		if ($params["controller"] && file_exists(HALFMOON_ROOT . "/views/layouts/"
 		. $params["controller"] . ".phtml"))
