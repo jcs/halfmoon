@@ -27,6 +27,9 @@ class ApplicationController {
 	public function __set($name, $value) {
 		$this->locals[$name] = $value;
 	}
+	public function __get($name) {
+		return $this->locals[$name];
+	}
 
 	/* store an error in the session to be printed on the next view with the
 	 * flash_errors() helper */
