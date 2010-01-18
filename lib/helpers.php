@@ -63,10 +63,44 @@ function link_to($text, $obj_or_link, $options = array()) {
 
 /* cancel all buffered output, send a location: header, and exit */
 function redirect_to($obj_or_link) {
+	/* passed an object, redirect to its show url */
 	if (is_object($obj_or_link)) {
 		$class = get_class($obj_or_link);
 		$link_dest = $class::table()->table . "/show/" . $obj_or_link->id;
-	} else
+	}
+
+	/* passed an array, figure out what to do */
+	elseif (is_array($obj_or_link)) {
+		$link_dest = "/";
+
+		if ($obj_or_link["controller"])
+			$link_dest .= $obj_or_link["controller"];
+		else
+			$link_dest .= strtolower(preg_replace("/Controller$/", "",
+				current_controller()));
+
+		if ($obj_or_link["action"]) {
+			$link_dest .= "/" . $obj_or_link["action"];
+
+			if ($obj_or_link["id"])
+				$link_dest .= "/" . $obj_or_link["id"];
+		}
+
+		$url_params = "";
+		foreach ($obj_or_link as $k => $v) {
+			if (in_array($k, array("controller", "action", "id")))
+				continue;
+
+			$url_params .= ($url_params == "" ? "" : "&") . urlencode($k)
+				. "=" . urlencode($v);
+		}
+
+		if ($url_params != "")
+			$link_dest .= "?" . $url_params;
+	}
+
+	/* assume we were passed a url */
+	else
 		$link_dest = $obj_or_link;
 
 	/* prevent any content from getting to the user */
