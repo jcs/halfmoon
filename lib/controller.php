@@ -22,6 +22,7 @@ class ApplicationController {
 	public $locals = array();
 
 	private $did_render = false;
+	private $did_layout = false;
 
 	/* turn local class variables into $variables when rendering views */
 	public function __set($name, $value) {
@@ -184,14 +185,15 @@ class ApplicationController {
 		if ($this->did_render)
 			ob_end_flush();
 		else
-			$this->render_with_layout($action);
+			$this->render(array("action" => $this->params["controller"] . "/"
+				. $action), $this->locals);
+
+		if (!$this->did_layout)
+			$this->render_layout();
 	}
 
-	/* capture the output of all the partials and render it with the layout */
-	public function render_with_layout($action) {
-		$this->render(array("action" => $this->params["controller"] . "/"
-			. $action), $this->locals);
-
+	/* capture the output of everything rendered and put it within the layout */
+	public function render_layout() {
 		$content_for_layout = ob_get_contents();
 		ob_end_clean();
 
@@ -201,6 +203,8 @@ class ApplicationController {
 		if ($params["controller"] && file_exists(HALFMOON_ROOT . "/views/layouts/"
 		. $params["controller"] . ".phtml"))
 			$layout = $params["controller"];
+
+		$this->did_layout = true;
 
 		require(HALFMOON_ROOT . "/views/layouts/" . $layout . ".phtml");
 	}
