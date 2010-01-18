@@ -142,7 +142,7 @@ function redirect_to($obj_or_url) {
 	/* prevent any content from getting to the user */
 	ob_end_clean();
 
-	header("Location: " . $link_dest);
+	header("Location: " . $link);
 
 	/* and bail */
 	exit;
