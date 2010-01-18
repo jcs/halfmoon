@@ -1,1 +1,17 @@
 /* application css */
+
+div.flash-notice, div.flash-error {
+	border: 2px solid;
+	margin: 5px 5px 10px 5px;
+	padding: 5px 10px;
+}
+
+div.flash-notice {
+	background-color: #e8ffe7;
+	border-color: green;
+}
+
+div.flash-error {
+	background-color: #ffe7e7;
+	border-color: red;
+}

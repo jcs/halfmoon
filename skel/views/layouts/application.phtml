@@ -7,6 +7,9 @@
 	<?= javascript_include_tag(array("prototype", "application")); ?>
 </head>
 <body>
+	<?= flash_errors(); ?>
+	<?= flash_notices(); ?>
+
 	<?= $content_for_layout ?>
 </body>
 </html>

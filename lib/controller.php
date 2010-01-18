@@ -28,6 +28,20 @@ class ApplicationController {
 		$this->locals[$name] = $value;
 	}
 
+	public function add_flash_error($string) {
+		if (!$_SESSION["flash_errors"])
+			$_SESSION["flash_errors"] = array();
+
+		array_push($_SESSION["flash_errors"], $string);
+	}
+
+	public function add_flash_notice($string) {
+		if (!$_SESSION["flash_notices"])
+			$_SESSION["flash_notices"] = array();
+
+		array_push($_SESSION["flash_notices"], $string);
+	}
+
 	/* render(array("partial" => "somedir/file"), array("v" => $v)) */
 	public function render($template, $vars = array()) {
 		/* just render text */

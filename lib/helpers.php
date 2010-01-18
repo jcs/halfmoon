@@ -3,6 +3,38 @@
 	helper functions available everywhere
 */
 
+/* print the errors stored in the session and then reset the array */
+function flash_errors() {
+	$html = "";
+
+	if (count((array)$_SESSION["flash_errors"])) {
+		$html = "<div class=\"flash-error\">"
+			. implode("<br />\n", (array)$_SESSION["flash_errors"])
+			. "</div>";
+
+		/* clear out for the next view */
+		$_SESSION["flash_errors"] = array();
+	}
+
+	return $html;
+}
+
+/* print the notices stored in the session and then reset the array */
+function flash_notices() {
+	$html = "";
+
+	if (count((array)$_SESSION["flash_notices"])) {
+		$html = "<div class=\"flash-notice\">"
+			. implode("<br />\n", (array)$_SESSION["flash_notices"])
+			. "</div>";
+
+		/* clear out for the next view */
+		$_SESSION["flash_notices"] = array();
+	}
+
+	return $html;
+}
+
 function form_for() {
 	return call_user_func_array(array(new HalfMoon\FormHelper, "form_for"),
 		func_get_args());
