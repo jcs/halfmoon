@@ -8,6 +8,21 @@ function A($data, $index) {
 	return $data[$index];
 }
 
+/* determine the current controller class by looking at a backtrace */
+function current_controller() {
+	$controller = null;
+	foreach (debug_backtrace() as $stack)
+		if ($stack["class"] && preg_match("/.+Controller$/", $stack["class"])) {
+			$controller = $stack["class"];
+			break;
+		}
+
+	if ($controller)
+		return $controller;
+	else
+		throw new HalfmoonException("couldn't determine current controller");
+}
+
 /* print_r() to the error log */
 function error_log_r($param) {
 	ob_start();
