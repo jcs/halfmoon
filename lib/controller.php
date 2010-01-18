@@ -28,6 +28,8 @@ class ApplicationController {
 		$this->locals[$name] = $value;
 	}
 
+	/* store an error in the session to be printed on the next view with the
+	 * flash_errors() helper */
 	public function add_flash_error($string) {
 		if (!$_SESSION["flash_errors"])
 			$_SESSION["flash_errors"] = array();
@@ -35,6 +37,8 @@ class ApplicationController {
 		array_push($_SESSION["flash_errors"], $string);
 	}
 
+	/* store a notice in the session to be printed on the next view with the
+	 * flash_notices() helper */
 	public function add_flash_notice($string) {
 		if (!$_SESSION["flash_notices"])
 			$_SESSION["flash_notices"] = array();
@@ -42,8 +46,10 @@ class ApplicationController {
 		array_push($_SESSION["flash_notices"], $string);
 	}
 
-	/* render(array("partial" => "somedir/file"), array("v" => $v)) */
+	/* render a partial view, an action template, text, etc. */
 	public function render($template, $vars = array()) {
+		/* render(array("partial" => "somedir/file"), array("v" => $v)) */
+
 		/* just render text */
 		if (is_array($template) && $template["text"])
 			print $template["text"];
