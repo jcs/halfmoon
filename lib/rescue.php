@@ -82,9 +82,8 @@ function halfmoon_exception_handler($exception) {
 		<p>
 		<div class="info">
 		<? foreach ($_GET as $k => $v) { ?>
-			"<?= str_replace("\"", "\\\"", h($k)) ?>":
-			"<?= str_replace("\"", "\\\"", h($v)) ?>"
-		<? } ?><br />
+			<?= h(var_export($k, true) . ": " . var_export($v, true)) ?><br />
+		<? } ?>
 		</div>
 		</p>
 		<p>
@@ -93,9 +92,8 @@ function halfmoon_exception_handler($exception) {
 		<p>
 		<div class="info">
 		<? foreach ($_POST as $k => $v) { ?>
-			"<?= str_replace("\"", "\\\"", h($k)) ?>":
-			"<?= str_replace("\"", "\\\"", h($v)) ?>"
-		<? } ?><br />
+			<?= h(var_export($k, true) . ": " . var_export($v, true)) ?><br />
+		<? } ?>
 		</div>
 		</p>
 		<p>
@@ -104,9 +102,8 @@ function halfmoon_exception_handler($exception) {
 		<p>
 		<div class="info">
 		<? foreach ($_SESSION as $k => $v) { ?>
-			"<?= str_replace("\"", "\\\"", h($k)) ?>":
-			"<?= str_replace("\"", "\\\"", h($v)) ?>"
-		<? } ?><br />
+			<?= h(var_export($k, true) . ": " . var_export($v, true)) ?><br />
+		<? } ?>
 		</div>
 		</p>
 		</body>
@@ -123,10 +120,8 @@ function throw_exception_from_error($errno, $errstr, $errfile, $errline) {
     if (in_array($errno, array(E_USER_ERROR, E_RECOVERABLE_ERROR)) &&
 	$do_report)
 		throw new ErrorException($errstr, 0, $errno, $errfile, $errline);
-    elseif ($do_report) {
-        error_log($string);
+    elseif ($do_report)
         return false;
-    }
 }
 
 /* make traditional errors throw exceptions so we can handle everything in one
