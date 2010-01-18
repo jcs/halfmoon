@@ -36,16 +36,6 @@ is similar to this in halfmoon:
 		<?= submit_tag("Login") ?>
 	<? }); ?>
 
-because the body of the form_for() will be executed in a different
-context, $this will not point to the controller as it does elsewhere in
-the view.  to get around this, $controller is defined and (along with
-any other local variables needed) can be passed into the form_for() body
-like so:
-
-	<? form_for($post, "/posts/update", array(), function($f) use ($controller) { ?>
-		<h1><?= $controller->title(); ?></h1>
-	<? }); ?>
-
 
 ## requirements ##
 
@@ -249,6 +239,34 @@ like so:
 	production group, and any settings you have changed in
 	config/boot.php that are environment-specific (such as disabling
 	logging).
+
+
+## caveats ##
+
+there are some differences to be aware of between rails and halfmoon.
+some are due to differences between ruby and php and some are just
+design changes.
+
+1.	the body of the form_for() will be executed in a different context,
+	so $this will not point to the controller as it does elsewhere in
+	the view.  to get around this, $controller is defined and (along
+	with any other local variables needed) can be passed into the
+	form_for() body like so:
+
+		<h1><?= $this->title() ?></h1>
+
+		<? form_for($post, "/posts/update", array(), function($f) use ($controller) { ?>
+			<h2><?= $controller->sub_title(); ?></h2>
+			...
+		<? }); ?>
+
+2.	"list" and "new" are reserved keywords in php, so these cannot be
+	used as the controller actions like rails sets up by default.
+
+	it is suggested to use "build" instead of "new", and "index" instead
+	of "list".  of course, "list" and "new" can still be used in the url
+	by adding a specific route to map them to different controller
+	actions.
 
 
 ### vim:ts=4:tw=72:ft=markdown
