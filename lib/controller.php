@@ -105,10 +105,13 @@ class ApplicationController {
 	private function _really_render_file($__file, $__vars) {
 		/* XXX: should this be checking for more special variable names? */
 
+		$__special_vars = array("__special_vars", "__vars", "__file",
+			"controller");
+
 		/* export variables set in the controller to the view */
 		foreach ($this->locals as $k => $v) {
-			if (in_array($k, array("__vars", "__file"))) {
-				error_log("tried to redefine " . $k . " passed from "
+			if (in_array($k, $__special_vars)) {
+				error_log("tried to redefine \$" . $k . " passed from "
 					. "controller");
 				continue;
 			}
@@ -118,14 +121,17 @@ class ApplicationController {
 
 		/* and any passed as locals to the render() function */
 		foreach ($__vars as $k => $v) {
-			if ($k == "__file")  {
-				error_log("tried to redefine " . $k . " passed from "
+			if (in_array($k, $__special_vars)) {
+				error_log("tried to redefine \$" . $k . " passed from "
 					. "render() call");
 				continue;
 			}
 
 			$$k = $v;
 		}
+
+		/* define $controller where $this can't be used */
+		$controller = $this;
 
 		require($__file);
 	}
