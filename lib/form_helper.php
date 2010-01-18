@@ -34,9 +34,13 @@ class FormHelper {
 	}
 
 	/* create a <label> that references a real column */
-	public function label($column, $caption) {
-		return "<label for=\"" . $this->form_prefix() . "_" . $column . "\">"
-			. $caption . "</label>";
+	public function label($column, $caption, $options = array()) {
+		$opts_s = "";
+		foreach ($options as $k => $v)
+			$opts_s .= " " . $k . "=\"" . $v . "\"";
+
+		return "<label for=\"" . $this->form_prefix() . "_" . $column . "\""
+			. $opts_s . ">" . $caption . "</label>";
 	}
 
 	/* create an <input> password field, *not including any value* */
