@@ -515,7 +515,22 @@ class Validations
 	 */
 	public function validates_uniqueness_of($attrs)
 	{
-		return ;
+		$configuration = array_merge(self::$DEFAULT_VALIDATION_OPTIONS, array('message' => Errors::$DEFAULT_ERROR_MESSAGES['taken'], 'on' => 'save'));
+
+		foreach ($attrs as $attr)
+		{
+			$options = array_merge($configuration, $attr);
+
+			$conditions = array($this->model->connection()->quote_name($attr[0]) . " = ?", $this->model->$attr[0]);
+
+			if ($this->model->is_new_record()) {
+				$conditions[0] .= " AND " . $this->model->connection()->quote_name($this->model->primary_key()) . " <> ?";
+				array_push($conditions, $this->model->get_primary_key(false));
+			}
+
+			if (call_user_func_array(get_class($this->model) . "::find", array('first', array("conditions" => $conditions))))
+				$this->record->add($attr[0], $options['message']);
+		}
 	}
 
 	private function is_null_with_option($var, &$options)
