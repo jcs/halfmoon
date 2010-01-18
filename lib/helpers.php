@@ -67,17 +67,59 @@ function javascript_include_tag($files) {
 	return $out;
 }
 
+/* return a url string from an object/array or a url string */
+function link_from_obj_or_string($thing) {
+	$link = "";
+
+	/* passed an object, redirect to its show url */
+	if (is_object($thing)) {
+		$class = get_class($thing);
+		$link = "/" . $class::table()->table . "/show/" . $thing->id;
+	}
+
+	/* passed an array, figure out what to do */
+	elseif (is_array($thing)) {
+		$link = "/";
+
+		if ($thing["controller"])
+			$link .= $thing["controller"];
+		else
+			$link .= strtolower(preg_replace("/Controller$/", "",
+				current_controller()));
+
+		if ($thing["action"]) {
+			$link .= "/" . $thing["action"];
+
+			if ($thing["id"])
+				$link .= "/" . $thing["id"];
+		}
+
+		/* anything else in the array is assumed to be passed as get args */
+		$url_params = "";
+		foreach ($thing as $k => $v) {
+			if (in_array($k, array("controller", "action", "id")))
+				continue;
+
+			$url_params .= ($url_params == "" ? "" : "&") . urlencode($k)
+				. "=" . urlencode($v);
+		}
+
+		if ($url_params != "")
+			$link .= "?" . $url_params;
+	}
+
+	/* assume we were passed a url */
+	else
+		$link = $thing;
+	
+	return $link;
+}
+
 /* create an <a href> tag for a given url or object (defaulting to
  * the (table)/show/(id) */
-function link_to($text, $obj_or_link, $options = array()) {
+function link_to($text, $obj_or_url, $options = array()) {
 	$link_options = array();
-	$link_dest = "";
-
-	if (is_object($obj_or_link)) {
-		$class = get_class($obj_or_link);
-		$link_dest = $class::table()->table . "/show/" . $obj_or_link->id;
-	} else
-		$link_dest = $obj_or_link;
+	$link_dest = link_from_obj_or_string($obj_or_url);
 
 	if ($options["style"])
 		array_push($link_options, "style=\"" . $options["style"] . "\"");
@@ -94,46 +136,8 @@ function link_to($text, $obj_or_link, $options = array()) {
 }
 
 /* cancel all buffered output, send a location: header, and exit */
-function redirect_to($obj_or_link) {
-	/* passed an object, redirect to its show url */
-	if (is_object($obj_or_link)) {
-		$class = get_class($obj_or_link);
-		$link_dest = $class::table()->table . "/show/" . $obj_or_link->id;
-	}
-
-	/* passed an array, figure out what to do */
-	elseif (is_array($obj_or_link)) {
-		$link_dest = "/";
-
-		if ($obj_or_link["controller"])
-			$link_dest .= $obj_or_link["controller"];
-		else
-			$link_dest .= strtolower(preg_replace("/Controller$/", "",
-				current_controller()));
-
-		if ($obj_or_link["action"]) {
-			$link_dest .= "/" . $obj_or_link["action"];
-
-			if ($obj_or_link["id"])
-				$link_dest .= "/" . $obj_or_link["id"];
-		}
-
-		$url_params = "";
-		foreach ($obj_or_link as $k => $v) {
-			if (in_array($k, array("controller", "action", "id")))
-				continue;
-
-			$url_params .= ($url_params == "" ? "" : "&") . urlencode($k)
-				. "=" . urlencode($v);
-		}
-
-		if ($url_params != "")
-			$link_dest .= "?" . $url_params;
-	}
-
-	/* assume we were passed a url */
-	else
-		$link_dest = $obj_or_link;
+function redirect_to($obj_or_url) {
+	$link = link_from_obj_or_string($obj_or_url);
 
 	/* prevent any content from getting to the user */
 	ob_end_clean();
