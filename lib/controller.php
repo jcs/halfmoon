@@ -76,17 +76,27 @@ class ApplicationController {
 				$template_file = $template;
 
 			if (file_exists($full_file = HALFMOON_ROOT . "/views/"
-			. $template_file . ".phtml")) {
-				/* import the keys/values into the namespace of this partial */
-				foreach ($vars as $vname => $vdata)
-					$$vname = $vdata;
-
-				require($full_file);
-			} else
+			. $template_file . ".phtml"))
+				$this->_really_render_file($full_file, $vars);
+			else
 				throw new RenderException("no template file " . $full_file);
 		}
 
 		$this->did_render = true;
+	}
+
+	/* a private function to avoid taining the variable space after the
+	 * require() */
+	private function _really_render_file($file, $vars) {
+		/* export variables set in the controller to the view */
+		foreach ($this->locals as $k => $v)
+			$$k = $v;
+
+		/* and any passed as locals to the render() function */
+		foreach ($vars as $k => $v)
+			$$k = $v;
+
+		require($file);
 	}
 
 	/* the main entry point for the controller, sent by the router */
