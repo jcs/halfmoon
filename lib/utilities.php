@@ -11,9 +11,10 @@ function A($data, $index) {
 /* determine the current controller class by looking at a backtrace */
 function current_controller() {
 	$controller = null;
+
 	foreach (debug_backtrace() as $stack)
-		if ($stack["class"] && preg_match("/.+Controller$/", $stack["class"])) {
-			$controller = $stack["class"];
+		if ($stack["object"]) {
+			$controller = get_class($stack["object"]);
 			break;
 		}
 
