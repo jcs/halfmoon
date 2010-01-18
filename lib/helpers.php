@@ -140,7 +140,8 @@ function redirect_to($obj_or_url) {
 	$link = link_from_obj_or_string($obj_or_url);
 
 	/* prevent any content from getting to the user */
-	ob_end_clean();
+	while (ob_end_clean())
+		;
 
 	header("Location: " . $link);
 

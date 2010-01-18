@@ -7,7 +7,8 @@ function halfmoon_exception_handler($exception) {
 	$str = $exception->getMessage();
 
 	if (HALFMOON_ENV == "development" && ini_get("display_errors")) {
-		ob_end_clean();
+		while (ob_end_clean())
+			;
 
 		?>
 		<html>
