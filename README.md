@@ -36,6 +36,16 @@ is similar to this in halfmoon:
 		<?= submit_tag("Login") ?>
 	<? }); ?>
 
+because the body of the form_for() will be executed in a different
+context, $this will not point to the controller as it does elsewhere in
+the view.  to get around this, $controller is defined and (along with
+any other local variables needed) can be passed into the form_for() body
+like so:
+
+	<? form_for($post, "/posts/update", array(), function($f) use ($controller) { ?>
+		<h1><?= $controller->title(); ?></h1>
+	<? }); ?>
+
 
 ## requirements ##
 
