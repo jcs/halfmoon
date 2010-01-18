@@ -62,27 +62,36 @@ class ApplicationController {
 
 		/* assume we're dealing with files */
 		else {
-			$template_file = "";
+			$tf = "";
 
 			/* render a partial template */
 			if (is_array($template) && $template["partial"])
-				$template_file = dirname($template["partial"]) . "/_"
-					. basename($template["partial"]);
+				$tf = $template["partial"];
 
 			/* render an action template */
 			elseif (is_array($template) && $template["action"])
-				$template_file = $template["action"];
+				$tf = $template["action"];
 
 			/* just a filename, render it as an action */
 			elseif (is_array($template))
-				$template_file = join("", array_values($template));
+				$tf = join("", array_values($template));
 
 			/* just a filename, render it as an action */
 			else
-				$template_file = $template;
+				$tf = $template;
+
+			/* if we have no directory, assume it's the in the current
+			 * controller's views */
+			if (!strpos($tf, "/"))
+				$tf = strtolower(preg_replace("/Controller$/", "",
+					current_controller())) . "/" . $tf;
+
+			/* partial template files start with _ */
+			if (is_array($template) && $template["partial"])
+				$tf = dirname($tf) . "/_" . basename($tf);
 
 			if (file_exists($full_file = HALFMOON_ROOT . "/views/"
-			. $template_file . ".phtml"))
+			. $tf . ".phtml"))
 				$this->_really_render_file($full_file, $vars);
 			else
 				throw new RenderException("no template file " . $full_file);
