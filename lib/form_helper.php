@@ -22,7 +22,7 @@ class FormHelper {
 
 		?>
 		<form method="<?= $method ?>" action="<?= $url ?>">
-		<?= to_s($this, $form_content) ?>
+		<?= to_s($this, $form_content); ?>
 		</form>
 		<?
 
@@ -33,6 +33,11 @@ class FormHelper {
 		return strtolower(get_class($this->form_object));
 	}
 
+	/* just a convenience forward to the global button_to() */
+	public function button_to() {
+		return call_user_func_array("button_to", func_get_args());
+	}
+
 	/* create a <label> that references a real column */
 	public function label($column, $caption, $options = array()) {
 		$opts_s = "";
@@ -41,6 +46,11 @@ class FormHelper {
 
 		return "<label for=\"" . $this->form_prefix() . "_" . $column . "\""
 			. $opts_s . ">" . $caption . "</label>";
+	}
+
+	/* just a convenience forward to the global link_to() */
+	public function link_to() {
+		return call_user_func_array("link_to", func_get_args());
 	}
 
 	/* create an <input> password field, *not including any value* */

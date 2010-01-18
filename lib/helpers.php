@@ -3,6 +3,16 @@
 	helper functions available everywhere
 */
 
+/* like link_to but use a button */
+function button_to($text, $obj_or_url, $options = array()) {
+	if (!$options["method"])
+		$options["method"] = "post";
+
+	return "<input type=\"button\" value=\"" . $text . "\" "
+		. options_for_link($options, link_from_obj_or_string($obj_or_url))
+		. " />";
+}
+
 /* print the errors stored in the session and then reset the array */
 function flash_errors() {
 	$html = "";
@@ -118,21 +128,49 @@ function link_from_obj_or_string($thing) {
 /* create an <a href> tag for a given url or object (defaulting to
  * the (table)/show/(id) */
 function link_to($text, $obj_or_url, $options = array()) {
-	$link_options = array();
-	$link_dest = link_from_obj_or_string($obj_or_url);
+	return "<a href=\"" . link_from_obj_or_string($obj_or_url) . "\""
+		. options_for_link($options) . ">" . $text . "</a>";
+}
 
-	if ($options["style"])
-		array_push($link_options, "style=\"" . $options["style"] . "\"");
+function options_for_link($options = array(), $button_target = null) {
+	$opts_s = "";
 
-	if ($options["class"])
-		array_push($link_options, "class=\"" . $options["class"] . "\"");
+	if ($options["confirm"] && is_bool($options["confirm"]))
+		$options["confirm"] = "Are you sure?";
 
-	if ($options["onclick"])
-		array_push($link_options, "onClick=\"" . $options["onclick"] . "\"");
+	if ($options["method"]) {
+		$opts_s .= " onclick=\"";
 
-	return "<a href=\"" . $link_dest . "\""
-		. (count($link_options) ? " " . join(" ", $link_options) : "")
-		. ">" . $text . "</a>";
+		if ($options["confirm"])
+			$opts_s .= "if (confirm('" . $options["confirm"] . "')) ";
+
+		$opts_s .= "{ var f = document.createElement('form'); "
+			. "f.style.display = 'none'; "
+			. "this.parentNode.appendChild(f); "
+			. "f.method = '" . $options["method"] . "'; "
+			. "f.action = " . ($button_target ? "'" . $button_target . "'" :
+				"this.href") . "; "
+			. "f.submit(); }; return false;\"";
+
+		unset($options["confirm"]);
+		unset($options["method"]);
+	}
+
+	if ($options["confirm"]) {
+		$opts_s .= " onclick=\"return confirm('" . $options["confirm"]
+			. "');\"";
+		unset($options["confirm"]);
+	}
+
+	if ($options["popup"]) {
+		$opts_s .= " onclick=\"window.open(this.href); return false;\"";
+		unset($options["popup"]);
+	}
+
+	foreach ($options as $k => $v)
+		$opts_s .= " " . $k . "=\"" . $v . "\"";
+
+	return $opts_s;
 }
 
 /* cancel all buffered output, send a location: header, and exit */
