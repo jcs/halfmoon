@@ -11,17 +11,22 @@ class FormHelper {
 	/* output a <form>..</form> wrapped around a closure, to which this
 	 * FormHelper object is passed, which should output the actual form
 	 * content, using things like <?= $f->text_field(...) ?> */
-	public function form_for($obj, $url, $options = array(),
+	public function form_for($obj, $url_or_obj, $options = array(),
 	\Closure $form_content) {
 		if (!$obj)
 			throw new HalfmoonException("invalid object passed to form_for()");
 
 		$this->form_object = $obj;
 
-		$method = ($options["method"] ? $options["method"] : "post");
+		if (!$options["method"])
+			$options["method"] = "post";
+
+		$opts_s = "";
+		foreach ($options as $k => $v)
+			$opts_s .= " " . $k . "=\"" . $v . "\"";
 
 		?>
-		<form method="<?= $method ?>" action="<?= $url ?>">
+		<form <?= $opts_s ?> action="<?= link_from_obj_or_string($url_or_obj) ?>">
 		<?= to_s($this, $form_content); ?>
 		</form>
 		<?
