@@ -523,9 +523,10 @@ class Validations
 
 			$conditions = array($this->model->connection()->quote_name($attr[0]) . " = ?", $this->model->$attr[0]);
 
-			if ($this->model->is_new_record()) {
-				$conditions[0] .= " AND " . $this->model->connection()->quote_name($this->model->primary_key()) . " <> ?";
-				array_push($conditions, $this->model->get_primary_key(false));
+			if (!$this->model->is_new_record()) {
+				$pk = $this->model->get_primary_key(false);
+				$conditions[0] .= " AND " . $this->model->connection()->quote_name($pk[0]) . " <> ?";
+				array_push($conditions, $this->model->$pk[0]);
 			}
 
 			if (call_user_func_array(get_class($this->model) . "::find", array('first', array("conditions" => $conditions))))
