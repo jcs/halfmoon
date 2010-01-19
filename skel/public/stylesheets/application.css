@@ -1,5 +1,6 @@
 /* application css */
 
+/* for flash_notices() and flash_errors() */
 div.flash-notice, div.flash-error {
 	border: 2px solid;
 	margin: 5px 5px 10px 5px;
@@ -14,4 +15,14 @@ div.flash-notice {
 div.flash-error {
 	background-color: #ffe7e7;
 	border-color: red;
+}
+
+/* for error_messages_for() */
+div.fieldWithErrors {
+	display: inline;
+}
+
+div.fieldWithErrors input, div.fieldWithErrors select {
+	border: 2px solid red;
+	padding: 2px;
 }

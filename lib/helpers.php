@@ -13,6 +13,37 @@ function button_to($text, $obj_or_url, $options = array()) {
 		. " />";
 }
 
+/* summarize errors for an activerecord object */
+function error_messages_for($obj) {
+	if ($obj->errors && count($obj->errors)) {
+		$obj_name = ActiveRecord\Utils::singularize(strtolower(
+			get_class($obj)));
+
+		if (ActiveRecord\Utils::pluralize_if(2, $obj_name) == "2 " . $obj_name)
+		  $obj_name = "these " . $obj_name;
+		else
+		  $obj_name = "this " . $obj_name;
+
+		$html = "<p>"
+			. "<div class=\"flash-error\">"
+			. "<strong>" . count($obj->errors) . " "
+			. ActiveRecord\Utils::pluralize_if(count($obj->errors),
+				"error")
+			. " prohibited " . $obj_name . " from being "
+			. ($obj->is_new_record() ? "created" : "saved") . ":</strong>"
+			. "<br />\n";
+
+		foreach ($obj->errors as $err) {
+			$html .= $err . "<br />";
+		}
+
+		$html .= "</div>"
+			. "</p>";
+
+		return $html;
+	}
+}
+
 /* print the errors stored in the session and then reset the array */
 function flash_errors() {
 	$html = "";

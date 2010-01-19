@@ -61,11 +61,12 @@ class FormHelper {
 		foreach ($options as $k => $v)
 			$opts_s .= " " . $k . "=\"" . $v . "\"";
 
-		return "<input type=\"" . $type . "\""
+		return $this->wrap_field_with_errors($field,
+			"<input type=\"" . $type . "\""
 			. " id=\"" . $this->form_prefix() . "_" . $field . "\""
 			. " name=\"" . $this->form_prefix() . "[" . $field .  "]\""
 			. $opts_s
-			. " />";
+			. " />");
 	}
 
 	/* create an <input> submit button */
@@ -87,11 +88,12 @@ class FormHelper {
 		foreach ($options as $k => $v)
 			$opts_s .= " " . $k . "=\"" . $v . "\"";
 
-		return "<textarea "
+		return $this->wrap_field_with_errors($field,
+			"<textarea "
 			. " id=\"" . $this->form_prefix() . "_" . $field . "\""
 			. " name=\"" . $this->form_prefix() . "[" . $field .  "]\""
 			. $opts_s
-			. ">" . h($this->form_object->$field) . "</textarea>";
+			. ">" . h($this->form_object->$field) . "</textarea>");
 	}
 
 	/* create an <input> text field */
@@ -102,12 +104,21 @@ class FormHelper {
 		foreach ($options as $k => $v)
 			$opts_s .= " " . $k . "=\"" . $v . "\"";
 
-		return "<input type=\"" . $type . "\""
+		return $this->wrap_field_with_errors($field,
+			"<input type=\"" . $type . "\""
 			. " id=\"" . $this->form_prefix() . "_" . $field . "\""
 			. " name=\"" . $this->form_prefix() . "[" . $field .  "]\""
 			. " value=\"" . h($this->form_object->$field) . "\""
 			. $opts_s
-			. " />";
+			. " />");
+	}
+
+	private function wrap_field_with_errors($field, $html) {
+		if ($this->form_object->errors &&
+		$this->form_object->errors->on($field))
+			return "<div class=\"fieldWithErrors\">" . $html . "</div>";
+		else
+			return $html;
 	}
 }
 
