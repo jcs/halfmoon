@@ -43,6 +43,30 @@ class FormHelper {
 		return call_user_func_array("button_to", func_get_args());
 	}
 
+	/* create an <input type="checkbox"> with a hidden input field to detect
+	 * when the checkbox has been unchecked (see rails docs for check_box, but
+	 * since php presents $_GET and $_POST with the last seen value, we have to
+	 * reverse the order of the checkbox and hidden input field) */
+	public function check_box($field, $options = array(), $checked_value = 1,
+	$unchecked_value = 0) {
+		$opts_s = "";
+		foreach ($options as $k => $v)
+			$opts_s .= " " . $k . "=\"" . $v . "\"";
+
+		return $this->wrap_field_with_errors($field,
+			"<input type=\"hidden\" "
+			. " name=\"" . $this->form_prefix() . "[" . $field .  "]\""
+			. " value=\"" . h($unchecked_value) . "\""
+			. " />"
+			. "<input type=\"checkbox\" "
+			. "id=\"" . $this->form_prefix() . "_" . $field . "\""
+			. " name=\"" . $this->form_prefix() . "[" . $field .  "]\""
+			. " value=\"" . h($checked_value) . "\""
+			. ($this->form_object->$field ? " checked" : "")
+			. $opts_s
+			. " />");
+	}
+
 	/* create an <input> file upload field */
 	public function file_field($field, $options = array()) {
 		$options["type"] = "file";
