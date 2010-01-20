@@ -60,8 +60,12 @@ class ApplicationController {
 		if ($template["status"])
 			header($_SERVER["SERVER_PROTOCOL"] . " " . $template["status"]);
 
+		/* if we want to override the layout, do it now */
+		if (array_key_exists("layout", $template))
+			$this::$layout = $template["layout"];
+
 		/* just render text */
-		if (is_array($template) && $template["text"])
+		if (is_array($template) && array_key_exists("text", $template))
 			print $template["text"];
 
 		/* assume we're dealing with files */
@@ -199,6 +203,12 @@ class ApplicationController {
 	public function render_layout() {
 		$content_for_layout = ob_get_contents();
 		ob_end_clean();
+
+		/* if we don't want a layout at all, just print the content */
+		if (isset($this::$layout) && $this::$layout === false) {
+			print $content_for_layout;
+			return;
+		}
 
 		if (count((array)$this::$layout)) {
 			/* check for options */
