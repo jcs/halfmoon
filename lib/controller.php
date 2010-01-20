@@ -231,10 +231,10 @@ class ApplicationController {
 		}
 
 		/* if no specific layout was set, check for a controller-specific one */
-		if (!$layout && $params["controller"] &&
-		file_exists(HALFMOON_ROOT . "/views/layouts/" . $params["controller"]
+		if (!$layout && $this->params["controller"] &&
+		file_exists(HALFMOON_ROOT . "/views/layouts/" . $this->params["controller"]
 		. ".phtml"))
-			$layout = $params["controller"];
+			$layout = $this->params["controller"];
 
 		/* otherwise, default to "application" */
 		if (!$layout)
