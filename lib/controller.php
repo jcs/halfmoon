@@ -18,6 +18,9 @@ class ApplicationController {
 	 */
 	static $verify = array();
 
+	/* specify a different layout than controller name or application */
+	static $layout = array();
+
 	public $params = array();
 	public $locals = array();
 
@@ -197,16 +200,43 @@ class ApplicationController {
 		$content_for_layout = ob_get_contents();
 		ob_end_clean();
 
-		/* look for a layout specific to this controller, otherwise use
-		 * "application" */
-		$layout = "application";
-		if ($params["controller"] && file_exists(HALFMOON_ROOT . "/views/layouts/"
-		. $params["controller"] . ".phtml"))
+		if (count((array)$this::$layout)) {
+			/* check for options */
+			do {
+				if (is_array($this::$layout[1])) {
+					/* don't override for specific actions */
+					if ($this::$layout[1]["except"] && in_array($params["action"],
+					(array)$this::$layout[1]["except"]))
+						break;
+
+					/* only override for certain actions */
+					if ($this::$layout[1]["only"] && !in_array($params["action"],
+					(array)$this::$layout[1]["only"]))
+						break;
+				}
+
+				/* still here, override layout */
+				$layout = $this::$layout[0];
+			} while (0);
+		}
+
+		/* if no specific layout was set, check for a controller-specific one */
+		if (!$layout && $params["controller"] &&
+		file_exists(HALFMOON_ROOT . "/views/layouts/" . $params["controller"]
+		. ".phtml"))
 			$layout = $params["controller"];
+
+		/* otherwise, default to "application" */
+		if (!$layout)
+			$layout = "application";
 
 		$this->did_layout = true;
 
-		require(HALFMOON_ROOT . "/views/layouts/" . $layout . ".phtml");
+		if (file_exists(HALFMOON_ROOT . "/views/layouts/" . $layout .
+		".phtml"))
+			require(HALFMOON_ROOT . "/views/layouts/" . $layout . ".phtml");
+		else
+			print $content_for_layout;
 	}
 }
 
