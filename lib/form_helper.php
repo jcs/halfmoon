@@ -73,7 +73,8 @@ class FormHelper {
 	}
 
 	/* create an <input> submit button */
-	public function submit_tag($value = "Submit Changes", $options = array()) {
+	public function submit_button($value = "Submit Changes",
+	$options = array()) {
 		return "<input type=\"submit\" name=\"commit\" value=\"" . $value
 			. "\" />";
 	}
