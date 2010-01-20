@@ -34,6 +34,21 @@ function error_log_r($param) {
 		error_log($line);
 }
 
+/* return an array of public methods for a given class */
+function get_public_class_methods($class) {
+    $methods = array();
+
+	foreach (get_class_methods($class) as $method) {
+		$reflect = new ReflectionMethod($class, $method);
+
+		if ($reflect->isPublic())
+            array_push($methods, $method);
+	}
+
+    return $methods;
+}
+
+/* return true if $int is between (inclusive) an array of $low and $high */
 function is_or_between($int, $low_and_high) {
 	return ($int >= $low_and_high[0] && $int <= $low_and_high[1]);
 }

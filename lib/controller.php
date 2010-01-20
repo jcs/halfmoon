@@ -183,7 +183,10 @@ class ApplicationController {
 
 		ob_start();
 
-		if (!method_exists($this, $action))
+		/* we only want to allow calling public methods in controllers, to
+		 * avoid users getting directly to before_filters and other utility
+		 * functions */
+		if (!in_array($action, get_public_class_methods($this)))
 			throw new RenderException("controller \"" . get_class($this)
 				. "\" does not have an action \"" . $action . "\"");
 
