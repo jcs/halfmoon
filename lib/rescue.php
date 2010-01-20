@@ -73,26 +73,43 @@ function halfmoon_exception_handler($exception) {
 		<p>
 		<h3>Request</h3>
 		</p>
+
 		<p>
 		<h4>GET Parameters</h4>
 		</p>
 		<p>
 		<div class="info">
 		<? foreach ($_GET as $k => $v) { ?>
-			<?= h(var_export($k, true) . ": " . var_export($v, true)) ?><br />
+			<strong><?= h(var_export($k, true)) ?></strong>:
+				<?= h(var_export($v, true)) ?><br />
 		<? } ?>
 		</div>
 		</p>
+
 		<p>
 		<h4>POST Parameters</h4>
 		</p>
 		<p>
 		<div class="info">
 		<? foreach ($_POST as $k => $v) { ?>
-			<?= h(var_export($k, true) . ": " . var_export($v, true)) ?><br />
+			<strong><?= h(var_export($k, true)) ?></strong>:
+				<?= h(var_export($v, true)) ?><br />
 		<? } ?>
 		</div>
 		</p>
+
+		<p>
+		<h4>Uploaded Files</h4>
+		</p>
+		<p>
+		<div class="info">
+		<? foreach ($_FILES as $k => $v) { ?>
+			<strong><?= h(var_export($k, true)) ?></strong>:
+				<?= h(var_export($v, true)) ?><br />
+		<? } ?>
+		</div>
+		</p>
+
 		<p>
 		<h3>Session</h3>
 		</p>
