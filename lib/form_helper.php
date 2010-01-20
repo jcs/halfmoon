@@ -43,6 +43,13 @@ class FormHelper {
 		return call_user_func_array("button_to", func_get_args());
 	}
 
+	/* create an <input> file upload field */
+	public function file_field($field, $options = array()) {
+		$options["type"] = "file";
+
+		return $this->text_field($field, $options, $include_value = false);
+	}
+
 	/* create a <label> that references a real column */
 	public function label($column, $caption, $options = array()) {
 		$opts_s = "";
@@ -60,18 +67,9 @@ class FormHelper {
 
 	/* create an <input> password field, *not including any value* */
 	public function password_field($field, $options = array()) {
-		$type = ($options["type"] ? $options["type"] : "password");
+		$options["type"] = "password";
 
-		$opts_s = "";
-		foreach ($options as $k => $v)
-			$opts_s .= " " . $k . "=\"" . $v . "\"";
-
-		return $this->wrap_field_with_errors($field,
-			"<input type=\"" . $type . "\""
-			. " id=\"" . $this->form_prefix() . "_" . $field . "\""
-			. " name=\"" . $this->form_prefix() . "[" . $field .  "]\""
-			. $opts_s
-			. " />");
+		return $this->text_field($field, $options, $include_value = false);
 	}
 
 	/* create an <input> submit button */
@@ -102,7 +100,8 @@ class FormHelper {
 	}
 
 	/* create an <input> text field */
-	public function text_field($field, $options = array()) {
+	public function text_field($field, $options = array(),
+	$include_value = true) {
 		$type = ($options["type"] ? $options["type"] : "text");
 
 		$opts_s = "";
@@ -113,7 +112,9 @@ class FormHelper {
 			"<input type=\"" . $type . "\""
 			. " id=\"" . $this->form_prefix() . "_" . $field . "\""
 			. " name=\"" . $this->form_prefix() . "[" . $field .  "]\""
-			. " value=\"" . h($this->form_object->$field) . "\""
+			. ($include_value ?
+				" value=\"" . h($this->form_object->$field) . "\""
+			: "")
 			. $opts_s
 			. " />");
 	}
