@@ -510,27 +510,39 @@ class Validations
 		}
 	}
 
+
 	/**
-	 * @todo IMPLEMENT ME
+	 * Validates the uniqueness of a value.
+	 *
+	 * <code>
+	 * class Person extends ActiveRecord\Model {
+	 *   static $validates_uniqueness_of = array(
+	 *     array('name')
+	 *   );
+	 * }
+	 * </code>
+	 *
+	 * @param array $attrs Validation definition
 	 */
 	public function validates_uniqueness_of($attrs)
 	{
-		$configuration = array_merge(self::$DEFAULT_VALIDATION_OPTIONS, array('message' => Errors::$DEFAULT_ERROR_MESSAGES['taken'], 'on' => 'save'));
+		$configuration = array_merge(self::$DEFAULT_VALIDATION_OPTIONS, array(
+			'message' => Errors::$DEFAULT_ERROR_MESSAGES['unique']
+		));
 
 		foreach ($attrs as $attr)
 		{
 			$options = array_merge($configuration, $attr);
+			$pk = $this->model->get_primary_key();
+			$pk_value = $this->model->$pk[0];
 
-			$conditions = array($this->model->connection()->quote_name($attr[0]) . " = ?", $this->model->$attr[0]);
+			if ($pk_value === null)
+				$conditions = array("{$pk[0]} is not null and {$options[0]}=?",$this->model->$options[0]);
+			else
+				$conditions = array("{$pk[0]}!=? and {$options[0]}=?",$pk_value,$this->model->$options[0]);
 
-			if (!$this->model->is_new_record()) {
-				$pk = $this->model->get_primary_key(false);
-				$conditions[0] .= " AND " . $this->model->connection()->quote_name($pk[0]) . " <> ?";
-				array_push($conditions, $this->model->$pk[0]);
-			}
-
-			if (call_user_func_array(get_class($this->model) . "::find", array('first', array("conditions" => $conditions))))
-				$this->record->add($attr[0], $options['message']);
+			if ($this->model->exists(array('conditions' => $conditions)))
+				$this->record->add($options[0], $options['message']);
 		}
 	}
 
@@ -573,6 +585,7 @@ class Errors implements IteratorAggregate
       	'less_than'		=> "must be less than %d",
       	'odd'			=> "must be odd",
       	'even'			=> "must be even",
+		'unique'		=> "must be unique",
       	'less_than_or_equal_to' => "must be less than or equal to %d",
       	'greater_than_or_equal_to' => "must be greater than or equal to %d"
    	);

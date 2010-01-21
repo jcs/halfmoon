@@ -662,7 +662,7 @@ class Model
 		if ($validate && !$this->_validate())
 			return false;
 
-		if (($dirty = $this->dirty_attributes()))
+		if ($this->is_dirty())
 		{
 			$pk = $this->values_for_pk();
 
@@ -672,10 +672,9 @@ class Model
 			$table = static::table();
 			$obj = &$this;
 
-			self::transaction(function() use ($obj, $table, $dirty, $pk) {
+			self::transaction(function() use ($obj, $table, $pk) {
 				$obj->invoke_callback('before_update',false);
-				$dirty = $obj->dirty_attributes();
-				$table->update($dirty,$pk);
+				$table->update($obj->dirty_attributes(),$pk);
 				$obj->invoke_callback('after_update',false);
 			});
 		}
@@ -756,6 +755,16 @@ class Model
 			return false;
 
 		return true;
+	}
+
+	/**
+	 * Returns true if the model has been modified.
+	 *
+	 * @return boolean true if modified
+	 */
+	public function is_dirty()
+	{
+		return empty($this->__dirty) ? false : true;
 	}
 
 	/**

@@ -1,19 +1,15 @@
--- CREATE USER test;
--- GRANT ALL PRIVILEGES ON test to test;
-
-DROP TABLE IF EXISTS authors;
 CREATE TABLE authors(
-	author_id SERIAL PRIMARY KEY,
+	author_id INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
 	parent_author_id INT,
 	name VARCHAR(25) NOT NULL DEFAULT 'default_name',
-	updated_at timestamp,
-	created_at timestamp,
-	some_date date
-);
+	updated_at datetime,
+	created_at datetime,
+	some_date date,
+	encrypted_password varchar(50)
+) ENGINE=InnoDB;
 
-DROP TABLE IF EXISTS books;
 CREATE TABLE books(
-	book_id SERIAL PRIMARY KEY,
+	book_id INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
 	author_id INT,
 	secondary_author_id INT,
 	name VARCHAR(50),
@@ -21,9 +17,8 @@ CREATE TABLE books(
 	special NUMERIC(10,2) DEFAULT 0
 );
 
-DROP TABLE IF EXISTS venues;
 CREATE TABLE venues (
-	id SERIAL PRIMARY KEY,
+	id int NOT NULL AUTO_INCREMENT PRIMARY KEY,
 	name varchar(50),
 	city varchar(60),
 	state char(2),
@@ -32,41 +27,42 @@ CREATE TABLE venues (
 	UNIQUE(name,address)
 );
 
-DROP TABLE IF EXISTS events;
 CREATE TABLE events (
-	id SERIAL PRIMARY KEY,
+	id int NOT NULL auto_increment PRIMARY KEY,
 	venue_id int NOT NULL,
 	host_id int NOT NULL,
-	title varchar(50) NOT NULL,
-	description varchar(10),
+	title varchar(60) NOT NULL,
+	description varchar(50),
 	type varchar(15) default NULL
 );
 
-DROP TABLE IF EXISTS hosts;
 CREATE TABLE hosts(
-	id SERIAL PRIMARY KEY,
-	name VARCHAR(10)
+	id INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
+	name VARCHAR(25)
 );
 
-DROP TABLE IF EXISTS employees;
 CREATE TABLE employees (
-	id SERIAL PRIMARY KEY,
+	id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
 	first_name VARCHAR(255) NOT NULL,
 	last_name VARCHAR(255) NOT NULL,
 	nick_name VARCHAR(255) NOT NULL
 );
 
-DROP TABLE IF EXISTS positions;
 CREATE TABLE positions (
-	id SERIAL PRIMARY KEY,
+	id int NOT NULL AUTO_INCREMENT PRIMARY KEY,
 	employee_id int NOT NULL,
 	title VARCHAR(255) NOT NULL,
 	active SMALLINT NOT NULL
 );
 
-DROP TABLE IF EXISTS "rm-bldg";
-CREATE TABLE "rm-bldg"(
-    "rm-id" SERIAL PRIMARY KEY,
-    "rm-name" VARCHAR(10) NOT NULL,
-    "space out" VARCHAR(1) NOT NULL
+CREATE TABLE `rm-bldg`(
+    `rm-id` INT NOT NULL,
+    `rm-name` VARCHAR(10) NOT NULL,
+    `space out` VARCHAR(1) NOT NULL
+);
+
+CREATE TABLE awesome_people(
+	id int not null primary key auto_increment,
+	author_id int,
+	is_awesome int default 1
 );
