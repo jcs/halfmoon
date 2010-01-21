@@ -4,11 +4,12 @@
 */
 
 function halfmoon_exception_handler($exception) {
-	$str = $exception->getMessage();
+	/* kill all buffered output */
+	while (ob_end_clean())
+		;
 
 	if (HALFMOON_ENV == "development" && ini_get("display_errors")) {
-		while (ob_end_clean())
-			;
+		$str = $exception->getMessage();
 
 		?>
 		<html>
@@ -79,7 +80,7 @@ function halfmoon_exception_handler($exception) {
 		</p>
 		<p>
 		<div class="info">
-		<? foreach ($_GET as $k => $v) { ?>
+		<? foreach ((array)$_GET as $k => $v) { ?>
 			<strong><?= h(var_export($k, true)) ?></strong>:
 				<?= h(var_export($v, true)) ?><br />
 		<? } ?>
@@ -91,7 +92,7 @@ function halfmoon_exception_handler($exception) {
 		</p>
 		<p>
 		<div class="info">
-		<? foreach ($_POST as $k => $v) { ?>
+		<? foreach ((array)$_POST as $k => $v) { ?>
 			<strong><?= h(var_export($k, true)) ?></strong>:
 				<?= h(var_export($v, true)) ?><br />
 		<? } ?>
@@ -103,7 +104,7 @@ function halfmoon_exception_handler($exception) {
 		</p>
 		<p>
 		<div class="info">
-		<? foreach ($_FILES as $k => $v) { ?>
+		<? foreach ((array)$_FILES as $k => $v) { ?>
 			<strong><?= h(var_export($k, true)) ?></strong>:
 				<?= h(var_export($v, true)) ?><br />
 		<? } ?>
@@ -115,7 +116,7 @@ function halfmoon_exception_handler($exception) {
 		</p>
 		<p>
 		<div class="info">
-		<? foreach ($_SESSION as $k => $v) { ?>
+		<? foreach ((array)$_SESSION as $k => $v) { ?>
 			<?= h(var_export($k, true) . ": " . var_export($v, true)) ?><br />
 		<? } ?>
 		</div>
@@ -123,9 +124,52 @@ function halfmoon_exception_handler($exception) {
 		</body>
 		</html>
 		<?
-	} else
-		/* XXX: should these messages even be relayed in production? */
-		die($str);
+	} else {
+		/* production mode, try to handle gracefully */
+
+		if ($exception instanceof Halfmoon\RoutingException) {
+			header($_SERVER["SERVER_PROTOCOL"] . " 404 File Not Found");
+
+			if (file_exists(HALFMOON_ROOT . "/public/404.html"))
+				require_once(HALFMOON_ROOT . "/public/404.html");
+			else {
+				/* failsafe */
+				?>
+				<html>
+				<head>File Not Found</head>
+				<body>
+				<h1>File Not Found</h1>
+				The file you requested could not be found.  An additional error
+				occured while processing the error document.
+				</body>
+				</html>
+				<?
+			}
+		} else {
+			header($_SERVER["SERVER_PROTOCOL"] . " 500 Server Error");
+
+			if (file_exists(HALFMOON_ROOT . "/public/500.html"))
+				require_once(HALFMOON_ROOT . "/public/500.html");
+			else {
+				/* failsafe */
+				?>
+				<html>
+				<head>Application Error</head>
+				<body>
+				<h1>Application Error</h1>
+				An internal application error occured while processing your
+				request.  Additionally, an error occured while processing the
+				error document.
+				</body>
+				</html>
+				<?
+			}
+		}
+
+		error_log($str);
+
+		exit;
+	}
 }
 
 function throw_exception_from_error($errno, $errstr, $errfile, $errline) {
