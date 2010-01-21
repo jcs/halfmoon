@@ -52,6 +52,9 @@ false) {
 	elseif (is_or_between($distance_in_minutes, array(45, 89)))
 		return "about 1 hour";
 
+	elseif (is_or_between($distance_in_minutes, array(90, 1439)))
+		return "about " . round($distance_in_minutes / 60) . " hours";
+
 	elseif (is_or_between($distance_in_minutes, array(1440, 2879)))
 		return "about 1 day";
 
