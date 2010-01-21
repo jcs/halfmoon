@@ -1,8 +1,11 @@
 <?php
 /*
 	url-to-controller mapping file.  first-matching route wins.
+	
+	for empty urls ("/"), only root routes (added with addRootRoute) will be
+	matched against.
 
-	a specific route example:
+	a specific route example to only match ids that are valid numbers:
 
 		HalfMoon\Router::instance()->addRoute(array(
 			"url" => "posts/:id",
@@ -11,10 +14,20 @@
 			"conditions" => array("id" => '/^\d+$/'),
 		));
 
-	a root route to match "/"
-	
-		HalfMoon\Router::instance()->rootRoute = array(
+	a root route to match "/":
+
+		HalfMoon\Router::instance()->addRootRoute = array(
 			"controller" => "posts"
+		);
+
+	another root route on a specific virtual host to map to a different action
+	(this would have to be defined before the previous root route, since the
+	previous one has no conditions and would match all root urls):
+
+		HalfMoon\Router::instance()->addRootRoute = array(
+			"controller" => "posts",
+			"action" => "devindex",
+			"conditions" => array("hostname" => "dev"),
 		);
 */
 

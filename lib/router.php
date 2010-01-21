@@ -9,7 +9,7 @@ use Closure;
 
 class Router extends Singleton {
 	public $routes = array();
-	public $rootRoute = array();
+	public $rootRoutes = array();
 
     public static function initialize(Closure $initializer) {
         $initializer(parent::instance());
@@ -17,67 +17,106 @@ class Router extends Singleton {
 
 	public function addRoute($route) {
 		if (!is_array($route))
-			throw new RoutingException("invalid route of " . var_export($route));
+			throw new RoutingException("invalid route of "
+				. var_export($route));
 
 		array_push($this->routes, $route);
 	}
 
-	public function routeRequest($url, $params) {
-		/* strip leading and trailing slashes */
-		$url = trim($url);
-		$url = preg_replace("/^\/*/", "", preg_replace("/\/$/", "", $url));
+	public function addRootRoute($route) {
+		if (!is_array($route))
+			throw new RoutingException("invalid root route of "
+				. var_export($route));
 
-		/* trim again just in case some were hiding */
-		$url = trim($url);
+		/* only one root route can match a particular condition */
+		foreach ($this->rootRoutes as $rr)
+			if (!array_diff_assoc((array)$rr, (array)$route["conditions"]))
+				throw new RoutingException("cannot add second root route "
+					. "with no conditions: " . var_export($route));
 
-		if ($url == "") {
-			if (!$this->rootRoute)
-				throw new RoutingException("no root route defined");
+		array_push($this->rootRoutes, $route);
+	}
 
-			return $this->takeRoute($this->rootRoute, $url, $params);
-		}
+	public function routeRequest($url, $params, $hostname) {
+		/* strip leading and trailing slashes, then again in case some were
+		 * hiding */
+		$url = trim(preg_replace("/^\/*/", "", preg_replace("/\/$/", "",
+			trim($url))));
 
 		$url_pieces = explode("/", $url);
 
-		foreach ($this->routes as $route) {
-			$route_pieces = explode("/", $route["url"]);
+		/* store some special variables in $params */
+		$params["hostname"] = $hostname;
 
-			$match = true;
-			for ($x = 0; $x < count($route_pieces); $x++) {
-				/* look for a condition */
-				if (preg_match("/^:(.+)$/", $route_pieces[$x], $m)) {
-					$reg = A((array)$route["conditions"], $m[1]);
+		/* find and take the first matching route, storing route components in
+		 * $params */
+		if ($url == "") {
+			if (!count($this->rootRoutes))
+				throw new RoutingException("no root route defined");
 
-					if ($reg && !preg_match($reg, $url_pieces[$x]))
-						$match = false;
-					else
-						/* store this named parameter (e.g. "/:blah" route on a
-						 * url of "/hi" defines $route["blah"] to be "hi") */
-						$route[$m[1]] = $url_pieces[$x];
-				}
-
-				/* else it must match exactly */
-				elseif ($route_pieces[$x] != $url_pieces[$x])
-					$match = false;
-
-				if (!$match)
-					break;
-			}
-
-			if ($match) {
-				/* we need at least a valid controller */
-				if ($route["controller"] == "" ||
-				!class_exists(ucfirst($route["controller"]) . "Controller"))
-					continue;
-
-				/* note that we pass the action to the controller even if it
-				 * doesn't exist, that way at least the backtrace will show
-				 * what controller we resolved it to */
+			foreach ($this->rootRoutes as $route) {
+				/* verify virtual host matches if there's a condition on it */
+				if ($route["conditions"]["hostname"])
+					if (!strcasecmp_or_preg_match($route["conditions"]["hostname"],
+					$hostname))
+						continue;
 
 				return $this->takeRoute($route, $url, $params);
 			}
+		} else {
+			foreach ($this->routes as $route) {
+				/* verify virtual host matches if there's a condition on it */
+				if ($route["conditions"]["hostname"])
+					if (!strcasecmp_or_preg_match($route["conditions"]["hostname"],
+					$hostname))
+						continue;
+
+				/* trim slashes from route definition and bust it up into
+				 * components */
+				$route_pieces = explode("/", trim(preg_replace("/^\/*/", "",
+					preg_replace("/\/$/", "", trim($route["url"])))));
+
+				$match = true;
+				for ($x = 0; $x < count($route_pieces); $x++) {
+					/* look for a condition */
+					if (preg_match("/^:(.+)$/", $route_pieces[$x], $m)) {
+						$reg_or_string = A((array)$route["conditions"], $m[1]);
+
+						if ($reg_or_string &&
+						!strcasecmp_or_preg_match($reg_or_string,
+						$url_pieces[$x]))
+							$match = false;
+						else
+							/* store this named parameter (e.g. "/:blah" route
+							 * on a url of "/hi" defines $route["blah"] to be
+							 * "hi") */
+							$route[$m[1]] = $url_pieces[$x];
+					}
+
+					/* else it must match exactly (case-insensitively) */
+					elseif (strcasecmp($route_pieces[$x], $url_pieces[$x]) != 0)
+						$match = false;
+
+					if (!$match)
+						break;
+				}
+
+				if ($match) {
+					/* we need at least a valid controller */
+					if ($route["controller"] == "" ||
+					!class_exists(ucfirst($route["controller"]) . "Controller"))
+						continue;
+
+					/* note that we pass the action to the controller even if it
+					 * doesn't exist, that way at least the backtrace will show
+					 * what controller we resolved it to */
+
+					return $this->takeRoute($route, $url, $params);
+				}
+			}
 		}
 
+		/* still here, no routes matched */
 		throw new RoutingException("no route for url \"" . $url . "\"");
 	}
 

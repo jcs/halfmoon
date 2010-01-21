@@ -53,6 +53,15 @@ function is_or_between($int, $low_and_high) {
 	return ($int >= $low_and_high[0] && $int <= $low_and_high[1]);
 }
 
+/* if passed a regular expression, do preg_match() on $string, otherwise do a
+ * case-insensitive match */
+function strcasecmp_or_preg_match($check, $string) {
+	if (substr($check, 0, 1) == "/")
+		return preg_match($check, $string);
+	else
+		return !strcasecmp($check, $string);
+}
+
 /* when passed a closure containing print/<?=?> code, execute it, capture the
  * output, and return it as a string */
 function to_s($obj, $closure) {
