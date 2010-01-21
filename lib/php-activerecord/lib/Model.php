@@ -674,6 +674,7 @@ class Model
 
 			self::transaction(function() use ($obj, $table, $dirty, $pk) {
 				$obj->invoke_callback('before_update',false);
+				$dirty = $obj->dirty_attributes();
 				$table->update($dirty,$pk);
 				$obj->invoke_callback('after_update',false);
 			});
