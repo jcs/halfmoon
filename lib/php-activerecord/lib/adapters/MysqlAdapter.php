@@ -11,6 +11,16 @@ namespace ActiveRecord;
  */
 class MysqlAdapter extends Connection
 {
+	public function beginTransaction()
+	{
+		return $this->query('BEGIN');
+	}
+
+	public function commit()
+	{
+		return $this->query('COMMIT');
+	}
+
 	public function default_port()
 	{
 		return 3306;
@@ -36,6 +46,11 @@ class MysqlAdapter extends Connection
 	public function quote_name($string)
 	{
 		return "`$string`";
+	}
+
+	public function rollback()
+	{
+		return $this->query('ROLLBACK');
 	}
 
 	public function create_column(&$column)

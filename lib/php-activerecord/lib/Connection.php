@@ -281,7 +281,7 @@ abstract class Connection
 	 */
 	public function transaction()
 	{
-		if (!$this->connection->beginTransaction())
+		if (!$this->beginTransaction())
 			throw new DatabaseException($this);
 	}
 
@@ -290,7 +290,7 @@ abstract class Connection
 	 */
 	public function commit()
 	{
-		if (!$this->connection->commit())
+		if (!$this->commit())
 			throw new DatabaseException($this);
 	}
 
@@ -299,7 +299,7 @@ abstract class Connection
 	 */
 	public function rollback()
 	{
-		if (!$this->connection->rollback())
+		if (!$this->rollback())
 			throw new DatabaseException($this);
 	}
 

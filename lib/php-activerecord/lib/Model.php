@@ -624,12 +624,16 @@ class Model
 			return false;
 
 		$table = static::table();
-		$this->invoke_callback('before_create',false);
-		if (($dirty = $this->dirty_attributes()))
-			$table->insert($dirty);
-		else
-			$table->insert($this->attributes);
-		$this->invoke_callback('after_create',false);
+		$obj = &$this;
+
+		self::transaction(function() use ($obj, $table) {
+			$obj->invoke_callback('before_create',false);
+			if (($dirty = $obj->dirty_attributes()))
+				$table->insert($dirty);
+			else
+				$table->insert($obj->attributes);
+			$obj->invoke_callback('after_create',false);
+		});
 
 		$pk = $this->get_primary_key(false);
 
@@ -665,9 +669,14 @@ class Model
 			if (empty($pk))
 				throw new ActiveRecordException("Cannot update, no primary key defined for: " . get_called_class());
 
-			$this->invoke_callback('before_update',false);
-			static::table()->update($dirty,$pk);
-			$this->invoke_callback('after_update',false);
+			$table = static::table();
+			$obj = &$this;
+
+			self::transaction(function() use ($obj, $table, $dirty, $pk) {
+				$obj->invoke_callback('before_update',false);
+				$table->update($dirty,$pk);
+				$obj->invoke_callback('after_update',false);
+			});
 		}
 
 		return true;
@@ -1368,7 +1377,7 @@ class Model
 	 * @param boolean $must_exist Set to true to raise an exception if the callback does not exist.
 	 * @return boolean True if invoked or null if not
 	 */
-	private function invoke_callback($method_name, $must_exist=true)
+	public function invoke_callback($method_name, $must_exist=true)
 	{
 		return static::table()->callback->invoke($this,$method_name,$must_exist);
 	}
