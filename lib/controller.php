@@ -53,6 +53,20 @@ class ApplicationController {
 		array_push($_SESSION["flash_notices"], $string);
 	}
 
+	/* cancel all buffered output, send a location: header, and exit */
+	public function redirect_to($obj_or_url) {
+		$link = link_from_obj_or_string($obj_or_url);
+
+		/* prevent any content from getting to the user */
+		while (ob_end_clean())
+			;
+
+		header("Location: " . $link);
+
+		/* and bail */
+		exit;
+	}
+
 	/* render a partial view, an action template, text, etc. */
 	public function render($template, $vars = array()) {
 		/* render(array("partial" => "somedir/file"), array("v" => $v)) */

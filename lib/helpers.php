@@ -262,20 +262,6 @@ function options_for_link($options = array(), $button_target = null) {
 	return $opts_s;
 }
 
-/* cancel all buffered output, send a location: header, and exit */
-function redirect_to($obj_or_url) {
-	$link = link_from_obj_or_string($obj_or_url);
-
-	/* prevent any content from getting to the user */
-	while (ob_end_clean())
-		;
-
-	header("Location: " . $link);
-
-	/* and bail */
-	exit;
-}
-
 /* create a link to a css file, appending its modification time to force
  * clients to reload it when it's modified */
 function stylesheet_link_tag($files) {
