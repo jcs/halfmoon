@@ -76,7 +76,7 @@ false) {
 
 /* summarize errors for an activerecord object */
 function error_messages_for($obj) {
-	if ($obj->errors && count($obj->errors)) {
+	if ($obj->errors && $obj->errors->size()) {
 		$obj_name = ActiveRecord\Utils::singularize(strtolower(
 			get_class($obj)));
 
@@ -87,16 +87,15 @@ function error_messages_for($obj) {
 
 		$html = "<p>"
 			. "<div class=\"flash-error\">"
-			. "<strong>" . count($obj->errors) . " "
-			. ActiveRecord\Utils::pluralize_if(count($obj->errors),
+			. "<strong>" . $obj->errors->size() . " "
+			. ActiveRecord\Utils::pluralize_if($obj->errors->size(),
 				"error")
 			. " prohibited " . $obj_name . " from being "
 			. ($obj->is_new_record() ? "created" : "saved") . ":</strong>"
 			. "<br />\n";
 
-		foreach ($obj->errors as $err) {
+		foreach ($obj->errors as $err)
 			$html .= $err . "<br />";
-		}
 
 		$html .= "</div>"
 			. "</p>";
