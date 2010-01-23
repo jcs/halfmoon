@@ -75,7 +75,7 @@ use DateTime;
 class Model
 {
 	/**
-	 * An instance of {@link Errors} and will be instantiated once a write method is called.
+	 * An instance of {@link Errors} and will be instantiated once the object is initialized.
 	 *
 	 * @var Errors
 	 */
@@ -292,6 +292,9 @@ class Model
 	public function __construct(array $attributes=array(), $guard_attributes=true, $instantiating_via_find=false, $new_record=true)
 	{
 		$this->__new_record = $new_record;
+
+		require_once 'Validations.php';
+		$this->errors = new Errors($this);
 
 		// initialize attributes applying defaults
 		if (!$instantiating_via_find)
@@ -736,7 +739,6 @@ class Model
 	 */
 	private function _validate()
 	{
-		require_once 'Validations.php';
 		$validator = new Validations($this);
 		$validation_on = 'validation_on_' . ($this->is_new_record() ? 'create' : 'update');
 
