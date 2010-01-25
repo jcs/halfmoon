@@ -115,12 +115,12 @@ class ApplicationController {
 			if (file_exists($full_file = HALFMOON_ROOT . "/views/"
 			. $tf . ".phtml"))
 				$this->_really_render_file($full_file, $vars);
-			elseif (file_exists($full_file = HALFMOON_ROOT . "/views/"
+			elseif (file_exists($xml_file = HALFMOON_ROOT . "/views/"
 			. $tf . ".pxml")) {
 				/* TODO: check for an existing content-type already set by the
 				 * user */
 				header("Content-type: application/xml");
-				$this->_really_render_file($full_file, $vars);
+				$this->_really_render_file($xml_file, $vars);
 			} else
 				throw new RenderException("no template file " . $full_file);
 		}
