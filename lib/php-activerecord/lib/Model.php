@@ -673,7 +673,7 @@ class Model
 				throw new ActiveRecordException("Cannot update, no primary key defined for: " . get_called_class());
 
 			$table = static::table();
-			$obj = &$this;
+			$obj = $this;
 
 			self::transaction(function() use ($obj, $table, $pk) {
 				$obj->invoke_callback('before_update',false);
