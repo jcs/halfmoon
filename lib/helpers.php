@@ -266,7 +266,7 @@ function options_for_link($options = array(), $button_target = null) {
 
 /* create a link to a css file, appending its modification time to force
  * clients to reload it when it's modified */
-function stylesheet_link_tag($files) {
+function stylesheet_link_tag($files, $options = array()) {
 	$out = "";
 
 	if (!is_array($files))
@@ -279,9 +279,13 @@ function stylesheet_link_tag($files) {
 		if (file_exists(HALFMOON_ROOT . "/public/stylesheets/" . $file))
 			$mtime = filemtime(HALFMOON_ROOT . "/public/stylesheets/" . $file);
 
-		$out .= "<link href=\"/stylesheets/" . $file
-			. ($mtime ? "?" . $mtime : "") . "\" media=\"screen\" "
-			. "rel=\"stylesheet\" type=\"text/css\"/>\n";
+		if ($options["xml"])
+			$out .= "<?xml-stylesheet type=\"text/css\" href=\"/stylesheets/"
+				. $file . ($mtime ? "?" . $mtime : "") . "\" ?>\n";
+		else
+			$out .= "<link href=\"/stylesheets/" . $file
+				. ($mtime ? "?" . $mtime : "") . "\" media=\"screen\" "
+				. "rel=\"stylesheet\" type=\"text/css\"/>\n";
 	}
 
 	return $out;
