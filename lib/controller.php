@@ -75,7 +75,7 @@ class ApplicationController {
 			header($_SERVER["SERVER_PROTOCOL"] . " " . $template["status"]);
 
 		/* if we want to override the layout, do it now */
-		if (array_key_exists("layout", $template))
+		if (is_array($template) && array_key_exists("layout", $template))
 			$this::$layout = $template["layout"];
 
 		/* just render text */
@@ -115,13 +115,16 @@ class ApplicationController {
 			if (file_exists($full_file = HALFMOON_ROOT . "/views/"
 			. $tf . ".phtml"))
 				$this->_really_render_file($full_file, $vars);
+
 			elseif (file_exists($xml_file = HALFMOON_ROOT . "/views/"
 			. $tf . ".pxml")) {
 				/* TODO: check for an existing content-type already set by the
 				 * user */
 				header("Content-type: application/xml");
 				$this->_really_render_file($xml_file, $vars);
-			} else
+			}
+			
+			else
 				throw new RenderException("no template file " . $full_file);
 		}
 
@@ -193,11 +196,24 @@ class ApplicationController {
 
 		/* call any before_filters first, bailing if any return false */
 		foreach ((array)$this::$before_filter as $filter) {
-			if (!method_exists($this, $filter))
-				throw new RenderException("before_filter \"" . $filter . "\" "
+			/* check for options */
+			if (is_array($filter[1])) {
+				/* don't filter for specific actions */
+				if ($filter[1]["except"] && in_array($action,
+				(array)$filter[1]["except"]))
+					continue;
+
+				/* only filter for certain actions */
+				if ($filter[1]["only"] && !in_array($action,
+				(array)$filter[1]["only"]))
+					continue;
+			}
+
+			if (!method_exists($this, $filter[0]))
+				throw new RenderException("before_filter \"" . $filter[0] . "\" "
 					. "function does not exist");
 
-			if (!call_user_func_array(array($this, $filter), array()))
+			if (!call_user_func_array(array($this, $filter[0]), array()))
 				return false;
 		}
 
