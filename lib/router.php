@@ -92,6 +92,18 @@ class Router extends Singleton {
 							 * "hi") */
 							$route[$m[1]] = $url_pieces[$x];
 					}
+					
+					/* look for a glob condition */
+					elseif (preg_match("/^\*(.+)$/", $route_pieces[$x], $m)) {
+						/* concatenate the rest of the url as this one param */
+						$u = "";
+						for ($j = $x; $j < count($url_pieces); $j++)
+							$u .= ($u == "" ? "" : "/") . $url_pieces[$j];
+
+						$route[$m[1]] = $u;
+
+						break;
+					}
 
 					/* else it must match exactly (case-insensitively) */
 					elseif (strcasecmp($route_pieces[$x], $url_pieces[$x]) != 0)
