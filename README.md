@@ -1,7 +1,7 @@
 
-	 ,-.
+	 ,-,
 	( (  halfmoon tiny mvc framework for php
-	 `-'
+	 `-`
 
 ## overview ##
 
@@ -33,7 +33,7 @@ is similar to this in halfmoon:
 		<?= $f->label("title", "Post Title"); ?>
 		<?= $f->text_field("title", array("size" => 20)); ?>
 
-		<?= submit_tag("Login") ?>
+		<?= $f->submit_button("Submit") ?>
 	<? }); ?>
 
 
