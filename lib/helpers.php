@@ -28,46 +28,46 @@ false) {
 	$distance_in_minutes = round(abs($seconds_diff / 60));
 	$distance_in_seconds = round(abs($secons_diff));
 
-	if (is_or_between($distance_in_minutes, array(0, 1))) {
+	if (HalfMoon\Utils::is_or_between($distance_in_minutes, array(0, 1))) {
 		if (!$include_seconds)
 			return ($distance_in_minutes == 0 ? "less than 1 minute" :
 				$distance_in_minutes . " minute"
 				. ($distance_in_minutes == 1 ? "" : "s"));
 
-		if (is_or_between($distance_in_seconds, array(0, 4)))
+		if (HalfMoon\Utils::is_or_between($distance_in_seconds, array(0, 4)))
 			return "less than 5 seconds";
-		elseif (is_or_between($distance_in_seconds, array(5, 9)))
+		elseif (HalfMoon\Utils::is_or_between($distance_in_seconds, array(5, 9)))
 			return "less than 10 seconds";
-		elseif (is_or_between($distance_in_seconds, array(10, 19)))
+		elseif (HalfMoon\Utils::is_or_between($distance_in_seconds, array(10, 19)))
 			return "less than 20 seconds";
-		elseif (is_or_between($distance_in_seconds, array(20, 39)))
+		elseif (HalfMoon\Utils::is_or_between($distance_in_seconds, array(20, 39)))
 			return "less than half a minute";
 		else
 			return "1 minute";
 	}
 
-	elseif (is_or_between($distance_in_minutes, array(2, 44)))
+	elseif (HalfMoon\Utils::is_or_between($distance_in_minutes, array(2, 44)))
 		return $distance_in_minutes . " minutes";
 
-	elseif (is_or_between($distance_in_minutes, array(45, 89)))
+	elseif (HalfMoon\Utils::is_or_between($distance_in_minutes, array(45, 89)))
 		return "about 1 hour";
 
-	elseif (is_or_between($distance_in_minutes, array(90, 1439)))
+	elseif (HalfMoon\Utils::is_or_between($distance_in_minutes, array(90, 1439)))
 		return "about " . round($distance_in_minutes / 60) . " hours";
 
-	elseif (is_or_between($distance_in_minutes, array(1440, 2879)))
+	elseif (HalfMoon\Utils::is_or_between($distance_in_minutes, array(1440, 2879)))
 		return "about 1 day";
 
-	elseif (is_or_between($distance_in_minutes, array(2880, 43199)))
+	elseif (HalfMoon\Utils::is_or_between($distance_in_minutes, array(2880, 43199)))
 		return "about " . round($distance_in_minutes / 1440) . " days";
 
-	elseif (is_or_between($distance_in_minutes, array(43200, 86399)))
+	elseif (HalfMoon\Utils::is_or_between($distance_in_minutes, array(43200, 86399)))
 		return "about 1 month";
 
-	elseif (is_or_between($distance_in_minutes, array(86400, 525599)))
+	elseif (HalfMoon\Utils::is_or_between($distance_in_minutes, array(86400, 525599)))
 		return "about " . round($distance_in_minutes / 43200) . " months";
 
-	elseif (is_or_between($distance_in_minutes, array(525600, 1051199)))
+	elseif (HalfMoon\Utils::is_or_between($distance_in_minutes, array(525600, 1051199)))
 		return "about 1 year";
 
 	else

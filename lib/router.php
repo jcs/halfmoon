@@ -17,7 +17,7 @@ class Router extends Singleton {
 
 	public function addRoute($route) {
 		if (!is_array($route))
-			throw new HalfmoonException("invalid route of "
+			throw new HalfMoonException("invalid route of "
 				. var_export($route));
 
 		array_push($this->routes, $route);
@@ -25,13 +25,13 @@ class Router extends Singleton {
 
 	public function addRootRoute($route) {
 		if (!is_array($route))
-			throw new HalfmoonException("invalid root route of "
+			throw new HalfMoonException("invalid root route of "
 				. var_export($route));
 
 		/* only one root route can match a particular condition */
 		foreach ($this->rootRoutes as $rr)
 			if (!array_diff_assoc((array)$rr, (array)$route["conditions"]))
-				throw new HalfmoonException("cannot add second root route "
+				throw new HalfMoonException("cannot add second root route "
 					. "with no conditions: " . var_export($route));
 
 		array_push($this->rootRoutes, $route);
@@ -52,13 +52,13 @@ class Router extends Singleton {
 		 * $params */
 		if ($url == "") {
 			if (!count($this->rootRoutes))
-				throw new HalfmoonException("no root route defined");
+				throw new HalfMoonException("no root route defined");
 
 			foreach ($this->rootRoutes as $route) {
 				/* verify virtual host matches if there's a condition on it */
 				if ($route["conditions"]["hostname"])
-					if (!strcasecmp_or_preg_match($route["conditions"]["hostname"],
-					$hostname))
+					if (!Utils::strcasecmp_or_preg_match(
+					$route["conditions"]["hostname"], $hostname))
 						continue;
 
 				return $this->takeRoute($route, $url, $params);
@@ -67,8 +67,8 @@ class Router extends Singleton {
 			foreach ($this->routes as $route) {
 				/* verify virtual host matches if there's a condition on it */
 				if ($route["conditions"]["hostname"])
-					if (!strcasecmp_or_preg_match($route["conditions"]["hostname"],
-					$hostname))
+					if (!Utils::strcasecmp_or_preg_match(
+					$route["conditions"]["hostname"], $hostname))
 						continue;
 
 				/* trim slashes from route definition and bust it up into
@@ -80,10 +80,11 @@ class Router extends Singleton {
 				for ($x = 0; $x < count($route_pieces); $x++) {
 					/* look for a condition */
 					if (preg_match("/^:(.+)$/", $route_pieces[$x], $m)) {
-						$reg_or_string = A((array)$route["conditions"], $m[1]);
+						$reg_or_string = Utils::A(
+							(array)$route["conditions"], $m[1]);
 
 						if ($reg_or_string &&
-						!strcasecmp_or_preg_match($reg_or_string,
+						!Utils::strcasecmp_or_preg_match($reg_or_string,
 						$url_pieces[$x]))
 							$match = false;
 						else
@@ -135,7 +136,7 @@ class Router extends Singleton {
 	public function takeRoute($route, $url, $params) {
 		/* we need at least a controller */
 		if ($route["controller"] == "")
-			throw new HalfmoonException("no controller specified");
+			throw new HalfMoonException("no controller specified");
 
 		/* but we can deal with no action by calling the index action */
 		if ($route["action"] == "")

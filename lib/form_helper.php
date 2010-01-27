@@ -1,12 +1,13 @@
 <?php
 /*
-	helper functions available everywhere
+	helper functions available to views
 */
 
 namespace HalfMoon;
 
 class FormHelper {
 	public $form_object = null;
+	public $controller = null;
 
 	/* output a <form>..</form> wrapped around a closure, to which this
 	 * FormHelper object is passed, which should output the actual form
@@ -14,9 +15,12 @@ class FormHelper {
 	public function form_for($obj, $url_or_obj, $options = array(),
 	\Closure $form_content) {
 		if (!$obj)
-			throw new HalfmoonException("invalid object passed to form_for()");
+			throw new HalfMoonException("invalid object passed to form_for()");
 
 		$this->form_object = $obj;
+		$this->controller = Utils::current_controller();
+
+		/* TODO: always put $controller into the closure scope */
 
 		if (!$options["method"])
 			$options["method"] = "post";
@@ -27,7 +31,11 @@ class FormHelper {
 
 		?>
 		<form <?= $opts_s ?> action="<?= link_from_obj_or_string($url_or_obj) ?>">
-		<?= to_s($this, $form_content); ?>
+		<? if (strtolower($options["method"]) != "get") { ?>
+			<input name="authenticity_token" type="hidden"
+				value="<?= h($this->controller->form_authenticity_token()) ?>" />
+		<? } ?>
+		<?= Utils::to_s($this, $form_content); ?>
 		</form>
 		<?
 

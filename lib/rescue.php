@@ -11,6 +11,9 @@ function halfmoon_exception_handler($exception) {
 	if (HALFMOON_ENV == "development" && ini_get("display_errors")) {
 		$str = $exception->getMessage();
 
+		if ($str == "")
+			$str = get_class($exception);
+
 		?>
 		<html>
 		<head>
@@ -39,9 +42,6 @@ function halfmoon_exception_handler($exception) {
 		<?
 
 		$backtrace = $exception->getTrace();
-
-		/* the top call is us */
-		array_shift($backtrace);
 
 		foreach ($backtrace as $call) {
 			if ($call["file"]) {
@@ -127,7 +127,7 @@ function halfmoon_exception_handler($exception) {
 	} else {
 		/* production mode, try to handle gracefully */
 
-		if ($exception instanceof Halfmoon\RoutingException) {
+		if ($exception instanceof HalfMoon\RoutingException) {
 			header($_SERVER["SERVER_PROTOCOL"] . " 404 File Not Found");
 
 			if (file_exists(HALFMOON_ROOT . "/public/404.html"))
@@ -145,6 +145,29 @@ function halfmoon_exception_handler($exception) {
 				</html>
 				<?
 			}
+		}
+		
+		elseif ($exception instanceof HalfMoon\InvalidAuthenticityToken) {
+			/* be like rails and give the odd 422 status */
+			header($_SERVER["SERVER_PROTOCOL"] . " 422 Unprocessable Entity");
+
+			if (file_exists(HALFMOON_ROOT . "/public/422.html"))
+				require_once(HALFMOON_ROOT . "/public/422.html");
+			else {
+				/* failsafe */
+				?>
+				<html>
+				<head>Change Rejected</head>
+				<body>
+				<h1>Change Rejected</h1>
+				The change you submitted was rejected due to a security
+				problem.  An additional error occured while processing the
+				error document.
+				</body>
+				</html>
+				<?
+			}
+
 		} else {
 			header($_SERVER["SERVER_PROTOCOL"] . " 500 Server Error");
 

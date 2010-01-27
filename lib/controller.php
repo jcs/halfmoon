@@ -21,6 +21,10 @@ class ApplicationController {
 	/* specify a different layout than controller name or application */
 	static $layout = array();
 
+	/* protect all (or specific actions passed as an array) actions from
+	 * forgery */
+	static $protect_from_forgery = true;
+
 	public $params = array();
 	public $locals = array();
 
@@ -31,6 +35,7 @@ class ApplicationController {
 	public function __set($name, $value) {
 		$this->locals[$name] = $value;
 	}
+
 	public function __get($name) {
 		return $this->locals[$name];
 	}
@@ -106,7 +111,7 @@ class ApplicationController {
 			 * controller's views */
 			if (!strpos($tf, "/"))
 				$tf = strtolower(preg_replace("/Controller$/", "",
-					current_controller())) . "/" . $tf;
+					Utils::current_controller_name())) . "/" . $tf;
 
 			/* partial template files start with _ */
 			if (is_array($template) && $template["partial"])
@@ -171,58 +176,19 @@ class ApplicationController {
 	public function render_action($action) {
 		session_start();
 
-		/* verify any options requiring verification */
-		foreach ((array)$this::$verify as $verification) {
-			/* if this action isn't in the include list, skip */
-			if ($verification["only"] &&
-			!in_array($action, (array)$verification["only"]))
-				continue;
+		$this->verify_method();
 
-			/* if this action is exempted, skip */
-			if ($verification["except"] &&
-			in_array($action, (array)$verification["except"]))
-				continue;
+		$this->protect_from_forgery();
 
-			/* if the method passed from the server matches, skip */
-			if ($verification["method"] &&
-			(strtolower($_SERVER["REQUEST_METHOD"]) ==
-			strtolower($verification["method"])))
-				continue;
-
-			/* still here, do any actions */
-			if ($verification["redirect_to"])
-				return redirect_to($verification["redirect_to"]);
-		}
-
-		/* call any before_filters first, bailing if any return false */
-		foreach ((array)$this::$before_filter as $filter) {
-			/* check for options */
-			if (is_array($filter[1])) {
-				/* don't filter for specific actions */
-				if ($filter[1]["except"] && in_array($action,
-				(array)$filter[1]["except"]))
-					continue;
-
-				/* only filter for certain actions */
-				if ($filter[1]["only"] && !in_array($action,
-				(array)$filter[1]["only"]))
-					continue;
-			}
-
-			if (!method_exists($this, $filter[0]))
-				throw new RenderException("before_filter \"" . $filter[0] . "\" "
-					. "function does not exist");
-
-			if (!call_user_func_array(array($this, $filter[0]), array()))
-				return false;
-		}
+		if (!$this->process_before_filters())
+			return false;
 
 		ob_start();
 
 		/* we only want to allow calling public methods in controllers, to
 		 * avoid users getting directly to before_filters and other utility
 		 * functions */
-		if (!in_array($action, get_public_class_methods($this)))
+		if (!in_array($action, Utils::get_public_class_methods($this)))
 			throw new RenderException("controller \"" . get_class($this)
 				. "\" does not have an action \"" . $action . "\"");
 
@@ -286,6 +252,91 @@ class ApplicationController {
 			require(HALFMOON_ROOT . "/views/layouts/" . $layout . ".phtml");
 		else
 			print $content_for_layout;
+	}
+
+	/* verify any options requiring verification */
+	private function verify_method() {
+		foreach ((array)$this::$verify as $verification) {
+			/* if this action isn't in the include list, skip */
+			if ($verification["only"] &&
+			!in_array($action, (array)$verification["only"]))
+				continue;
+
+			/* if this action is exempted, skip */
+			if ($verification["except"] &&
+			in_array($action, (array)$verification["except"]))
+				continue;
+
+			/* if the method passed from the server matches, skip */
+			if ($verification["method"] &&
+			(strtolower($_SERVER["REQUEST_METHOD"]) ==
+			strtolower($verification["method"])))
+				continue;
+
+			/* still here, do any actions */
+			if ($verification["redirect_to"])
+				return redirect_to($verification["redirect_to"]);
+		}
+	}
+
+	/* verify the passed authenticity token for non-GET requests */
+	private function protect_from_forgery() {
+		if (!$this::$protect_from_forgery)
+			return;
+
+		if (strtolower($_SERVER["REQUEST_METHOD"]) == "get")
+			return;
+
+		if (is_array($protect_from_forgery)) {
+			/* don't protect for specific actions */
+			if ($protect_from_forgery["except"] && in_array($action,
+			(array)$protect_from_forgery["except"]))
+				return;
+
+			/* only verify for certain actions */
+			if ($protect_from_forgery["only"] && !in_array($action,
+			(array)$protect_from_forgery["only"]))
+				return;
+		}
+
+		if ($this->params["authenticity_token"] !=
+		$this->form_authenticity_token()) {
+			 throw new InvalidAuthenticityToken();
+		}
+	}
+
+	/* return false if any before_filters return false */
+	private function process_before_filters() {
+		foreach ((array)$this::$before_filter as $filter) {
+			/* check for options */
+			if (is_array($filter[1])) {
+				/* don't filter for specific actions */
+				if ($filter[1]["except"] && in_array($action,
+				(array)$filter[1]["except"]))
+					continue;
+
+				/* only filter for certain actions */
+				if ($filter[1]["only"] && !in_array($action,
+				(array)$filter[1]["only"]))
+					continue;
+			}
+
+			if (!method_exists($this, $filter[0]))
+				throw new RenderException("before_filter \"" . $filter[0]
+					. "\" function does not exist");
+
+			if (!call_user_func_array(array($this, $filter[0]), array()))
+				return false;
+		}
+
+		return true;
+	}
+
+	public function form_authenticity_token() {
+		if (!$_SESSION["_csrf_token"])
+			$_SESSION["_csrf_token"] = Utils::random_hash();
+
+		return $_SESSION["_csrf_token"];
 	}
 }
 

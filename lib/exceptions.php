@@ -1,9 +1,11 @@
 <?php
 
-namespace Halfmoon;
+namespace HalfMoon;
 
-class RoutingException extends \Exception {};
-class RenderException extends \Exception {};
-class HalfmoonException extends \Exception {};
+class HalfMoonException extends \Exception {};
+
+class RoutingException extends HalfMoonException {};
+class RenderException extends HalfMoonException {};
+class InvalidAuthenticityToken extends HalfMoonException {};
 
 ?>

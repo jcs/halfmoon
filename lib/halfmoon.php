@@ -51,7 +51,7 @@ ActiveRecord\Config::initialize(function($cfg) {
 	$db_config = parse_ini_file(HALFMOON_ROOT . "/config/db.ini", true);
 
 	if (!$db_config[HALFMOON_ENV])
-		throw new Halfmoon\ConfigException("no database configuration found "
+		throw new HalfMoon\ConfigException("no database configuration found "
 			. "for \"" . HALFMOON_ENV . "\" environment");
 
 	$db = array_merge($db, $db_config[HALFMOON_ENV]);
