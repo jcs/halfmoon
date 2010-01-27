@@ -1,7 +1,7 @@
 
-	 ,-.
+	 ,-,
 	( (  halfmoon tiny mvc framework for php
-	 `-'
+	 `-`
 
 ## overview ##
 
