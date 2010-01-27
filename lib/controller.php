@@ -308,18 +308,14 @@ class ApplicationController {
 	/* return false if any before_filters return false */
 	private function process_before_filters() {
 		foreach ((array)$this::$before_filter as $filter) {
-			/* check for options */
-			if (is_array($filter[1])) {
-				/* don't filter for specific actions */
-				if ($filter[1]["except"] && in_array($action,
-				(array)$filter[1]["except"]))
-					continue;
+			/* don't filter for specific actions */
+			if ($filter["except"] && in_array($action,
+			(array)$filter["except"]))
+				continue;
 
-				/* only filter for certain actions */
-				if ($filter[1]["only"] && !in_array($action,
-				(array)$filter[1]["only"]))
-					continue;
-			}
+			/* only filter for certain actions */
+			if ($filter["only"] && !in_array($action, (array)$filter["only"]))
+				continue;
 
 			if (!method_exists($this, $filter[0]))
 				throw new RenderException("before_filter \"" . $filter[0]
