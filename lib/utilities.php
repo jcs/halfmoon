@@ -58,6 +58,11 @@ class Utils {
 		return $methods;
 	}
 
+	/* like is_array() but tells whether it's an associative array */
+	function is_assoc($a) {
+		return is_array($a) && array_diff_key($a, array_keys(array_keys($a)));
+	}
+
 	/* return true if $int is inclusively between an array of $low and $high */
 	static function is_or_between($int, $low_and_high) {
 		return ($int >= $low_and_high[0] && $int <= $low_and_high[1]);

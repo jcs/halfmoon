@@ -246,8 +246,8 @@ function options_for_link($options = array(), $button_target = null) {
 			$opts_s .= "var t = document.createElement('input'); "
 				. "t.type = 'hidden'; t.name = 'authenticity_token'; "
 				. "t.value = '" . h(HalfMoon\Utils::current_controller()->
-					form_authenticity_token())
-				. "'; f.appendChild(t); ";
+					form_authenticity_token()) . "'; "
+				. "f.appendChild(t); ";
 
 		$opts_s .= "f.submit(); }; return false;\"";
 

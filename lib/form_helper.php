@@ -97,11 +97,50 @@ class FormHelper {
 		return call_user_func_array("link_to", func_get_args());
 	}
 
+	/* generate <option> tags for an array of options for a <select> */
+	public function options_for_select($choices, $selected) {
+		$str = "";
+
+		foreach ($choices as $opt_a) {
+			$val = $text = null;
+
+			if (Utils::is_assoc($opt_a)) {
+				$val = A(array_keys($opt_a), 0);
+				$text = A(array_values($opt_a), 0);
+			} else {
+				$val = $opt_a[1];
+				$text = $opt_a[0];
+			}
+
+			$str .= "<option value=\"" . h($val) . "\""
+				. ($selected === $val ? " selected" : "") . ">"
+				. h($text) . "</option>";
+		}
+
+		return $str;
+	}
+
 	/* create an <input> password field, *not including any value* */
 	public function password_field($field, $options = array()) {
 		$options["type"] = "password";
 
 		return $this->text_field($field, $options, $include_value = false);
+	}
+
+	/* create a <select> box with options */
+	public function select($field, $choices, $options = array()) {
+		$opts_s = "";
+		foreach ($options as $k => $v)
+			$opts_s .= " " . $k . "=\"" . $v . "\"";
+
+		return $this->wrap_field_with_errors($field,
+			"<select"
+			. " id=\"" . $this->form_prefix() . "_" . $field . "\""
+			. " name=\"" . $this->form_prefix() . "[" . $field . "]\""
+			. $opts_s . ">"
+			. $this->options_for_select($choices,
+				h($this->form_object->$field))
+			. "</select>");
 	}
 
 	/* create an <input> submit button */
