@@ -366,7 +366,7 @@ class Model
 			}
 		}
 
-		throw new UndefinedPropertyException($name);
+		throw new UndefinedPropertyException(get_called_class(),$name);
 	}
 
 	/**
@@ -408,7 +408,7 @@ class Model
 				return $this->$item['to']->$delegated_name = $value;
 		}
 
-		throw new UndefinedPropertyException($name);
+		throw new UndefinedPropertyException(get_called_class(),$name);
 	}
 
 	/**
@@ -845,7 +845,7 @@ class Model
 	}
 
 	/**
-	 * Passing strict as true will throw an exception if an attribute does not exist.
+	 * Passing $guard_attributes as true will throw an exception if an attribute does not exist.
 	 *
 	 * @throws ActiveRecord\UndefinedPropertyException
 	 * @param array $attributes An array in the form array(name => value, ...)
@@ -891,7 +891,7 @@ class Model
 		}
 
 		if (!empty($exceptions))
-			throw new UndefinedPropertyException($exceptions);
+			throw new UndefinedPropertyException(get_called_class(),$exceptions);
 	}
 
 	/**
@@ -1052,10 +1052,14 @@ class Model
 	{
 		$args = func_get_args();
 		$options = static::extract_and_validate_options($args);
-		$options['select'] = 'COUNT(*) AS n';
+		$options['select'] = 'COUNT(*)';
 
-		$row = call_user_func_array('static::find',array_merge(array('first'),$args,array($options)));
-		return $row->attributes['n'];
+		if (!empty($args))
+			$options['conditions'] = call_user_func_array('static::pk_conditions',$args);
+
+		$table = static::table();
+		$sql = $table->options_to_sql($options);
+		return $table->conn->query_and_fetch_one($sql->to_s(),$sql->get_where_values());
 	}
 
 	/**
