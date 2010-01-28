@@ -100,22 +100,12 @@ class FormHelper {
 	/* generate <option> tags for an array of options for a <select> */
 	public function options_for_select($choices, $selected) {
 		$str = "";
+		$is_assoc = Utils::is_assoc($choices);
 
-		foreach ($choices as $opt_a) {
-			$val = $text = null;
-
-			if (Utils::is_assoc($opt_a)) {
-				$val = A(array_keys($opt_a), 0);
-				$text = A(array_values($opt_a), 0);
-			} else {
-				$val = $opt_a[1];
-				$text = $opt_a[0];
-			}
-
-			$str .= "<option value=\"" . h($val) . "\""
-				. ($selected === $val ? " selected" : "") . ">"
-				. h($text) . "</option>";
-		}
+		foreach ($choices as $key => $val)
+			$str .= "<option value=\"" . h($is_assoc ? $key : $val) . "\""
+				. ($selected === ($is_assoc ? $key : $val) ? " selected" : "")
+				. ">" . h($val) . "</option>";
 
 		return $str;
 	}
