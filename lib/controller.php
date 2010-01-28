@@ -194,9 +194,7 @@ class ApplicationController {
 
 		call_user_func_array(array($this, $action), array());
 
-		if ($this->did_render)
-			ob_end_flush();
-		else
+		if (!$this->did_render)
 			$this->render(array("action" => $this->params["controller"] . "/"
 				. $action), $this->locals);
 
@@ -207,7 +205,8 @@ class ApplicationController {
 	/* capture the output of everything rendered and put it within the layout */
 	public function render_layout() {
 		$content_for_layout = ob_get_contents();
-		ob_end_clean();
+		while (ob_end_clean())
+			$content_for_layout = $content_for_layout . ob_get_contents();
 
 		/* if we don't want a layout at all, just print the content */
 		if (isset($this::$layout) && $this::$layout === false) {
@@ -215,8 +214,10 @@ class ApplicationController {
 			return;
 		}
 
+		$layout = null;
+
+		/* check for an overridden layout and options */
 		if (count((array)$this::$layout)) {
-			/* check for options */
 			do {
 				if (is_array($this::$layout[1])) {
 					/* don't override for specific actions */
