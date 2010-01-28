@@ -186,7 +186,7 @@ function link_from_obj_or_string($thing) {
 			$link .= $thing["controller"];
 		else
 			$link .= strtolower(preg_replace("/Controller$/", "",
-				current_controller()));
+				current_controller_name()));
 
 		if ($thing["action"]) {
 			$link .= "/" . $thing["action"];
@@ -237,11 +237,19 @@ function options_for_link($options = array(), $button_target = null) {
 
 		$opts_s .= "{ var f = document.createElement('form'); "
 			. "f.style.display = 'none'; "
-			. "this.parentNode.appendChild(f); "
 			. "f.method = '" . $options["method"] . "'; "
 			. "f.action = " . ($button_target ? "'" . $button_target . "'" :
 				"this.href") . "; "
-			. "f.submit(); }; return false;\"";
+			. "this.parentNode.appendChild(f); ";
+
+		if (strtolower($options["method"]) != "get")
+			$opts_s .= "var t = document.createElement('input'); "
+				. "t.type = 'hidden'; t.name = 'authenticity_token'; "
+				. "t.value = '" . h(HalfMoon\Utils::current_controller()->
+					form_authenticity_token())
+				. "'; f.appendChild(t); ";
+
+		$opts_s .= "f.submit(); }; return false;\"";
 
 		unset($options["confirm"]);
 		unset($options["method"]);
