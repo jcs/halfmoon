@@ -16,19 +16,19 @@
 
 	a root route to match "/":
 
-		HalfMoon\Router::instance()->addRootRoute = array(
+		HalfMoon\Router::instance()->addRootRoute(array(
 			"controller" => "posts"
-		);
+		));
 
 	another root route on a specific virtual host to map to a different action
 	(this would have to be defined before the previous root route, since the
 	previous one has no conditions and would match all root urls):
 
-		HalfMoon\Router::instance()->addRootRoute = array(
+		HalfMoon\Router::instance()->addRootRoute(array(
 			"controller" => "posts",
 			"action" => "devindex",
 			"conditions" => array("hostname" => "dev"),
-		);
+		));
 */
 
 /* generic catch-all route to match everything else */
