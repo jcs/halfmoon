@@ -17,7 +17,8 @@ class Utils {
 
 		foreach (debug_backtrace() as $stack)
 			if ($stack["object"] &&
-			get_parent_class($stack["object"]) == "ApplicationController") {
+			preg_match("/^(HalfMoon\\\\)?ApplicationController$/",
+			get_parent_class($stack["object"]))) {
 				$controller = $stack["object"];
 				break;
 			}
