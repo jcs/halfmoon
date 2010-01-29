@@ -182,18 +182,18 @@ function link_from_obj_or_string($thing) {
 	elseif (is_array($thing)) {
 		$link = "/";
 
+		/* if no controller, assume the current one */
 		if ($thing["controller"])
 			$link .= $thing["controller"];
 		else
 			$link .= strtolower(preg_replace("/Controller$/", "",
 				current_controller_name()));
 
-		if ($thing["action"]) {
+		if ($thing["action"])
 			$link .= "/" . $thing["action"];
 
-			if ($thing["id"])
-				$link .= "/" . $thing["id"];
-		}
+		if ($thing["id"])
+			$link .= "/" . $thing["id"];
 
 		/* anything else in the array is assumed to be passed as get args */
 		$url_params = "";
