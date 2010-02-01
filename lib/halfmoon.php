@@ -11,6 +11,9 @@ if (floatval(phpversion()) < 5.3) {
 /* where our app lives (not just where halfmoon lives) */
 define("HALFMOON_ROOT", realpath(dirname(__FILE__) . "/../../"));
 
+/* append our root to the include path to pick up user-installed code */
+set_include_path(get_include_path() . PATH_SEPARATOR . HALFMOON_ROOT);
+
 /* some sane defaults */
 date_default_timezone_set("UTC");
 session_name("halfmoon_session");
