@@ -35,16 +35,6 @@ class Utils {
 		return get_class(Utils::current_controller());
 	}
 
-	/* print_r() to the error log */
-	static function error_log_r($param) {
-		ob_start();
-		print_r($param);
-		$lines = explode("\n", ob_get_clean());
-
-		foreach ($lines as $line)
-			error_log($line);
-	}
-
 	/* return an array of public methods for a given class */
 	static function get_public_class_methods($class) {
 		$methods = array();

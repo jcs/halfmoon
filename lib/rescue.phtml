@@ -1,0 +1,100 @@
+<?php
+/*
+	html file rendered in exception handler when in the development environment
+*/
+?>
+<html>
+<head>
+	<title><?= h($title) ?></title>
+	<style type="text/css">
+		h2, h3, h4 {
+			margin: 0;
+		}
+		div.info {
+			background-color: #eee;
+			padding: 10px;
+			font-family: monospace;
+		}
+	</style>
+</head>
+<body>
+<h2><?= h($title) ?></h2>
+<p>
+<tt>HALFMOON_ROOT: <?= h(HALFMOON_ROOT) ?></tt>
+</p>
+<p>
+<h3>Backtrace</h3>
+</p>
+<p>
+<div class="info">
+<?
+
+foreach ($exception->getTrace() as $call) {
+	if ($call["file"]) {
+		$fileparts = explode("/", $call["file"]);
+
+		for ($x = 0; $x < count($fileparts); $x++) {
+			$fileparts[$x] = h($fileparts[$x]);
+
+			if ($x == count($fileparts) - 1)
+				$fileparts[$x] = "<strong>" . $fileparts[$x] . "</strong>";
+		}
+
+		?>
+		<?= join("/", $fileparts); ?><?
+	} else {
+		?><?= h($call["class"]) ?><?
+	}
+	
+	?>:<?= h($call["line"]) ?>
+	in
+	<strong><?= h($call["function"]) ?>()</strong>
+	<br />
+	<?
+}
+
+?>
+</div>
+</p>
+<p>
+<h3>Request</h3>
+</p>
+
+<? foreach (array("get", "post") as $a) { ?>
+	<p>
+	<h4><?= strtoupper($a) ?> Parameters</h4>
+	</p>
+	<p>
+	<div class="info">
+	<? foreach ((array)$this->$a as $k => $v) { ?>
+		<strong><?= h(var_export($k, true)) ?></strong>:
+			<?= h(var_export($v, true)) ?><br />
+	<? } ?>
+	</div>
+	</p>
+<? } ?>
+
+<p>
+<h4>Uploaded Files</h4>
+</p>
+<p>
+<div class="info">
+<? foreach ((array)$_FILES as $k => $v) { ?>
+	<strong><?= h(var_export($k, true)) ?></strong>:
+		<?= h(var_export($v, true)) ?><br />
+<? } ?>
+</div>
+</p>
+
+<p>
+<h3>Session</h3>
+</p>
+<p>
+<div class="info">
+<? foreach ((array)$_SESSION as $k => $v) { ?>
+	<?= h(var_export($k, true) . ": " . var_export($v, true)) ?><br />
+<? } ?>
+</div>
+</p>
+</body>
+</html>

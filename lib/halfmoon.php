@@ -3,10 +3,9 @@
 	main entry point
 */
 
-if (floatval(phpversion()) < 5.3) {
+if (floatval(phpversion()) < 5.3)
 	die("PHP version of at least 5.3 is required and you are using "
 		. phpversion() . ")");
-}
 
 /* where our app lives (not just where halfmoon lives) */
 define("HALFMOON_ROOT", realpath(dirname(__FILE__) . "/../../"));
@@ -22,6 +21,7 @@ session_name("halfmoon_session");
 if (!defined("HALFMOON_ENV"))
     define("HALFMOON_ENV", "development");
 
+require_once(HALFMOON_ROOT . "/halfmoon/lib/logging.php");
 require_once(HALFMOON_ROOT . "/halfmoon/lib/exceptions.php");
 require_once(HALFMOON_ROOT . "/halfmoon/lib/rescue.php");
 
@@ -31,6 +31,7 @@ require_once(HALFMOON_ROOT . "/halfmoon/lib/singleton.php");
 require_once(HALFMOON_ROOT . "/halfmoon/lib/form_helper.php");
 require_once(HALFMOON_ROOT . "/halfmoon/lib/helpers.php");
 require_once(HALFMOON_ROOT . "/halfmoon/lib/controller.php");
+require_once(HALFMOON_ROOT . "/halfmoon/lib/request.php");
 require_once(HALFMOON_ROOT . "/halfmoon/lib/router.php");
 
 /* load site-specific boot settings */

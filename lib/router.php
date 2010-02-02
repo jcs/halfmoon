@@ -26,31 +26,23 @@ class Router extends Singleton {
 	public function addRootRoute($route) {
 		if (!is_array($route))
 			throw new HalfMoonException("invalid root route of "
-				. var_export($route));
+				. var_export($route, true));
 
 		/* only one root route can match a particular condition */
 		foreach ($this->rootRoutes as $rr)
 			if (!array_diff_assoc((array)$rr, (array)$route["conditions"]))
 				throw new HalfMoonException("cannot add second root route "
-					. "with no conditions: " . var_export($route));
+					. "with no conditions: " . var_export($route, true));
 
 		array_push($this->rootRoutes, $route);
 	}
 
-	public function routeRequest($url, $params, $hostname) {
-		/* strip leading and trailing slashes, then again in case some were
-		 * hiding */
-		$url = trim(preg_replace("/^\/*/", "", preg_replace("/\/$/", "",
-			trim($url))));
-
-		$url_pieces = explode("/", $url);
-
-		/* store some special variables in $params */
-		$params["hostname"] = $hostname;
+	public function routeRequest($request) {
+		$path_pieces = explode("/", $request->path);
 
 		/* find and take the first matching route, storing route components in
 		 * $params */
-		if ($url == "") {
+		if ($request->path == "") {
 			if (!count($this->rootRoutes))
 				throw new HalfMoonException("no root route defined");
 
@@ -58,17 +50,17 @@ class Router extends Singleton {
 				/* verify virtual host matches if there's a condition on it */
 				if ($route["conditions"]["hostname"])
 					if (!Utils::strcasecmp_or_preg_match(
-					$route["conditions"]["hostname"], $hostname))
+					$route["conditions"]["hostname"], $request->hostname))
 						continue;
 
-				return $this->takeRoute($route, $url, $params);
+				return $this->takeRoute($route, $request);
 			}
 		} else {
 			foreach ($this->routes as $route) {
 				/* verify virtual host matches if there's a condition on it */
 				if ($route["conditions"]["hostname"])
 					if (!Utils::strcasecmp_or_preg_match(
-					$route["conditions"]["hostname"], $hostname))
+					$route["conditions"]["hostname"], $request->hostname))
 						continue;
 
 				/* trim slashes from route definition and bust it up into
@@ -85,21 +77,21 @@ class Router extends Singleton {
 
 						if ($reg_or_string &&
 						!Utils::strcasecmp_or_preg_match($reg_or_string,
-						$url_pieces[$x]))
+						$path_pieces[$x]))
 							$match = false;
 						else
 							/* store this named parameter (e.g. "/:blah" route
-							 * on a url of "/hi" defines $route["blah"] to be
+							 * on a path of "/hi" defines $route["blah"] to be
 							 * "hi") */
-							$route[$m[1]] = $url_pieces[$x];
+							$route[$m[1]] = $path_pieces[$x];
 					}
 					
 					/* look for a glob condition */
 					elseif (preg_match("/^\*(.+)$/", $route_pieces[$x], $m)) {
-						/* concatenate the rest of the url as this one param */
+						/* concatenate the rest of the path as this one param */
 						$u = "";
-						for ($j = $x; $j < count($url_pieces); $j++)
-							$u .= ($u == "" ? "" : "/") . $url_pieces[$j];
+						for ($j = $x; $j < count($path_pieces); $j++)
+							$u .= ($u == "" ? "" : "/") . $path_pieces[$j];
 
 						$route[$m[1]] = $u;
 
@@ -107,7 +99,8 @@ class Router extends Singleton {
 					}
 
 					/* else it must match exactly (case-insensitively) */
-					elseif (strcasecmp($route_pieces[$x], $url_pieces[$x]) != 0)
+					elseif (strcasecmp($route_pieces[$x], $path_pieces[$x])
+					!= 0)
 						$match = false;
 
 					if (!$match)
@@ -124,16 +117,16 @@ class Router extends Singleton {
 					 * doesn't exist, that way at least the backtrace will show
 					 * what controller we resolved it to */
 
-					return $this->takeRoute($route, $url, $params);
+					return $this->takeRoute($route, $request);
 				}
 			}
 		}
 
 		/* still here, no routes matched */
-		throw new RoutingException("no route for url \"" . $url . "\"");
+		throw new RoutingException("no route for url \"" . $request->path . "\"");
 	}
 
-	public function takeRoute($route, $url, $params) {
+	public function takeRoute($route, $request) {
 		/* we need at least a controller */
 		if ($route["controller"] == "")
 			throw new HalfMoonException("no controller specified");
@@ -142,33 +135,22 @@ class Router extends Singleton {
 		if ($route["action"] == "")
 			$route["action"] = "index";
 
-		/* store get and post vars in $params first according to php's
-		 * variables_order setting (EGPCS by default) */
-		foreach (str_split(ini_get("variables_order")) as $vtype) {
-			$varray = null;
-
-			switch (strtoupper($vtype)) {
-			case "P":
-				$varray = $_POST;
-				break;
-			case "G":
-				$varray = $_GET;
-				break;
-			}
-
-			if ($varray)
-				foreach ($varray as $k => $v)
-					$params[$k] = $v;
-		}
-
-		/* then store the parameters named in the route with data from the url,
+		/* store the parameters named in the route with data from the url,
 		 * overriding anything passed by the user as get/post */
 		foreach ($route as $k => $v)
-			$params[$k] = $v;
+			$request->params[$k] = $v;
 
 		$c = ucfirst($route["controller"]) . "Controller";
-		$controller = new $c;
-		$controller->params = $params;
+
+		/* log some basic information */
+		Log::info("Processing " . $c . "::" . $route["action"] . " (for "
+			. $request->remote_ip() . " at " . date("c") . ") ["
+			. $request->request_method() . "]");
+		Log::info("  Parameters: " . json_encode($params));
+
+		$controller = new $c($request);
 		$controller->render_action($route["action"], array());
 	}
 }
+
+?>

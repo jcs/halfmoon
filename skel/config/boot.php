@@ -15,7 +15,7 @@ if (HALFMOON_ENV == "development") {
 	 * queries to apache's error log */
 	class LogLogLog {
 		public function log($sql) {
-			error_log($sql);
+			error_log("  " . $sql);
 		}
 	}
 

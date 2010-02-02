@@ -25,11 +25,17 @@ class ApplicationController {
 	 * forgery */
 	static $protect_from_forgery = true;
 
+	public $request = array();
 	public $params = array();
 	public $locals = array();
 
 	private $did_render = false;
 	private $did_layout = false;
+
+	public function __construct($request) {
+		$this->request = $request;
+		$this->params = &$request->params;
+	}
 
 	/* turn local class variables into $variables when rendering views */
 	public function __set($name, $value) {
@@ -65,6 +71,8 @@ class ApplicationController {
 		/* prevent any content from getting to the user */
 		while (ob_end_clean())
 			;
+
+		Log::info("Redirected to " . $link);
 
 		header("Location: " . $link);
 
@@ -147,7 +155,7 @@ class ApplicationController {
 		/* export variables set in the controller to the view */
 		foreach ($this->locals as $k => $v) {
 			if (in_array($k, $__special_vars)) {
-				error_log("tried to redefine \$" . $k . " passed from "
+				Log::warn("tried to redefine \$" . $k . " passed from "
 					. "controller");
 				continue;
 			}
@@ -158,8 +166,8 @@ class ApplicationController {
 		/* and any passed as locals to the render() function */
 		foreach ($__vars as $k => $v) {
 			if (in_array($k, $__special_vars)) {
-				error_log("tried to redefine \$" . $k . " passed from "
-					. "render() call");
+				Log::warn("tried to redefine \$" . $k . " passed "
+					. "from render() call");
 				continue;
 			}
 
@@ -168,6 +176,8 @@ class ApplicationController {
 
 		/* define $controller where $this can't be used */
 		$controller = $this;
+
+		Log::info("Rendering " . $__file);
 
 		require($__file);
 	}
@@ -249,9 +259,10 @@ class ApplicationController {
 		$this->did_layout = true;
 
 		if (file_exists(HALFMOON_ROOT . "/views/layouts/" . $layout .
-		".phtml"))
+		".phtml")) {
+			Log::info("Rendering layout " . $layout);
 			require(HALFMOON_ROOT . "/views/layouts/" . $layout . ".phtml");
-		else
+		} else
 			print $content_for_layout;
 	}
 
@@ -322,8 +333,12 @@ class ApplicationController {
 				throw new RenderException("before_filter \"" . $filter[0]
 					. "\" function does not exist");
 
-			if (!call_user_func_array(array($this, $filter[0]), array()))
+			if (!call_user_func_array(array($this, $filter[0]), array())) {
+				Log::info("Filter chain halted as " . $filter[0] . " returned "
+					. "false.");
+
 				return false;
+			}
 		}
 
 		return true;

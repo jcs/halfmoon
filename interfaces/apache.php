@@ -8,7 +8,7 @@ if ($_SERVER["HALFMOON_ENV"])
 
 require_once(dirname(__FILE__) . "/../lib/halfmoon.php");
 
-HalfMoon\Router::instance()->routeRequest($_SERVER["PATH_INFO"],
-	$_SERVER["QUERY_STRING"], $_SERVER["HTTP_HOST"]);
+$req = new HalfMoon\Request($_SERVER["SCRIPT_URI"], $_GET, $_POST, $_SERVER);
+$req->process();
 
 ?>
