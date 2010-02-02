@@ -186,11 +186,11 @@ class ApplicationController {
 	public function render_action($action) {
 		session_start();
 
-		$this->verify_method();
+		$this->verify_method($action);
 
-		$this->protect_from_forgery();
+		$this->protect_from_forgery($action);
 
-		if (!$this->process_before_filters())
+		if (!$this->process_before_filters($action))
 			return false;
 
 		ob_start();
@@ -267,7 +267,7 @@ class ApplicationController {
 	}
 
 	/* verify any options requiring verification */
-	private function verify_method() {
+	private function verify_method($action) {
 		foreach ((array)$this::$verify as $verification) {
 			/* if this action isn't in the include list, skip */
 			if ($verification["only"] &&
@@ -292,22 +292,22 @@ class ApplicationController {
 	}
 
 	/* verify the passed authenticity token for non-GET requests */
-	private function protect_from_forgery() {
+	private function protect_from_forgery($action) {
 		if (!$this::$protect_from_forgery)
 			return;
 
-		if (strtolower($_SERVER["REQUEST_METHOD"]) == "get")
+		if ($this->request->request_method() == "GET")
 			return;
 
-		if (is_array($protect_from_forgery)) {
+		if (is_array($this::$protect_from_forgery)) {
 			/* don't protect for specific actions */
-			if ($protect_from_forgery["except"] && in_array($action,
-			(array)$protect_from_forgery["except"]))
+			if ($this::$protect_from_forgery["except"] && in_array($action,
+			(array)$this::$protect_from_forgery["except"]))
 				return;
 
 			/* only verify for certain actions */
-			if ($protect_from_forgery["only"] && !in_array($action,
-			(array)$protect_from_forgery["only"]))
+			if ($this::$protect_from_forgery["only"] && !in_array($action,
+			(array)$this::$protect_from_forgery["only"]))
 				return;
 		}
 
@@ -318,7 +318,7 @@ class ApplicationController {
 	}
 
 	/* return false if any before_filters return false */
-	private function process_before_filters() {
+	private function process_before_filters($action) {
 		foreach ((array)$this::$before_filter as $filter) {
 			/* don't filter for specific actions */
 			if ($filter["except"] && in_array($action,
