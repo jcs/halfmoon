@@ -145,7 +145,13 @@ class Request {
 			;
 
 		$str = get_class($exception);
-		if ($exception->getMessage())
+
+		/* activerecord includes the stack trace in the message, so strip it
+		 * out */
+		if ($exception instanceof \ActiveRecord\DatabaseException)
+			$str .= ": " . preg_replace("/\nStack trace:.*/s", "",
+				$exception->getMessage());
+		elseif ($exception->getMessage())
 			$str .= ": " . $exception->getMessage();
 
 		Log::error($str . ":");
