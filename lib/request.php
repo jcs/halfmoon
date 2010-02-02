@@ -172,17 +172,19 @@ class Request {
 		else {
 			/* production mode, try to handle gracefully */
 
-			if ($exception instanceof HalfMoon\RoutingException) {
+			if ($exception instanceof \HalfMoon\RoutingException) {
 				header($_SERVER["SERVER_PROTOCOL"] . " 404 File Not Found");
 
 				if (file_exists($f = HALFMOON_ROOT . "/public/404.html")) {
-					HalfMoon\Log::error("Rendering " . $f);
+					Log::error("Rendering " . $f);
 					require_once($f);
 				} else {
 					/* failsafe */
 					?>
 					<html>
-					<head>File Not Found</head>
+					<head>
+					<title>File Not Found</title>
+					</head>
 					<body>
 					<h1>File Not Found</h1>
 					The file you requested could not be found.  An additional error
@@ -193,18 +195,20 @@ class Request {
 				}
 			}
 			
-			elseif ($exception instanceof HalfMoon\InvalidAuthenticityToken) {
+			elseif ($exception instanceof \HalfMoon\InvalidAuthenticityToken) {
 				/* be like rails and give the odd 422 status */
 				header($_SERVER["SERVER_PROTOCOL"] . " 422 Unprocessable Entity");
 
 				if (file_exists($f = HALFMOON_ROOT . "/public/422.html")) {
-					HalfMoon\Log::error("Rendering " . $f);
+					Log::error("Rendering " . $f);
 					require_once($f);
 				} else {
 					/* failsafe */
 					?>
 					<html>
-					<head>Change Rejected</head>
+					<head>
+					<title>Change Rejected</title>
+					</head>
 					<body>
 					<h1>Change Rejected</h1>
 					The change you submitted was rejected due to a security
@@ -220,13 +224,15 @@ class Request {
 				header($_SERVER["SERVER_PROTOCOL"] . " 500 Server Error");
 
 				if (file_exists($f = HALFMOON_ROOT . "/public/500.html")) {
-					HalfMoon\Log::error("Rendering " . $f);
+					Log::error("Rendering " . $f);
 					require_once($f);
 				} else {
 					/* failsafe */
 					?>
 					<html>
-					<head>Application Error</head>
+					<head>
+					<title>Application Error</title>
+					</head>
 					<body>
 					<h1>Application Error</h1>
 					An internal application error occured while processing your
