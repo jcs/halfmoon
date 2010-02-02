@@ -30,6 +30,12 @@ abstract class Connection
 	public $last_query;
 
 	/**
+	 * Seconds spent waiting for the database.
+	 * @var float
+	 */
+	public $database_time = 0;
+
+	/**
 	 * Default PDO options to set for each connection.
 	 * @var array
 	 */
@@ -214,21 +220,32 @@ abstract class Connection
 
 		$this->last_query = $sql;
 
+		$start_time = microtime(true);
+
 		try {
-			if (!($sth = $this->connection->prepare($sql)))
+			if (!($sth = $this->connection->prepare($sql))) {
+				$this->record_database_time(microtime(true) - $start_time);
 				throw new DatabaseException($this);
+			}
 		} catch (PDOException $e) {
+			$this->record_database_time(microtime(true) - $start_time);
 			throw new DatabaseException($this);
 		}
 
 		$sth->setFetchMode(PDO::FETCH_ASSOC);
 
 		try {
-			if (!$sth->execute($values))
+			if (!$sth->execute($values)) {
+				$this->record_database_time(microtime(true) - $start_time);
 				throw new DatabaseException($this);
+			}
 		} catch (PDOException $e) {
+			$this->record_database_time(microtime(true) - $start_time);
 			throw new DatabaseException($sth);
 		}
+
+		$this->record_database_time(microtime(true) - $start_time);
+
 		return $sth;
 	}
 
@@ -341,5 +358,27 @@ abstract class Connection
 	 * @return string
 	 */
 	abstract function quote_name($string);
+
+	/**
+	 * Adds time spent in the database to the tally.
+	 *
+	 * @return void
+	 */
+	public function record_database_time($seconds)
+	{
+		$this->database_time += $seconds;
+	}
+
+	/**
+	 * Return the time spent in the database and reset the tally.
+	 *
+	 * @return float
+	 */
+	public function reset_database_time()
+	{
+		$t = $this->database_time;
+		$this->database_time = 0;
+		return $t;
+	}
 };
 ?>
