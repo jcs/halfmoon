@@ -147,8 +147,8 @@ class Router extends Singleton {
 			. $request->remote_ip() . " at " . date("c") . ") ["
 			. $request->request_method() . "]");
 
-		if (array_keys($params))
-			Log::info("  Parameters: " . json_encode($params));
+		if (array_keys($request->params))
+			Log::info("  Parameters: " . json_encode($request->params));
 
 		$controller = new $c($request);
 		$controller->render_action($route["action"], array());
