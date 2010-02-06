@@ -132,7 +132,7 @@ abstract class Connection
 	}
 
 	/**
-	 * Nope, you can't call this.
+	 * Class Connection is a singleton. Access it via instance().
 	 *
 	 * @param array $info Array containing URL parts
 	 * @return Connection

@@ -903,6 +903,7 @@ class Model
 	{
 		$this->__relationships = array();
 		$pk = array_values($this->get_values_for($this->get_primary_key()));
+
 		$this->set_attributes($this->find($pk)->attributes);
 		$this->reset_dirty();
 
