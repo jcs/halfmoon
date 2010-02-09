@@ -10,12 +10,9 @@ class Request {
 
 	private $start_time;
 
-	public $url;
-	public $scheme;
-	public $host;
-	public $port;
-	public $path;
-	public $query;
+	public $url, $scheme, $host, $port, $path, $query;
+
+	public $referrer;
 
 	public $get = array();
 	public $post = array();
@@ -63,6 +60,8 @@ class Request {
 		$this->post = $post_vars;
 
 		$this->headers = $headers;
+
+		$this->referrer = $headers["HTTP_REFERER"];
 	}
 
 	/* pass ourself to the router and handle the url.  if it fails, try to
