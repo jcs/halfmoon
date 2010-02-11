@@ -934,6 +934,9 @@ class Model
 	 * SomeModel::find_by_first_name_and_last_name('Tito','the Grief');
 	 * SomeModel::find_by_first_name_or_last_name('Tito','the Grief');
 	 * SomeModel::find_all_by_last_name('Smith');
+	 * SomeModel::count_by_name('Bob')
+	 * SomeModel::count_by_name_or_state('Bob','VA')
+	 * SomeModel::count_by_name_and_state('Bob','VA')
 	 * </code>
 	 *
 	 * You can also create the model if the find call returned no results:
@@ -991,6 +994,11 @@ class Model
 			$options['conditions'] = SQLBuilder::create_conditions_from_underscored_string(substr($method,12),$args,static::$alias_attribute);
 			return static::find('all',$options);
 		}
+		elseif (substr($method,0,8) === 'count_by')
+		{
+			$options['conditions'] = SQLBuilder::create_conditions_from_underscored_string(substr($method,9),$args,static::$alias_attribute);
+			return static::count($options);
+		}
 
 		throw new ActiveRecordException("Call to undefined method: $method");
 	}
@@ -1020,8 +1028,9 @@ class Model
 				$method = str_replace($association_name,'association', $method);
 				return $association->$method($this, $args);
 			}
-		} elseif (preg_match('/^find/', $method))
-			return self::__callStatic($method, $args);
+		}
+
+		throw new ActiveRecordException("Call to undefined method: $method");
 	}
 
 	/**
