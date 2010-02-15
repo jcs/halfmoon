@@ -260,6 +260,8 @@ design changes.
 			...
 		<? }); ?>
 
+	this is due to the [design of closures in php](http://wiki.php.net/rfc/closures/removal-of-this).
+
 2.	"list" and "new" are reserved keywords in php, so these cannot be
 	used as the controller actions like rails sets up by default.
 
@@ -267,6 +269,25 @@ design changes.
 	of "list".  of course, "list" and "new" can still be used in the url
 	by adding a specific route to map them to different controller
 	actions.
+
+3.	sessions are disabled by default, but can be enabled per-controller
+	or per-action.  in a controller, define a static $session variable
+	and either turn it on for the entire controller:
+
+		static $session = "on";
+
+	or just on for specific actions with "except" or "only" arrays:
+
+		static $session = array("on", "only" => array("login"));
+
+	to reverse the settings (enable it for the entire application but
+	disable it for specific actions), define it to "on" in your
+	ApplicationController and then just turn it off per-controller.
+
+	note: when using the built-in form helper (form_for) with a POST
+	form and XSRF protection is enabled, sessions will be explicitly
+	enabled to allow storing the token in the session pre-POST and then
+	retrieving it on the POST.
 
 
 ### vim:ts=4:tw=72:ft=markdown
