@@ -18,6 +18,16 @@ class ConnectionManager extends Singleton
 	static private $connections = array();
 
 	/**
+	 * The number of current connections.
+	 *
+	 * @return int
+	 */
+	public static function connection_count()
+	{
+		return count(self::$connections);
+	}
+
+	/**
 	 * If $name is null then the default connection will be returned.
 	 *
 	 * @see Config
