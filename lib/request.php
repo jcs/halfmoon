@@ -71,12 +71,13 @@ class Request {
 			Router::instance()->routeRequest($this);
 
 			$total_time = (float)(microtime(time) - $this->start_time);
-			$db_time = (float)\ActiveRecord\ConnectionManager::
-				get_connection()->reset_database_time();
+			if (\ActiveRecord\ConnectionManager::connection_count())
+				$db_time = (float)\ActiveRecord\ConnectionManager::
+					get_connection()->reset_database_time();
 
 			Log::info("Completed in " . sprintf("%0.5f", $total_time)
-				. " | DB: " . sprintf("%0.5f", $db_time)
-				. " (" . intval(($db_time / $total_time) * 100) . "%)"
+				. (isset($db_time) ? " | DB: " . sprintf("%0.5f", $db_time)
+					. " (" . intval(($db_time / $total_time) * 100) . "%)" : "")
 				. " [" . $this->url . "]");
 		}
 		
