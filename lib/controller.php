@@ -18,6 +18,10 @@ class ApplicationController {
 	 */
 	static $verify = array();
 
+	/* per-controller session options, can be "off", "on", or a per-action
+	 * setting like: array("on", "only" => array("foo", "bar")) */
+	static $session = "";
+
 	/* specify a different layout than controller name or application */
 	static $layout = array();
 
@@ -184,7 +188,7 @@ class ApplicationController {
 
 	/* the main entry point for the controller, sent by the router */
 	public function render_action($action) {
-		session_start();
+		$this->enable_or_disable_sessions($action);
 
 		$this->verify_method($action);
 
@@ -266,6 +270,47 @@ class ApplicationController {
 			print $content_for_layout;
 	}
 
+	/* enable or disable sessions according to $session */
+	private function enable_or_disable_sessions($action) {
+		if (is_array($this::$session)) {
+			if ($this::$session[0] == "on") {
+				/* $session = array("on", "only" => array(...)) */
+				if (!in_array($action, (array)$this::$session["only"]))
+					return;
+
+				/* $session = array("on", "except" => array(...)) */
+				elseif (in_array($action, (array)$this::$session["except"]))
+					return;
+			}
+
+			elseif ($this::$session[0] == "off") {
+				/* $session = array("off", "only" => array(...)) */
+				if (in_array($action, (array)$this::$session["only"]))
+					return;
+
+				/* $session = array("off", "except" => array(...)) */
+				elseif (!in_array($action, (array)$this::$session["except"]))
+					return;
+			}
+
+			else
+				 throw new HalfMoonException("invalid option for \$session: "
+				 	. var_export($this::$session, true));
+		}
+
+		/* just a string of "on" or "off" */
+		else {
+			if ($this::$session == "off" || $this::$session == "")
+				return;
+			elseif ($this::$session != "on")
+				 throw new HalfMoonException("invalid option for \$session: "
+				 	. var_export($this::$session, true));
+		}
+
+		/* still here, we want a session */
+		session_start();
+	}
+
 	/* verify any options requiring verification */
 	private function verify_method($action) {
 		foreach ((array)$this::$verify as $verification) {
@@ -345,6 +390,9 @@ class ApplicationController {
 	}
 
 	public function form_authenticity_token() {
+		/* explicitly enable sessions so we can store/retrieve the token */
+		session_start();
+
 		if (!$_SESSION["_csrf_token"])
 			$_SESSION["_csrf_token"] = Utils::random_hash();
 

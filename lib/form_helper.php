@@ -31,10 +31,16 @@ class FormHelper {
 
 		?>
 		<form <?= $opts_s ?> action="<?= link_from_obj_or_string($url_or_obj) ?>">
-		<? if (strtolower($options["method"]) != "get") { ?>
+		<?
+
+		if (strtolower($options["method"]) != "get") {
+			?>
 			<input name="authenticity_token" type="hidden"
 				value="<?= h($this->controller->form_authenticity_token()) ?>" />
-		<? } ?>
+			<?
+		}
+
+		?>
 		<?= Utils::to_s($this, $form_content); ?>
 		</form>
 		<?

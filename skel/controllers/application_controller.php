@@ -5,6 +5,8 @@
 */
 
 class ApplicationController extends HalfMoon\ApplicationController {
+	/* sessions are off by default to allow caching */
+	static $session = "off";
 }
 
 ?>
