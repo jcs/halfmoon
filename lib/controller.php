@@ -336,7 +336,8 @@ class ApplicationController {
 		}
 	}
 
-	/* verify the passed authenticity token for non-GET requests */
+	/* xsrf protection: verify the passed authenticity token for non-GET
+	 * requests */
 	private function protect_from_forgery($action) {
 		if (!$this::$protect_from_forgery)
 			return;
