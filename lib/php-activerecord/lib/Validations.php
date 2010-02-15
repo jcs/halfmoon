@@ -4,7 +4,7 @@
  * this piece can be considered a straight port. The reason for this is that the vaildation process is
  * tricky due to order of operations/events. The former combined with PHP's odd typecasting means
  * that it was easier to formulate this piece base on the rails code.
- * 
+ *
  * @package ActiveRecord
  */
 
@@ -32,7 +32,7 @@ use ArrayIterator;
  * $person->state = 'this is not two characters';
  *
  * if (!$person->is_valid())
- *   print_r($person->errors); 
+ *   print_r($person->errors);
  * </code>
  *
  * @package ActiveRecord
@@ -135,13 +135,13 @@ class Validations
 	 *
 	 * <ul>
 	 * <li><b>message:</b> custom error message</li>
-	 * </ul> 
+	 * </ul>
 	 *
 	 * @param array $attrs Validation definition
 	 */
 	public function validates_presence_of($attrs)
 	{
-		$configuration = array_merge(self::$DEFAULT_VALIDATION_OPTIONS ,array('message' =>  Errors::$DEFAULT_ERROR_MESSAGES['blank'], 'on' => 'save'));
+		$configuration = array_merge(self::$DEFAULT_VALIDATION_OPTIONS, array('message' => Errors::$DEFAULT_ERROR_MESSAGES['blank'], 'on' => 'save'));
 
 		foreach ($attrs as $attr)
 		{
@@ -196,7 +196,7 @@ class Validations
 	 */
 	public function validates_inclusion_or_exclusion_of($type, $attrs)
 	{
-		$configuration = array_merge(self::$DEFAULT_VALIDATION_OPTIONS, array('message' =>  Errors :: $DEFAULT_ERROR_MESSAGES[$type], 'on' => 'save'));
+		$configuration = array_merge(self::$DEFAULT_VALIDATION_OPTIONS, array('message' => Errors::$DEFAULT_ERROR_MESSAGES[$type], 'on' => 'save'));
 
 		foreach ($attrs as $attr)
 		{
@@ -217,7 +217,7 @@ class Validations
 			if ($this->is_null_with_option($var, $options) || $this->is_blank_with_option($var, $options))
 				continue;
 
-			if ( ( 'inclusion' == $type && !in_array($var, $enum) ) || ( 'exclusion' == $type && in_array($var, $enum)) )
+			if (('inclusion' == $type && !in_array($var, $enum)) || ('exclusion' == $type && in_array($var, $enum)))
 				$this->record->add($attribute, $message);
 		}
 	}
@@ -339,7 +339,7 @@ class Validations
 
 	/**
 	 * Alias of {@link validates_length_of}
-	 * 
+	 *
 	 * @param array $attrs Validation definition
 	 */
 	public function validates_size_of($attrs)
@@ -369,7 +369,7 @@ class Validations
 	 */
 	public function validates_format_of($attrs)
 	{
-		$configuration = array_merge(self::$DEFAULT_VALIDATION_OPTIONS, array('message' =>  Errors::$DEFAULT_ERROR_MESSAGES['invalid'], 'on' => 'save', 'with' => null ));
+		$configuration = array_merge(self::$DEFAULT_VALIDATION_OPTIONS, array('message' => Errors::$DEFAULT_ERROR_MESSAGES['invalid'], 'on' => 'save', 'with' => null));
 
 		foreach ($attrs as $attr)
 		{
@@ -414,9 +414,9 @@ class Validations
 	public function validates_length_of($attrs)
 	{
 		$configuration = array_merge(self::$DEFAULT_VALIDATION_OPTIONS, array(
-			'too_long'     =>  Errors::$DEFAULT_ERROR_MESSAGES['too_long'],
-			'too_short'    =>  Errors::$DEFAULT_ERROR_MESSAGES['too_short'],
-			'wrong_length' =>  Errors::$DEFAULT_ERROR_MESSAGES['wrong_length']
+			'too_long'     => Errors::$DEFAULT_ERROR_MESSAGES['too_long'],
+			'too_short'    => Errors::$DEFAULT_ERROR_MESSAGES['too_short'],
+			'wrong_length' => Errors::$DEFAULT_ERROR_MESSAGES['wrong_length']
 		));
 
 		foreach ($attrs as $attr)
@@ -461,7 +461,7 @@ class Validations
 				$too_long =  isset($options['message']) ? $options['message'] : $options['too_long'];
 
 				$too_short = str_replace('%d', $range[0], $too_short);
-				$too_long = str_replace('%d', $range[0], $too_long);
+				$too_long = str_replace('%d', $range[1], $too_long);
 
 				if (strlen($this->model->$attribute) < (int)$range[0])
 					$this->record->add($attribute, $too_short);
@@ -512,7 +512,8 @@ class Validations
 	 * <code>
 	 * class Person extends ActiveRecord\Model {
 	 *   static $validates_uniqueness_of = array(
-	 *     array('name')
+	 *     array('name'),
+	 *     array(array('blah','bleh'), 'message' => 'blech')
 	 *   );
 	 * }
 	 * </code>
@@ -531,13 +532,38 @@ class Validations
 			$pk = $this->model->get_primary_key();
 			$pk_value = $this->model->$pk[0];
 
-			if ($pk_value === null)
-				$conditions = array("{$pk[0]} is not null and {$options[0]}=?",$this->model->$options[0]);
+			if (is_array($options[0]))
+			{
+				$add_record = join("_and_", $options[0]);
+				$fields = $options[0];	
+			}
 			else
-				$conditions = array("{$pk[0]}!=? and {$options[0]}=?",$pk_value,$this->model->$options[0]);
+			{
+				$add_record = $options[0];
+				$fields = array($options[0]);
+			}
+
+			$sql = "";
+			$conditions = array("");
+
+			if ($pk_value === null)
+				$sql = "{$pk[0]} is not null";
+			else
+			{
+				$sql = "{$pk[0]}!=?";
+				array_push($conditions,$pk_value);
+			}
+
+			foreach ($fields as $field)
+			{
+				$sql .= " and {$field}=?";
+				array_push($conditions,$this->model->$field);
+			}
+
+			$conditions[0] = $sql;
 
 			if ($this->model->exists(array('conditions' => $conditions)))
-				$this->record->add($options[0], $options['message']);
+				$this->record->add($add_record, $options['message']);
 		}
 	}
 
@@ -617,7 +643,7 @@ class Errors implements IteratorAggregate
 	 * Adds an error message only if the attribute value is {@link http://www.php.net/empty empty}.
 	 *
 	 * @param string $attribute Name of an attribute on the model
-	 * @param string $msg The error message 
+	 * @param string $msg The error message
 	 */
 	public function add_on_empty($attribute, $msg)
 	{
@@ -650,10 +676,10 @@ class Errors implements IteratorAggregate
 	 */
 	public function add_on_blank($attribute, $msg)
 	{
-		if (is_null($msg))
-			$msg = self :: $DEFAULT_ERROR_MESSAGES['blank'];
+		if (!$msg)
+			$msg = self::$DEFAULT_ERROR_MESSAGES['blank'];
 
-		if (!strlen($this->model->$attribute))
+		if (!$this->model->$attribute)
 			$this->add($attribute, $msg);
 	}
 
@@ -689,12 +715,12 @@ class Errors implements IteratorAggregate
 
 	/**
 	 * Returns all the error messages as an array.
-	 * 
+	 *
 	 * <code>
 	 * $model->errors->full_messages();
 	 *
 	 * # array(
-	 * #  "Name can't be blank", 
+	 * #  "Name can't be blank",
 	 * #  "State is the wrong length (should be 2 chars)"
 	 * # )
 	 * </code>
