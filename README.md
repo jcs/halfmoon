@@ -53,17 +53,17 @@ is similar to this in halfmoon:
 	everything.  halfmoon will do this for you but if you are creating
 	it somewhere where you need sudo permissions, do it manually:
 
-		$:~> sudo mkdir /var/www/example/
-		$:~> sudo chown `whoami` /var/www/example
+		$ sudo mkdir /var/www/example/
+		$ sudo chown `whoami` /var/www/example
 
 2.	fetch the halfmoon source code:
 
-		$:~> git pull git://github.com/jcs/halfmoon.git
+		$ git pull git://github.com/jcs/halfmoon.git
 
 3.	run the halfmoon script to create your skeleton directory at your
 	root directory created in step 1:
 
-		$:~> halfmoon/halfmoon create /var/www/example/
+		$ halfmoon/halfmoon create /var/www/example/
 		copying halfmoon framework... done.
 		creating skeleton directory structure... done.
 
@@ -205,10 +205,10 @@ is similar to this in halfmoon:
 4.	(optional) configure a root route to specify which controller/action
 	should be used for viewing the root ("/") url via config/routes.php:
 
-		HalfMoon\Router::instance()->rootRoute = array(
+		HalfMoon\Router::instance()->addRootRoute(array(
 			"controller" => "posts",
 			"action" => "homepage"
-		);
+		));
 
 	this uses the same rules as other routes, calling the index action
 	if it is not specified.
