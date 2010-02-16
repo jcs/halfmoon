@@ -137,8 +137,15 @@ function flash_notices() {
 	return $html;
 }
 
+/* convenience function for creating a new FormHelper */
 function form_for() {
 	return call_user_func_array(array(new HalfMoon\FormHelper, "form_for"),
+		func_get_args());
+}
+
+/* convenience function for creating a new FormTagHelper */
+function form_tag() {
+	return call_user_func_array(array(new HalfMoon\FormTagHelper, "form_tag"),
 		func_get_args());
 }
 
