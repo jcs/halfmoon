@@ -65,10 +65,16 @@ class FormHelper extends FormTagHelper {
 
 	/* create an <input> password field, *not including any value* */
 	public function password_field($field, $options = array()) {
-		$options["type"] = "password";
-
 		return $this->wrap_field_with_errors($field,
 			$this->password_field_tag($field, $value = null, $options)
+		);
+	}
+
+	/* create an <input> radio button */
+	public function radio_button($field, $value, $options = array()) {
+		return $this->wrap_field_with_errors($field,
+			$this->radio_button_tag($field, $value,
+				($this->form_object->$field == $value), $options)
 		);
 	}
 

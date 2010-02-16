@@ -29,7 +29,7 @@ class FormTagHelper extends FormHelperCommon {
 			. " id=\"" . $this->prefixed_field_id($field) . "\""
 			. " name=\"" . $this->prefixed_field_name($field) . "]\""
 			. " value=\"" . h($value) . "\""
-			. ($checked ? " checked" : "")
+			. ($checked ? " checked=\"checked\"" : "")
 			. $this->options_to_s($options)
 			. " />";
 	}
@@ -59,7 +59,19 @@ class FormTagHelper extends FormHelperCommon {
 	$options = array()) {
 		$options["type"] = "password";
 
-		return $this->text_field($field, $options, $include_value = false);
+		return $this->text_field_tag($field, $value = null, $options);
+	}
+
+	/* create an <input> radio button */
+	public function radio_button_tag($field, $value, $checked = false,
+	$options = array()) {
+		return "<input type=\"radio\""
+			. " id=\"" . $this->prefixed_field_id($field) . "\""
+			. " name=\"" . $this->prefixed_field_name($field) . "]\""
+			. " value=\"" . h($value) . "\""
+			. ($checked ? " checked=\"checked\"" : "")
+			. $this->options_to_s($options)
+			. " />";
 	}
 
 	/* create a <select> box with options */
