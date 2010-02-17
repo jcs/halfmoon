@@ -1028,7 +1028,8 @@ class Model
 				$method = str_replace($association_name,'association', $method);
 				return $association->$method($this, $args);
 			}
-		}
+		} elseif (preg_match('/^find/', $method))
+			return self::__callStatic($method, $args);
 
 		throw new ActiveRecordException("Call to undefined method: $method");
 	}
