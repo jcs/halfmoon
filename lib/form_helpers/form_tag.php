@@ -103,7 +103,7 @@ class FormTagHelper extends FormHelperCommon {
 	}
 
 	/* create a <textarea> field */
-	public function text_area_tag($field, $content, $options = array()) {
+	public function text_area_tag($field, $content = null, $options = array()) {
 		if ($options["size"]) {
 			list($options["cols"], $options["rows"]) = explode("x",
 				$options["size"], 2);
@@ -121,7 +121,7 @@ class FormTagHelper extends FormHelperCommon {
 	}
 
 	/* create an <input> text field */
-	public function text_field_tag($field, $value, $options = array()) {
+	public function text_field_tag($field, $value = null, $options = array()) {
 		$type = ($options["type"] ? $options["type"] : "text");
 
 		return "<input"
