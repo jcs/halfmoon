@@ -634,14 +634,15 @@ class Model
 				$table->insert($dirty);
 			else
 				$table->insert($obj->attributes);
+
+			$pk = $obj->get_primary_key();
+
+			// if we've got an autoincrementing pk set it
+			if (count($pk) == 1 && $table->get_column_by_inflected_name($pk[0])->auto_increment)
+				$obj->{$pk[0]} = $table->conn->insert_id($table->sequence);
+
 			$obj->invoke_callback('after_create',false);
 		});
-
-		$pk = $this->get_primary_key();
-
-		// if we've got an autoincrementing pk set it
-		if (count($pk) == 1 && $table->get_column_by_inflected_name($pk[0])->auto_increment)
-			$this->attributes[$pk[0]] = $table->conn->insert_id($table->sequence);
 
 		$this->__new_record = false;
 		return true;
@@ -1444,18 +1445,26 @@ class Model
 	{
 		$connection = static::connection();
 
+		$did_begin = false;
+
 		try
 		{
-			$connection->transaction();
+			if (!$connection->in_transaction) {
+				$connection->transaction();
+				$did_begin = true;
+			}
 
-			if ($closure() === false)
-				$connection->rollback();
-			else
+			if ($closure() === false) {
+				if ($did_begin)
+					$connection->rollback();
+			} elseif ($did_begin)
 				$connection->commit();
 		}
 		catch (\Exception $e)
 		{
-			$connection->rollback();
+			if ($did_begin && $connection->in_transaction)
+				$connection->rollback();
+
 			throw $e;
 		}
 	}

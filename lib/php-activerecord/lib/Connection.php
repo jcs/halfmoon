@@ -36,6 +36,12 @@ abstract class Connection
 	public $database_time = 0;
 
 	/**
+	 * Whether we're inside a transaction.
+	 * @var boolean
+	 */
+	public $in_transaction = false;
+
+	/**
 	 * Default PDO options to set for each connection.
 	 * @var array
 	 */
@@ -298,8 +304,12 @@ abstract class Connection
 	 */
 	public function transaction()
 	{
-		if (!$this->beginTransaction())
-			throw new DatabaseException($this);
+		if (!$this->in_transaction) {
+			if ($this->beginTransaction())
+				$this->in_transaction = true;
+			else
+				throw new DatabaseException($this);
+		}
 	}
 
 	/**
@@ -307,7 +317,9 @@ abstract class Connection
 	 */
 	public function commit()
 	{
-		if (!$this->commit())
+		if ($this->commit())
+			$this->in_transaction = false;
+		else
 			throw new DatabaseException($this);
 	}
 
@@ -316,6 +328,8 @@ abstract class Connection
 	 */
 	public function rollback()
 	{
+		$this->in_transaction = false;
+
 		if (!$this->rollback())
 			throw new DatabaseException($this);
 	}
