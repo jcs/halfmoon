@@ -277,7 +277,7 @@ function options_for_link($options = array(), $button_target = null) {
 		unset($options["popup"]);
 	}
 
-	foreach ($options as $k => $v)
+	foreach ((array)$options as $k => $v)
 		$opts_s .= " " . $k . "=\"" . $v . "\"";
 
 	return $opts_s;
