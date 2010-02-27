@@ -41,6 +41,13 @@ class FormTagHelper extends FormHelperCommon {
 		return $this->text_field_tag($field, null, $options);
 	}
 
+	/* create a hidden <input> field */
+	public function hidden_field_tag($field, $value, $options = array()) {
+		$options["type"] = "hidden";
+
+		return $this->text_field_tag($field, $value, $options);
+	}
+
 	/* create a <label> that references a field */
 	public function label_tag($column, $caption = null, $options = array()) {
 		if (is_null($caption))

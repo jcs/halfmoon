@@ -58,6 +58,12 @@ class FormHelper extends FormTagHelper {
 		);
 	}
 
+	/* create a hidden <input> field */
+	public function hidden_field($field, $options = array()) {
+		return $this->hidden_field_tag($field, $this->form_object->$field,
+			$options);
+	}
+
 	/* create a <label> that references a field */
 	public function label($column, $caption = null, $options = array()) {
 		return $this->label_tag($column, $caption, $options);
