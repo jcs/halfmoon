@@ -366,6 +366,9 @@ class ApplicationController {
 	/* return false if any before_filters return false */
 	private function process_before_filters($action) {
 		foreach ((array)$this::$before_filter as $filter) {
+			if (!is_array($filter))
+				$filter = array($filter);
+
 			/* don't filter for specific actions */
 			if ($filter["except"] && in_array($action,
 			(array)$filter["except"]))
