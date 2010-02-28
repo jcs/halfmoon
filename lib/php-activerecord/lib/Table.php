@@ -66,9 +66,12 @@ class Table
 		return self::$cache[$model_class_name];
 	}
 
-	public static function clear_cache()
+	public static function clear_cache($model_class_name=null)
 	{
-		self::$cache = array();
+		if ($model_class_name && array_key_exists($model_class_name,self::$cache))
+			unset(self::$cache[$model_class_name]);
+		else
+			self::$cache = array();
 	}
 
 	public function __construct($class_name)
@@ -84,7 +87,7 @@ class Table
 		$this->get_meta_data();
 		$this->set_primary_key();
 		$this->set_delegates();
-		$this->set_setters();
+		$this->set_setters_and_getters();
 
 		$this->callback = new CallBack($class_name);
 		$this->callback->register('before_save', function(Model $model) { $model->set_timestamps(); }, array('prepend' => true));
@@ -428,16 +431,22 @@ class Table
 	}
 
 	/**
-	 * Rebuilds the setters array to prepend set_ to the method names.
+	 * Builds the getters/setters array by prepending get_/set_ to the method names.
 	 */
-	private function set_setters()
+	private function set_setters_and_getters()
 	{
-		$setters = array();
+		$build = array('setters', 'getters');
 
-		foreach ($this->class->getStaticPropertyValue('setters',array()) as $method)
-			$setters[] = (substr($method,0,4) != "set_" ? "set_$method" : $method);
+		foreach ($build as $type)
+		{
+			$methods = array();
+			$prefix = substr($type,0,3) . "_";
 
-		$this->class->setStaticPropertyValue('setters',$setters);
+			foreach ($this->class->getStaticPropertyValue($type,array()) as $method)
+				$methods[] = (substr($method,0,4) != $prefix ? "{$prefix}$method" : $method);
+
+			$this->class->setStaticPropertyValue($type,$methods);
+		}
 	}
 };
 ?>

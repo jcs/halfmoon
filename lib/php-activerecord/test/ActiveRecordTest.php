@@ -170,10 +170,17 @@ class ActiveRecordTest extends DatabaseTest
 		$this->assert_equals('books',$model->table()->table);
 	}
 
+	public function test_namespace_gets_stripped_from_inferred_foreign_key()
+	{
+		$model = new NamespaceTest\Book();
+		$table = ActiveRecord\Table::load(get_class($model));
+		$this->assert_equals($table->get_relationship('parent_book')->foreign_key[0], 'book_id');
+	}
+
 	public function test_should_have_all_column_attributes_when_initializing_with_array()
 	{
 		$author = new Author(array('name' => 'Tito'));
-		$this->assert_equals(8,count(array_keys($author->attributes())));
+		$this->assert_true(count(array_keys($author->attributes())) >= 9);
 	}
 
 	public function test_defaults()
@@ -206,6 +213,11 @@ class ActiveRecordTest extends DatabaseTest
 		$venue = new Venue(array('marquee' => 'meme', 'id' => 123));
 		$this->assert_equals('meme',$venue->name);
 		$this->assert_equals($venue->marquee,$venue->name);
+	}
+
+	public function test_gh18_isset_on_aliased_attribute()
+	{
+		$this->assert_true(isset(Venue::first()->marquee));
 	}
 
 	public function test_attr_accessible()
@@ -368,6 +380,21 @@ class ActiveRecordTest extends DatabaseTest
 		$this->assert_equals('BOB',$author->name);
 	}
 
+	public function test_getter()
+	{
+		$book = Book::first();
+		$this->assert_equals(strtoupper($book->name), $book->upper_name);
+	}
+
+	public function test_getter_with_same_name_as_an_attribute()
+	{
+		Book::$getters[] = 'name';
+		$book = new Book;
+		$book->name = 'bob';
+		$this->assert_equals('BOB', $book->name);
+		Book::$getters = array();
+	}
+
 	public function test_setting_invalid_date_should_set_date_to_null()
 	{
 		$author = new Author();
@@ -386,6 +413,24 @@ class ActiveRecordTest extends DatabaseTest
 	public function test_undefined_instance_method()
 	{
 		Author::first()->find_by_name('sdf');
+	}
+
+	public function test_get_validation_rules()
+	{
+		$validators = RmBldg::first()->get_validation_rules();
+		$this->assert_true(array_key_exists('space_out',$validators));
+		$this->assert_true(in_array(array('with' => '/\A([^@\s]+)@((?:[-a-z0-9]+\.)+[a-z]{2,})\Z/i', 'validator' => 'validates_format_of'),$validators['space_out']));
+	}
+
+	public function test_clear_cache_for_specific_class()
+	{
+		$book_table1 = ActiveRecord\Table::load('Book');
+		$book_table2 = ActiveRecord\Table::load('Book');
+		ActiveRecord\Table::clear_cache('Book');
+		$book_table3 = ActiveRecord\Table::load('Book');
+
+		$this->assert_true($book_table1 === $book_table2);
+		$this->assert_true($book_table1 !== $book_table3);
 	}
 };
 ?>
