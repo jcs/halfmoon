@@ -34,6 +34,15 @@ class FormHelper extends FormTagHelper {
 		return $this->form_prefix() . "[" . $field . "]";
 	}
 
+	/* return the value of the particular field for the form object */
+	protected function value_for_field($field) {
+		/* if we have an array-looking name of field[var], ask field(var) */
+		if (preg_match("/^(.+)\[([^\]]+)\]$/", $field, $m))
+			return $this->form_object->$m[1]($m[2]);
+		else
+			return $this->form_object->$field;
+	}
+
 	/* create an <input type="checkbox"> with a hidden input field to detect
 	 * when the checkbox has been unchecked (see rails docs for check_box, but
 	 * since php presents $_GET and $_POST with the last seen value, we have to
@@ -47,7 +56,7 @@ class FormHelper extends FormTagHelper {
 			. " />"
 			. $this->wrap_field_with_errors($field,
 				$this->check_box_tag($field, $checked_value, 
-					(bool)$this->form_object->$field, $options)
+					(bool)$this->value_for_field($field), $options)
 			);
 	}
 
@@ -60,7 +69,7 @@ class FormHelper extends FormTagHelper {
 
 	/* create a hidden <input> field */
 	public function hidden_field($field, $options = array()) {
-		return $this->hidden_field_tag($field, $this->form_object->$field,
+		return $this->hidden_field_tag($field, $this->value_for_field($field),
 			$options);
 	}
 
@@ -80,14 +89,14 @@ class FormHelper extends FormTagHelper {
 	public function radio_button($field, $value, $options = array()) {
 		return $this->wrap_field_with_errors($field,
 			$this->radio_button_tag($field, $value,
-				($this->form_object->$field == $value), $options)
+				($this->value_for_field($field) == $value), $options)
 		);
 	}
 
 	/* create a <select> box with options */
 	public function select($field, $choices, $options = array()) {
 		return $this->wrap_field_with_errors($field,
-			$this->select_tag($field, $choices, $this->form_object->$field,
+			$this->select_tag($field, $choices, $this->value_for_field($field),
 				$options)
 		);
 	}
@@ -101,7 +110,7 @@ class FormHelper extends FormTagHelper {
 	/* create a <textarea> field */
 	public function text_area($field, $options = array()) {
 		return $this->wrap_field_with_errors($field,
-			$this->text_area_tag($field, $this->form_object->$field,
+			$this->text_area_tag($field, $this->value_for_field($field),
 				$options)
 		);
 	}
@@ -109,7 +118,7 @@ class FormHelper extends FormTagHelper {
 	/* create an <input> text field */
 	public function text_field($field, $options = array()) {
 		return $this->wrap_field_with_errors($field,
-			$this->text_field_tag($field, $this->form_object->$field,
+			$this->text_field_tag($field, $this->value_for_field($field),
 				$options)
 		);
 	}
