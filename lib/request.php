@@ -52,8 +52,26 @@ class Request {
 			}
 
 			if ($varray)
-				foreach ($varray as $k => $v)
-					$this->params[$k] = $v;
+				foreach ($varray as $k => $v) {
+					/* look for arrays that might be inside this array */
+					if (is_array($v)) {
+						$newv = array();
+
+						/* TODO: recurse */
+						foreach ($v as $vk => $vv) {
+							if (preg_match("/^([^\[]+)\[([^\]]+)\]?$/", $vk, $m)) {
+								if (!is_array($newv[$m[1]]))
+									$newv[$m[1]] = array();
+
+								$newv[$m[1]][$m[2]] = $vv;
+							} else
+								$newv[$vk] = $vv;
+						}
+
+						$this->params[$k] = $newv;
+					} else
+						$this->params[$k] = $v;
+				}
 		}
 
 		$this->get = $get_vars;
