@@ -4,11 +4,16 @@ namespace HalfMoon;
 
 class ApplicationController {
 	/* array of methods to call before processing any actions, bailing if any
-	 * return false */
+	 * return false
+	 * e.g. static $before_filter = array(
+	 *			"validate_logged_in_user",
+	 *			array("validate_admin", "only" => array("create")),
+	 *			...
+	 */
 	static $before_filter = array();
 
 	/* array of arrays to verify before processing any actions
-	 * e.g. $verify = array(
+	 * e.g. static $verify = array(
 	 *          array("method" => "post",
 	 *              "only" => array("login"),
 	 *              "redirect_to" => "/",
