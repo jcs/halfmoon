@@ -88,7 +88,7 @@ class Request {
 		try {
 			Router::instance()->routeRequest($this);
 
-			$total_time = (float)(microtime(time) - $this->start_time);
+			$total_time = (float)(microtime(time()) - $this->start_time);
 			if (\ActiveRecord\ConnectionManager::connection_count())
 				$db_time = (float)\ActiveRecord\ConnectionManager::
 					get_connection()->reset_database_time();
