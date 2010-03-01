@@ -221,7 +221,7 @@ abstract class Connection
 			if (count($values))
 				$query .= " (" . implode(", ", $values) . ")";
 
-			$GLOBALS['ACTIVERECORD_LOGGER']->log($query, PEAR_LOG_INFO);
+			$GLOBALS['ACTIVERECORD_LOGGER']->log($query, defined("PEAR_LOG_INFO") ? PEAR_LOG_INFO : NULL);
 		}
 
 		$this->last_query = $sql;
