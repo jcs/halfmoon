@@ -15,7 +15,7 @@ class FormHelperCommon {
 
 		/* TODO: always put $controller into the closure scope */
 
-		if (!$options["method"])
+		if (!isset($options["method"]))
 			$options["method"] = "post";
 
 		print "<form"
@@ -35,7 +35,7 @@ class FormHelperCommon {
 
 		print "</form>";
 
-		return self;
+		return $this;
 	}
 
 	/* generate <option> tags for an array of options for a <select> */

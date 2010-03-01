@@ -3,7 +3,7 @@
 	interface apache with halfmoon and route the request via $QUERY_STRING
 */
 
-if ($_SERVER["HALFMOON_ENV"])
+if (isset($_SERVER["HALFMOON_ENV"]))
 	define("HALFMOON_ENV", $_SERVER["HALFMOON_ENV"]);
 
 require_once(dirname(__FILE__) . "/../lib/halfmoon.php");

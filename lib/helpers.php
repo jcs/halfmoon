@@ -5,7 +5,7 @@
 
 /* like link_to but use a button */
 function button_to($text, $obj_or_url, $options = array()) {
-	if (!$options["method"])
+	if (!isset($options["method"]))
 		$options["method"] = "post";
 
 	return "<input type=\"button\" value=\"" . $text . "\" "
@@ -191,16 +191,16 @@ function link_from_obj_or_string($thing) {
 		$link = "/";
 
 		/* if no controller, assume the current one */
-		if ($thing["controller"])
+		if (isset($thing["controller"]))
 			$link .= $thing["controller"];
 		else
 			$link .= strtolower(preg_replace("/Controller$/", "",
 				current_controller_name()));
 
-		if ($thing["action"])
+		if (isset($thing["action"]))
 			$link .= "/" . $thing["action"];
 
-		if ($thing["id"])
+		if (isset($thing["id"]) && $thing["id"])
 			$link .= "/" . $thing["id"];
 
 		/* anything else in the array is assumed to be passed as get args */
@@ -216,7 +216,7 @@ function link_from_obj_or_string($thing) {
 		if ($url_params != "")
 			$link .= "?" . $url_params;
 
-		if ($thing["anchor"])
+		if (isset($thing["anchor"]))
 			$link .= "#" . h($thing["anchor"]);
 	}
 
@@ -237,13 +237,13 @@ function link_to($text, $obj_or_url, $options = array()) {
 function options_for_link($options = array(), $button_target = null) {
 	$opts_s = "";
 
-	if ($options["confirm"] && is_bool($options["confirm"]))
+	if (isset($options["confirm"]) && is_bool($options["confirm"]))
 		$options["confirm"] = "Are you sure?";
 
-	if ($options["method"]) {
+	if (isset($options["method"])) {
 		$opts_s .= " onclick=\"";
 
-		if ($options["confirm"])
+		if (isset($options["confirm"]))
 			$opts_s .= "if (confirm('" . $options["confirm"] . "')) ";
 
 		$opts_s .= "{ var f = document.createElement('form'); "
@@ -266,13 +266,13 @@ function options_for_link($options = array(), $button_target = null) {
 		unset($options["method"]);
 	}
 
-	if ($options["confirm"]) {
+	if (isset($options["confirm"])) {
 		$opts_s .= " onclick=\"return confirm('" . $options["confirm"]
 			. "');\"";
 		unset($options["confirm"]);
 	}
 
-	if ($options["popup"]) {
+	if (isset($options["popup"])) {
 		$opts_s .= " onclick=\"window.open(this.href); return false;\"";
 		unset($options["popup"]);
 	}
@@ -298,7 +298,7 @@ function stylesheet_link_tag($files, $options = array()) {
 		if (file_exists(HALFMOON_ROOT . "/public/stylesheets/" . $file))
 			$mtime = filemtime(HALFMOON_ROOT . "/public/stylesheets/" . $file);
 
-		if ($options["xml"])
+		if (isset($options["xml"]))
 			$out .= "<?xml-stylesheet type=\"text/css\" href=\"/stylesheets/"
 				. $file . ($mtime ? "?" . $mtime : "") . "\" ?>\n";
 		else

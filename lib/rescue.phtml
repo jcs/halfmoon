@@ -30,7 +30,7 @@
 <?
 
 foreach ($exception->getTrace() as $call) {
-	if ($call["file"]) {
+	if (isset($call["file"])) {
 		$fileparts = explode("/", $call["file"]);
 
 		for ($x = 0; $x < count($fileparts); $x++) {
@@ -46,7 +46,7 @@ foreach ($exception->getTrace() as $call) {
 		?><?= h($call["class"]) ?><?
 	}
 	
-	?>:<?= h($call["line"]) ?>
+	?>:<?= h(isset($call["line"]) ? $call["line"] : "") ?>
 	in
 	<strong><?= h($call["function"]) ?>()</strong>
 	<br />

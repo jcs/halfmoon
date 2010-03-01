@@ -16,7 +16,7 @@ class Utils {
 		$controller = null;
 
 		foreach (debug_backtrace() as $stack)
-			if ($stack["object"] &&
+			if (isset($stack["object"]) &&
 			preg_match("/^(HalfMoon\\\\)?ApplicationController$/",
 			get_parent_class($stack["object"]))) {
 				$controller = $stack["object"];

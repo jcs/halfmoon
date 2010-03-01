@@ -48,7 +48,7 @@ class Router extends Singleton {
 
 			foreach ($this->rootRoutes as $route) {
 				/* verify virtual host matches if there's a condition on it */
-				if ($route["conditions"]["hostname"])
+				if (isset($route["conditions"]["hostname"]))
 					if (!Utils::strcasecmp_or_preg_match(
 					$route["conditions"]["hostname"], $request->hostname))
 						continue;
@@ -58,7 +58,7 @@ class Router extends Singleton {
 		} else {
 			foreach ($this->routes as $route) {
 				/* verify virtual host matches if there's a condition on it */
-				if ($route["conditions"]["hostname"])
+				if (isset($route["conditions"]["hostname"]))
 					if (!Utils::strcasecmp_or_preg_match(
 					$route["conditions"]["hostname"], $request->hostname))
 						continue;
@@ -72,8 +72,9 @@ class Router extends Singleton {
 				for ($x = 0; $x < count($route_pieces); $x++) {
 					/* look for a condition */
 					if (preg_match("/^:(.+)$/", $route_pieces[$x], $m)) {
-						$reg_or_string = Utils::A(
-							(array)$route["conditions"], $m[1]);
+						$reg_or_string = isset($route["conditions"]) ?
+							Utils::A((array)$route["conditions"], $m[1]) :
+							NULL;
 
 						if ($reg_or_string &&
 						!Utils::strcasecmp_or_preg_match($reg_or_string,
@@ -83,7 +84,7 @@ class Router extends Singleton {
 							/* store this named parameter (e.g. "/:blah" route
 							 * on a path of "/hi" defines $route["blah"] to be
 							 * "hi") */
-							$route[$m[1]] = $path_pieces[$x];
+							$route[$m[1]] = @$path_pieces[$x];
 					}
 					
 					/* look for a glob condition */
@@ -99,8 +100,8 @@ class Router extends Singleton {
 					}
 
 					/* else it must match exactly (case-insensitively) */
-					elseif (strcasecmp($route_pieces[$x], $path_pieces[$x])
-					!= 0)
+					elseif (isset($path_pieces[$x]) &&
+					strcasecmp($route_pieces[$x], $path_pieces[$x]) != 0)
 						$match = false;
 
 					if (!$match)

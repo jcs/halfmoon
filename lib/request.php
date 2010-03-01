@@ -26,11 +26,11 @@ class Request {
 		$url_parts = parse_url($url);
 
 		$this->url = $url;
-		$this->scheme = $url_parts["scheme"];
-		$this->host = $url_parts["host"];
-		$this->port = $url_parts["port"];
-		$this->path = $url_parts["path"];
-		$this->query = $url_parts["query"];
+		$this->scheme = @$url_parts["scheme"];
+		$this->host = @$url_parts["host"];
+		$this->port = @$url_parts["port"];
+		$this->path = @$url_parts["path"];
+		$this->query = @$url_parts["query"];
 
 		/* strip leading and trailing slashes, then again in case some were
 		 * hiding */
@@ -79,7 +79,7 @@ class Request {
 
 		$this->headers = $headers;
 
-		$this->referrer = $headers["HTTP_REFERER"];
+		$this->referrer = @$headers["HTTP_REFERER"];
 	}
 
 	/* pass ourself to the router and handle the url.  if it fails, try to
@@ -159,7 +159,7 @@ class Request {
 	/* exception handler, log it and pass it off to rescue_in_public */
 	private function rescue($exception) {
 		/* kill all buffered output */
-		while (ob_end_clean())
+		while (@ob_end_clean())
 			;
 
 		$str = get_class($exception);
@@ -175,9 +175,11 @@ class Request {
 		Log::error($str . ":");
 
 		foreach ($exception->getTrace() as $call)
-			Log::error("    " . ($call["file"] ? $call["file"]
-				: $call["class"]) . ":" . $call["line"] . " in "
-				. $call["function"] . "()");
+			Log::error("    "
+				. (isset($call["file"]) ? $call["file"] : $call["class"])
+				. ":"
+				. (isset($call["line"]) ? $call["line"] : "")
+				. " in " . $call["function"] . "()");
 
 		return $this->rescue_in_public($exception, $str);
 	}

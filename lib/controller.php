@@ -78,7 +78,7 @@ class ApplicationController {
 		$link = link_from_obj_or_string($obj_or_url);
 
 		/* prevent any content from getting to the user */
-		while (ob_end_clean())
+		while (@ob_end_clean())
 			;
 
 		Log::info("Redirected to " . $link);
@@ -93,7 +93,7 @@ class ApplicationController {
 	public function render($template, $vars = array()) {
 		/* render(array("partial" => "somedir/file"), array("v" => $v)) */
 
-		if ($template["status"])
+		if (isset($template["status"]))
 			header($_SERVER["SERVER_PROTOCOL"] . " " . $template["status"]);
 
 		/* if we want to override the layout, do it now */
@@ -109,11 +109,11 @@ class ApplicationController {
 			$tf = "";
 
 			/* render a partial template */
-			if (is_array($template) && $template["partial"])
+			if (is_array($template) && isset($template["partial"]))
 				$tf = $template["partial"];
 
 			/* render an action template */
-			elseif (is_array($template) && $template["action"])
+			elseif (is_array($template) && isset($template["action"]))
 				$tf = $template["action"];
 
 			/* just a filename, render it as an action */
@@ -131,7 +131,7 @@ class ApplicationController {
 					Utils::current_controller_name())) . "/" . $tf;
 
 			/* partial template files start with _ */
-			if (is_array($template) && $template["partial"])
+			if (is_array($template) && isset($template["partial"]))
 				$tf = dirname($tf) . "/_" . basename($tf);
 
 			if (file_exists($full_file = HALFMOON_ROOT . "/views/"
@@ -224,7 +224,7 @@ class ApplicationController {
 	/* capture the output of everything rendered and put it within the layout */
 	public function render_layout() {
 		$content_for_layout = ob_get_contents();
-		while (ob_end_clean())
+		while (@ob_end_clean())
 			$content_for_layout = $content_for_layout . ob_get_contents();
 
 		/* if we don't want a layout at all, just print the content */
@@ -375,12 +375,13 @@ class ApplicationController {
 				$filter = array($filter);
 
 			/* don't filter for specific actions */
-			if ($filter["except"] && in_array($action,
+			if (isset($filter["except"]) && in_array($action,
 			(array)$filter["except"]))
 				continue;
 
 			/* only filter for certain actions */
-			if ($filter["only"] && !in_array($action, (array)$filter["only"]))
+			if (isset($filter["only"]) &&
+			!in_array($action, (array)$filter["only"]))
 				continue;
 
 			if (!method_exists($this, $filter[0]))
@@ -400,7 +401,7 @@ class ApplicationController {
 
 	public function form_authenticity_token() {
 		/* explicitly enable sessions so we can store/retrieve the token */
-		session_start();
+		@session_start();
 
 		if (!$_SESSION["_csrf_token"])
 			$_SESSION["_csrf_token"] = Utils::random_hash();

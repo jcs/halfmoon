@@ -95,7 +95,7 @@ class FormTagHelper extends FormHelperCommon {
 
 	/* create an <input> submit button */
 	public function submit_tag($value = "Submit Changes", $options = array()) {
-		if ($options["name"]) {
+		if (isset($options["name"])) {
 			$name = $options["name"];
 			unset($options["name"]);
 		} else
@@ -111,7 +111,7 @@ class FormTagHelper extends FormHelperCommon {
 
 	/* create a <textarea> field */
 	public function text_area_tag($field, $content = null, $options = array()) {
-		if ($options["size"]) {
+		if (isset($options["size"])) {
 			list($options["cols"], $options["rows"]) = explode("x",
 				$options["size"], 2);
 
@@ -129,7 +129,7 @@ class FormTagHelper extends FormHelperCommon {
 
 	/* create an <input> text field */
 	public function text_field_tag($field, $value = null, $options = array()) {
-		$type = ($options["type"] ? $options["type"] : "text");
+		$type = (isset($options["type"]) ? $options["type"] : "text");
 
 		return "<input"
 			. " type=\"" . $type . "\""
