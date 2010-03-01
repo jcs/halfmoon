@@ -36,9 +36,10 @@ class FormHelper extends FormTagHelper {
 
 	/* return the value of the particular field for the form object */
 	protected function value_for_field($field) {
-		/* if we have an array-looking name of field[var], ask field(var) */
+		/* if we have an array-looking name of field[var], use an AR getter of
+		 * field(var) */
 		if (preg_match("/^(.+)\[([^\]]+)\]$/", $field, $m))
-			return $this->form_object->$m[1]($m[2]);
+			return $this->form_object->{"get_" . $m[1]}($m[2]);
 		else
 			return $this->form_object->$field;
 	}
