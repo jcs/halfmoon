@@ -109,7 +109,8 @@ function error_messages_for($obj, $obj_name = "") {
 function flash_errors() {
 	$html = "";
 
-	if (count((array)$_SESSION["flash_errors"])) {
+	if (isset($_SESSION["flash_errors"]) &&
+	count((array)$_SESSION["flash_errors"])) {
 		$html = "<div class=\"flash-error\">"
 			. implode("<br />\n", (array)$_SESSION["flash_errors"])
 			. "</div>";
@@ -125,7 +126,8 @@ function flash_errors() {
 function flash_notices() {
 	$html = "";
 
-	if (count((array)$_SESSION["flash_notices"])) {
+	if (isset($_SESSION["flash_errors"]) &&
+	count((array)$_SESSION["flash_notices"])) {
 		$html = "<div class=\"flash-notice\">"
 			. implode("<br />\n", (array)$_SESSION["flash_notices"])
 			. "</div>";
