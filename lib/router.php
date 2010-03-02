@@ -100,8 +100,8 @@ class Router extends Singleton {
 					}
 
 					/* else it must match exactly (case-insensitively) */
-					elseif (isset($path_pieces[$x]) &&
-					strcasecmp($route_pieces[$x], $path_pieces[$x]) != 0)
+					elseif (@strcasecmp($route_pieces[$x], $path_pieces[$x])
+					!= 0)
 						$match = false;
 
 					if (!$match)
