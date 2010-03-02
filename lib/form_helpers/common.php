@@ -42,11 +42,19 @@ class FormHelperCommon {
 	protected function options_for_select($choices, $selected) {
 		$str = "";
 		$is_assoc = Utils::is_assoc($choices);
+		$array_of_arrays = (bool)(!$is_assoc && is_array($choices[0]));
 
-		foreach ($choices as $key => $val)
-			$str .= "<option value=\"" . h($is_assoc ? $key : $val) . "\""
-				. ($selected === ($is_assoc ? $key : $val) ? " selected" : "")
+		foreach ($choices as $key => $val) {
+			if ($array_of_arrays) {
+				$key = $val[0];
+				$val = $val[1];
+			} elseif ($is_assoc)
+				$key = $val;
+
+			$str .= "<option value=\"" . h($key) . "\""
+				. ($selected === $key ? " selected" : "")
 				. ">" . h($val) . "</option>";
+		}
 
 		return $str;
 	}
