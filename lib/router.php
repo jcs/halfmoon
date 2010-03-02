@@ -73,12 +73,12 @@ class Router extends Singleton {
 					/* look for a condition */
 					if (preg_match("/^:(.+)$/", $route_pieces[$x], $m)) {
 						$reg_or_string = isset($route["conditions"]) ?
-							Utils::A((array)$route["conditions"], $m[1]) :
+							@Utils::A((array)$route["conditions"], $m[1]) :
 							NULL;
 
-						if ($reg_or_string &&
+						if (!isset($path_pieces[$x]) || ($reg_or_string &&
 						!Utils::strcasecmp_or_preg_match($reg_or_string,
-						$path_pieces[$x]))
+						$path_pieces[$x])))
 							$match = false;
 						else
 							/* store this named parameter (e.g. "/:blah" route

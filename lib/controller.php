@@ -256,7 +256,7 @@ class ApplicationController {
 		}
 
 		/* if no specific layout was set, check for a controller-specific one */
-		if (!$layout && $this->params["controller"] &&
+		if (!$layout && isset($this->params["controller"]) &&
 		file_exists(HALFMOON_ROOT . "/views/layouts/" . $this->params["controller"]
 		. ".phtml"))
 			$layout = $this->params["controller"];
@@ -320,23 +320,23 @@ class ApplicationController {
 	private function verify_method($action) {
 		foreach ((array)$this::$verify as $verification) {
 			/* if this action isn't in the include list, skip */
-			if ($verification["only"] &&
+			if (isset($verification["only"]) &&
 			!in_array($action, (array)$verification["only"]))
 				continue;
 
 			/* if this action is exempted, skip */
-			if ($verification["except"] &&
+			if (isset($verification["except"]) &&
 			in_array($action, (array)$verification["except"]))
 				continue;
 
 			/* if the method passed from the server matches, skip */
-			if ($verification["method"] &&
+			if (isset($verification["method"]) &&
 			(strtolower($_SERVER["REQUEST_METHOD"]) ==
 			strtolower($verification["method"])))
 				continue;
 
 			/* still here, do any actions */
-			if ($verification["redirect_to"])
+			if (isset($verification["redirect_to"]))
 				return redirect_to($verification["redirect_to"]);
 		}
 	}
@@ -352,17 +352,17 @@ class ApplicationController {
 
 		if (is_array($this::$protect_from_forgery)) {
 			/* don't protect for specific actions */
-			if ($this::$protect_from_forgery["except"] && in_array($action,
-			(array)$this::$protect_from_forgery["except"]))
+			if (isset($this::$protect_from_forgery["except"]) &&
+			in_array($action, (array)$this::$protect_from_forgery["except"]))
 				return;
 
 			/* only verify for certain actions */
-			if ($this::$protect_from_forgery["only"] && !in_array($action,
-			(array)$this::$protect_from_forgery["only"]))
+			if (isset($this::$protect_from_forgery["only"]) &&
+			!in_array($action, (array)$this::$protect_from_forgery["only"]))
 				return;
 		}
 
-		if ($this->params["authenticity_token"] !=
+		if (@$this->params["authenticity_token"] !=
 		$this->form_authenticity_token()) {
 			 throw new InvalidAuthenticityToken();
 		}
@@ -403,7 +403,7 @@ class ApplicationController {
 		/* explicitly enable sessions so we can store/retrieve the token */
 		@session_start();
 
-		if (!$_SESSION["_csrf_token"])
+		if (@!$_SESSION["_csrf_token"])
 			$_SESSION["_csrf_token"] = Utils::random_hash();
 
 		return $_SESSION["_csrf_token"];
