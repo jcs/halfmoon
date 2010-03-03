@@ -76,7 +76,12 @@ class Router extends Singleton {
 							@Utils::A((array)$route["conditions"], $m[1]) :
 							NULL;
 
-						if (!isset($path_pieces[$x]) || ($reg_or_string &&
+						/* if the corresponding path piece isn't there, it's
+						 * ok.  this lets controller/:action/:id match when the
+						 * route is just "controller", assigning :action and
+						 * :id to nothing */
+
+						if (isset($path_pieces[$x]) && ($reg_or_string &&
 						!Utils::strcasecmp_or_preg_match($reg_or_string,
 						$path_pieces[$x])))
 							$match = false;
