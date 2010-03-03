@@ -48,7 +48,7 @@ class FormHelperCommon {
 			if ($array_of_arrays) {
 				$key = $val[0];
 				$val = $val[1];
-			} elseif ($is_assoc)
+			} elseif (!$is_assoc)
 				$key = $val;
 
 			$str .= "<option value=\"" . h($key) . "\""
