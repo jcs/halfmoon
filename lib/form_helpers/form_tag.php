@@ -27,7 +27,7 @@ class FormTagHelper extends FormHelperCommon {
 	$options = array()) {
 		return "<input type=\"checkbox\""
 			. " id=\"" . $this->prefixed_field_id($field) . "\""
-			. " name=\"" . $this->prefixed_field_name($field) . "]\""
+			. " name=\"" . $this->prefixed_field_name($field) . "\""
 			. " value=\"" . h($value) . "\""
 			. ($checked ? " checked=\"checked\"" : "")
 			. $this->options_to_s($options)
@@ -74,7 +74,7 @@ class FormTagHelper extends FormHelperCommon {
 	$options = array()) {
 		return "<input type=\"radio\""
 			. " id=\"" . $this->prefixed_field_id($field) . "\""
-			. " name=\"" . $this->prefixed_field_name($field) . "]\""
+			. " name=\"" . $this->prefixed_field_name($field) . "\""
 			. " value=\"" . h($value) . "\""
 			. ($checked ? " checked=\"checked\"" : "")
 			. $this->options_to_s($options)
