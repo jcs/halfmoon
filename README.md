@@ -86,9 +86,17 @@ is similar to this in halfmoon:
 
 		<VirtualHost 127.0.0.1>
 			ServerName www.example.com
-			CustomLog logs/example_access combined
-			ErrorLog logs/example_error
 
+			CustomLog logs/example_access combined
+
+			# halfmoon will log a few lines for each request with some
+			# useful information about routing, timing, etc. so this log
+			# is not strictly an error log.  but since apache directs
+			# all stderr logging to one place, errors go here too.
+			ErrorLog logs/example_info
+
+			# this should point to your public directory where index.php
+			# lives to interface with halfmoon
 			DocumentRoot /var/www/example/public/
 
 			# try static (cached) pages before dynamic ones
