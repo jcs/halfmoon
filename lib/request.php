@@ -116,7 +116,7 @@ class Request {
 			return $this->_remote_ip;
 
 		$remote_addr_list = array();
-		if ($this->headers["REMOTE_ADDR"])
+		if (isset($this->headers["REMOTE_ADDR"]))
 			$remote_addr_list = explode(",", $this->headers["REMOTE_ADDR"]);
 
 		foreach ($remote_addr_list as $addr)
@@ -125,11 +125,11 @@ class Request {
 
 		$forwarded_for = array();
 
-		if ($this->headers["HTTP_X_FORWARDED_FOR"])
+		if (isset($this->headers["HTTP_X_FORWARDED_FOR"]))
 			$forwarded_for = explode(",",
 				$this->headers["HTTP_X_FORWARDED_FOR"]);
 
-		if ($this->headers["HTTP_CLIENT_IP"]) {
+		if (isset($this->headers["HTTP_CLIENT_IP"])) {
 			if (!in_array($this->headers["HTTP_CLIENT_IP"], $forwarded_for))
 				throw new HalfMoonException("IP spoofing attack? "
 					. "HTTP_CLIENT_IP="

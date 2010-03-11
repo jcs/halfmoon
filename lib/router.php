@@ -138,7 +138,7 @@ class Router extends Singleton {
 			throw new HalfMoonException("no controller specified");
 
 		/* but we can deal with no action by calling the index action */
-		if ($route["action"] == "")
+		if (!isset($route["action"]) || $route["action"] == "")
 			$route["action"] = "index";
 
 		/* store the parameters named in the route with data from the url,
