@@ -150,8 +150,8 @@ class Router extends Singleton {
 
 		/* log some basic information */
 		Log::info("Processing " . $c . "::" . $route["action"] . " (for "
-			. $request->remote_ip() . " at " . date("c") . ") ["
-			. $request->request_method() . "]");
+			. $request->remote_ip() . ") [" . $request->request_method()
+			. "]");
 
 		if (array_keys($request->params))
 			Log::info("  Parameters: " . json_encode($request->params));

@@ -10,12 +10,17 @@ class Log {
 		error_log($string);
 	}
 
+	/* by directly writing to stderr, we avoid prefixing lines with [error]
+	 * like error_log does */
 	static function info($string) {
-		error_log($string);
+		$stderr = fopen("php://stderr", "w");
+		/* match apache's logging style */
+		fwrite($stderr, date("[D M d H:i:s Y] ") . $string . "\n");
+		fclose($stderr);
 	}
 
 	static function warn($string) {
-		error_log($string);
+		$this->error($string);
 	}
 
 	/* print_r() to the error log */
