@@ -211,7 +211,7 @@ class Request {
 					occured while processing the error document.
 					</body>
 					</html>
-					<?
+					<?php
 				}
 			}
 			
@@ -236,7 +236,7 @@ class Request {
 					error document.
 					</body>
 					</html>
-					<?
+					<?php
 				}
 			}
 			
@@ -260,7 +260,7 @@ class Request {
 					error document.
 					</body>
 					</html>
-					<?
+					<?php
 				}
 			}
 		}

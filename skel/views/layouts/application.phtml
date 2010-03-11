@@ -3,13 +3,13 @@
 <html>
 <head>
 	<title>Application</title>
-	<?= stylesheet_link_tag("application"); ?>
-	<?= javascript_include_tag(array("prototype", "application")); ?>
+	<?php echo stylesheet_link_tag("application"); ?>
+	<?php echo javascript_include_tag(array("prototype", "application")); ?>
 </head>
 <body>
-	<?= flash_errors(); ?>
-	<?= flash_notices(); ?>
+	<?php echo flash_errors(); ?>
+	<?php echo flash_notices(); ?>
 
-	<?= $content_for_layout ?>
+	<?php echo $content_for_layout; ?>
 </body>
 </html>

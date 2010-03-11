@@ -5,7 +5,7 @@
 ?>
 <html>
 <head>
-	<title><?= h($title) ?></title>
+	<title><?php echo h($title) ?></title>
 	<style type="text/css">
 		h2, h3, h4 {
 			margin: 0;
@@ -18,16 +18,16 @@
 	</style>
 </head>
 <body>
-<h2><?= h($title) ?></h2>
+<h2><?php echo h($title) ?></h2>
 <p>
-<tt>HALFMOON_ROOT: <?= h(HALFMOON_ROOT) ?></tt>
+<tt>HALFMOON_ROOT: <?php echo h(HALFMOON_ROOT) ?></tt>
 </p>
 <p>
 <h3>Backtrace</h3>
 </p>
 <p>
 <div class="info">
-<?
+<?php
 
 foreach ($exception->getTrace() as $call) {
 	if (isset($call["file"])) {
@@ -41,16 +41,16 @@ foreach ($exception->getTrace() as $call) {
 		}
 
 		?>
-		<?= join("/", $fileparts); ?><?
+		<?php echo join("/", $fileparts); ?><?php
 	} else {
-		?><?= h($call["class"]) ?><?
+		?><?php echo h($call["class"]) ?><?php
 	}
 	
-	?>:<?= h(isset($call["line"]) ? $call["line"] : "") ?>
+	?>:<?php echo h(isset($call["line"]) ? $call["line"] : "") ?>
 	in
-	<strong><?= h($call["function"]) ?>()</strong>
+	<strong><?php echo h($call["function"]) ?>()</strong>
 	<br />
-	<?
+	<?php
 }
 
 ?>
@@ -60,33 +60,33 @@ foreach ($exception->getTrace() as $call) {
 <h3>Request</h3>
 </p>
 
-<? foreach (array("get", "post") as $a) { ?>
+<?php foreach (array("get", "post") as $a) { ?>
 	<p>
-	<h4><?= strtoupper($a) ?> Parameters</h4>
+	<h4><?php echo strtoupper($a) ?> Parameters</h4>
 	</p>
 	<p>
 	<div class="info">
-	<? if (isset($this->$a)) { ?>
-		<? foreach ((array)$this->$a as $k => $v) { ?>
-			<strong><?= h(var_export($k, true)) ?></strong>:
-				<?= h(var_export($v, true)) ?><br />
-		<? } ?>
-	<? } ?>
+	<?php if (isset($this->$a)) { ?>
+		<?php foreach ((array)$this->$a as $k => $v) { ?>
+			<strong><?php echo h(var_export($k, true)) ?></strong>:
+				<?php echo h(var_export($v, true)) ?><br />
+		<?php } ?>
+	<?php } ?>
 	</div>
 	</p>
-<? } ?>
+<?php } ?>
 
 <p>
 <h4>Uploaded Files</h4>
 </p>
 <p>
 <div class="info">
-<? if (isset($_FILES)) { ?>
-	<? foreach ((array)$_FILES as $k => $v) { ?>
-		<strong><?= h(var_export($k, true)) ?></strong>:
-			<?= h(var_export($v, true)) ?><br />
-	<? } ?>
-<? } ?>
+<?php if (isset($_FILES)) { ?>
+	<?php foreach ((array)$_FILES as $k => $v) { ?>
+		<strong><?php echo h(var_export($k, true)) ?></strong>:
+			<?php echo h(var_export($v, true)) ?><br />
+	<?php } ?>
+<?php } ?>
 </div>
 </p>
 
@@ -95,11 +95,11 @@ foreach ($exception->getTrace() as $call) {
 </p>
 <p>
 <div class="info">
-<? if (isset($_SESSION)) { ?>
-	<? foreach ((array)$_SESSION as $k => $v) { ?>
-		<?= h(var_export($k, true) . ": " . var_export($v, true)) ?><br />
-	<? } ?>
-<? } ?>
+<?php if (isset($_SESSION)) { ?>
+	<?php foreach ((array)$_SESSION as $k => $v) { ?>
+		<?php echo h(var_export($k, true) . ": " . var_export($v, true)) ?><br />
+	<?php } ?>
+<?php } ?>
 </div>
 </p>
 </body>
