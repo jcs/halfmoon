@@ -12,6 +12,11 @@ class ApplicationController {
 	 */
 	static $before_filter = array();
 
+	/* array of methods to call after processing actions, which will be passed
+	 * all buffered output and must return new outpu
+	 */
+	static $after_filter = array();
+
 	/* array of arrays to verify before processing any actions
 	 * e.g. static $verify = array(
 	 *          array("method" => "post",
@@ -40,6 +45,9 @@ class ApplicationController {
 
 	private $did_render = false;
 	private $did_layout = false;
+
+	/* track what ob_get_level() was when we started buffering */
+	private $start_ob_level = 0;
 
 	public function __construct($request) {
 		$this->request = $request;
@@ -202,7 +210,9 @@ class ApplicationController {
 		if (!$this->process_before_filters($action))
 			return false;
 
+		/* start our one output buffer that we'll pass to the after filters */
 		ob_start();
+		$this->start_ob_level = ob_get_level();
 
 		/* we only want to allow calling public methods in controllers, to
 		 * avoid users getting directly to before_filters and other utility
@@ -219,13 +229,30 @@ class ApplicationController {
 
 		if (!$this->did_layout)
 			$this->render_layout();
+
+		$this->process_after_filters($action);
+
+		/* flush out everything, we're done playing with buffers */
+		ob_end_flush();
 	}
 
 	/* capture the output of everything rendered and put it within the layout */
 	public function render_layout() {
-		$content_for_layout = ob_get_contents();
-		while (@ob_end_clean())
+		/* get all buffered output and turn them off, except for our one last
+		 * buffer needed for after_filters */
+		$content_for_layout = "";
+		while (ob_get_level() >= $this->start_ob_level) {
 			$content_for_layout = $content_for_layout . ob_get_contents();
+
+			if (ob_get_level() == $this->start_ob_level)
+				break;
+			else
+				ob_end_clean();
+		}
+
+		/* now that we have all of our content, clean our last buffer since
+		 * we're going to print the layout (and content inside) into it */
+		ob_clean();
 
 		/* if we don't want a layout at all, just print the content */
 		if (isset($this::$layout) && $this::$layout === false) {
@@ -397,6 +424,36 @@ class ApplicationController {
 		}
 
 		return true;
+	}
+
+	/* pass all buffered output through after filters */
+	private function process_after_filters($action) {
+		foreach ((array)$this::$after_filter as $filter) {
+			if (!is_array($filter))
+				$filter = array($filter);
+
+			/* don't filter for specific actions */
+			if (isset($filter["except"]) && in_array($action,
+			(array)$filter["except"]))
+				continue;
+
+			/* only filter for certain actions */
+			if (isset($filter["only"]) &&
+			!in_array($action, (array)$filter["only"]))
+				continue;
+
+			if (!method_exists($this, $filter[0]))
+				throw new RenderException("after_filter \"" . $filter[0]
+					. "\" function does not exist");
+
+			/* get all buffered output, then replace it with the filtered
+			 * output */
+			$output = ob_get_contents();
+			$output = call_user_func_array(array($this, $filter[0]),
+				array($output));
+			ob_clean();
+			print $output;
+		}
 	}
 
 	public function form_authenticity_token() {
