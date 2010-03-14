@@ -988,6 +988,35 @@ class Model
 	}
 
 	/**
+	 * Add a model to the given named ($name) relationship.
+	 *
+	 * @internal This should <strong>only</strong> be used by eager load
+	 * @param Model $model
+	 * @param $name of relationship for this table
+	 * @return void
+	 */
+	public function set_relationship_from_eager_load(Model $model=null, $name)
+	{
+		$table = static::table();
+
+		if (($rel = $table->get_relationship($name)))
+		{
+			if ($rel->is_poly())
+			{
+				// if the related model is null and it is a poly then we should have an empty array
+				if (is_null($model))
+					return $this->__relationships[$name] = array();
+				else
+					return $this->__relationships[$name][] = $model;
+			}
+			else
+				return $this->__relationships[$name] = $model;
+		}
+
+		throw new RelationshipException("Relationship named $name has not been declared for class: {$table->class->getName()}");
+	}
+
+	/**
 	 * Reloads the attributes and relationships of this object from the database.
 	 *
 	 * @return Model
@@ -1000,6 +1029,13 @@ class Model
 		$this->set_attributes($this->find($pk)->attributes);
 		$this->reset_dirty();
 
+		return $this;
+	}
+
+	public function __clone()
+	{
+		$this->__relationships = array();
+		$this->reset_dirty();
 		return $this;
 	}
 
