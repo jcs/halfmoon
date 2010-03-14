@@ -86,9 +86,9 @@ abstract class AbstractRelationship implements InterfaceRelationship
 			$this->options['conditions'] = array($this->options['conditions']);
 
 		if (isset($this->options['class']))
-			$this->class_name = $this->options['class'];
+			$this->set_class_name($this->options['class']);
 		elseif (isset($this->options['class_name']))
-			$this->class_name = $this->options['class_name'];
+			$this->set_class_name($this->options['class_name']);
 
 		$this->attribute_name = strtolower(Inflector::instance()->variablize($this->attribute_name));
 
@@ -171,7 +171,16 @@ abstract class AbstractRelationship implements InterfaceRelationship
 	 */
 	protected function set_inferred_class_name()
 	{
-		$class_name = classify($this->attribute_name, true);
+		$this->set_class_name(classify($this->attribute_name, true));
+	}
+
+	protected function set_class_name($class_name)
+	{
+		$reflection = Reflections::instance()->add($class_name)->get($class_name);
+
+		if (!$reflection->isSubClassOf('ActiveRecord\\Model'))
+			throw new RelationshipException("'$class_name' must extend from ActiveRecord\\Model");
+
 		$this->class_name = $class_name;
 	}
 
@@ -184,7 +193,7 @@ abstract class AbstractRelationship implements InterfaceRelationship
 		if (all(null,$condition_values))
 			return null;
 
-		$conditions = SQLBuilder::create_conditions_from_underscored_string($condition_string,$condition_values);
+		$conditions = SQLBuilder::create_conditions_from_underscored_string(Table::load(get_class($model))->conn,$condition_string,$condition_values);
 
 		# DO NOT CHANGE THE NEXT TWO LINES. add_condition operates on a reference and will screw options array up
 		if (isset($this->options['conditions']))
@@ -323,8 +332,9 @@ class HasMany extends AbstractRelationship
 		if (isset($this->options['through']))
 		{
 			$this->through = $this->options['through'];
+
 			if (isset($this->options['source']))
-				$this->class_name = $this->options['source'];
+				$this->set_class_name($this->options['source']);
 		}
 
 		if (!$this->class_name)
@@ -369,9 +379,13 @@ class HasMany extends AbstractRelationship
 				$through_table_name = $through_table->get_fully_qualified_table_name();
 
 				$this->options['joins'] = $this->construct_inner_join_sql($through_table, true);
+				$conn = $this->get_table()->conn;
 
 				foreach ($this->foreign_key as $index => &$key)
-					$key = "$through_table_name.$key";
+				{
+					$k = $key;
+					$key = "$through_table_name." . $conn->quote_name($k);
+				}
 			}
 
 			$this->initialized = true;
@@ -379,7 +393,6 @@ class HasMany extends AbstractRelationship
 
 		if (!($conditions = $this->create_conditions_from_keys($model, $this->foreign_key, $this->primary_key)))
 			return null;
-
 		$options = $this->unset_non_finder_options($this->options);
 		$options['conditions'] = $conditions;
 		return $class_name::find($this->poly_relationship ? 'all' : 'first',$options);
