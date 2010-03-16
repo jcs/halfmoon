@@ -10,8 +10,8 @@ is a tiny mvc framework for php 5.3 that tries to use the conventions of
 ruby on rails wherever possible and reasonable.
 
 it has a similar directory structure to a rails project, with the root
-level containing models, views, and controllers directories.  it
-supports a concept of environments like rails, defaulting to a
+level containing models, views, controllers, and helpers directories.
+it supports a concept of environments like rails, defaulting to a
 development environment which logs things to apache's error log and
 displays errors in the browser.
 
@@ -29,13 +29,16 @@ form helpers work similar to rails.  for example, doing this in rails:
 
 is similar to this in halfmoon:
 
-	<? form_for($post, "/posts/update", array(), function($f) { ?>
+	<? $form->form_for($post, "/posts/update", array(), function($f) { ?>
 		<?= $f->label("title", "Post Title"); ?>
 		<?= $f->text_field("title", array("size" => 20)); ?>
 
 		<?= $f->submit_button("Submit") ?>
 	<? }); ?>
 
+with $form being an alias to a FormHelper object automatically setup by
+the controller.  there are other helpers available like $time, $html,
+etc.
 
 ## requirements ##
 
@@ -68,13 +71,14 @@ is similar to this in halfmoon:
 		creating skeleton directory structure... done.
 
 		   /var/www/example/:
-		   total 12
-		   drwxr-xr-x  2 jcs  users  512 Jan 13 14:42 config/
-		   drwxr-xr-x  2 jcs  users  512 Jan 13 11:31 controllers/
-		   drwxr-xr-x  6 jcs  users  512 Jan 13 15:43 halfmoon/
-		   drwxr-xr-x  2 jcs  users  512 Jan 13 15:43 models/
-		   drwxr-xr-x  4 jcs  users  512 Jan 13 15:16 public/
-		   drwxr-xr-x  3 jcs  users  512 Jan 13 11:26 views/
+		   total 14
+		   drwxr-xr-x  2 jcs  users  512 Feb 15 10:25 config/
+		   drwxr-xr-x  2 jcs  users  512 Feb 15 10:20 controllers/
+		   drwxr-xr-x  5 jcs  users  512 Mar 15 20:33 halfmoon/
+		   drwxr-xr-x  2 jcs  users  512 Mar 15 20:33 helpers/
+		   drwxr-xr-x  2 jcs  users  512 Mar 15 20:33 models/
+		   drwxr-xr-x  4 jcs  users  512 Feb 13 19:58 public/
+		   drwxr-xr-x  3 jcs  users  512 Feb 13 19:58 views/
 
 		welcome to halfmoon!
 
