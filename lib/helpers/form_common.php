@@ -5,22 +5,19 @@
 
 namespace HalfMoon;
 
-class FormHelperCommon {
+class FormHelperCommon extends Helper {
 	public $controller = null;
 
 	/* the guts of form_for() and form_tag() */
 	protected function output_form_around_closure($url_or_obj,
 	$options = array(), \Closure $form_content) {
-		$this->controller = Utils::current_controller();
-
-		/* TODO: always put $controller into the closure scope */
-
 		if (!isset($options["method"]))
 			$options["method"] = "post";
 
 		print "<form"
 			. $this->options_to_s($options)
-			. " action=\"" . link_from_obj_or_string($url_or_obj) . "\""
+			. " action=\"" . HtmlHelper::link_from_obj_or_string($url_or_obj)
+				. "\""
 			. ">";
 
 		if (strtolower($options["method"]) != "get")

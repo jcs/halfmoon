@@ -5,6 +5,8 @@
 
 namespace HalfMoon;
 
+require_once("form_common.php");
+
 class FormHelper extends FormTagHelper {
 	public $form_object = null;
 

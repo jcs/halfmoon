@@ -3,12 +3,12 @@
 <html>
 <head>
 	<title>Application</title>
-	<?php echo stylesheet_link_tag("application"); ?>
-	<?php echo javascript_include_tag(array("prototype", "application")); ?>
+	<?php echo $html->stylesheet_link_tag("application"); ?>
+	<?php echo $html->javascript_include_tag(array("prototype", "application")); ?>
 </head>
 <body>
-	<?php echo flash_errors(); ?>
-	<?php echo flash_notices(); ?>
+	<?php echo $html->flash_errors(); ?>
+	<?php echo $html->flash_notices(); ?>
 
 	<?php echo $content_for_layout; ?>
 </body>

@@ -28,11 +28,13 @@ require_once(HALFMOON_ROOT . "/halfmoon/lib/rescue.php");
 require_once(HALFMOON_ROOT . "/halfmoon/lib/utilities.php");
 require_once(HALFMOON_ROOT . "/halfmoon/lib/singleton.php");
 
-require_once(HALFMOON_ROOT . "/halfmoon/lib/form_helpers/common.php");
-require_once(HALFMOON_ROOT . "/halfmoon/lib/form_helpers/form_tag.php");
-require_once(HALFMOON_ROOT . "/halfmoon/lib/form_helpers/form_for.php");
+$helpers = glob(HALFMOON_ROOT . "/halfmoon/lib/helpers/*helper.php");
+usort($helpers, function($a, $b) {
+	return basename($b) == "helper.php" ? 1 : -1;
+});
+foreach ($helpers as $helper)
+	require_once($helper);
 
-require_once(HALFMOON_ROOT . "/halfmoon/lib/helpers.php");
 require_once(HALFMOON_ROOT . "/halfmoon/lib/controller.php");
 require_once(HALFMOON_ROOT . "/halfmoon/lib/request.php");
 require_once(HALFMOON_ROOT . "/halfmoon/lib/router.php");

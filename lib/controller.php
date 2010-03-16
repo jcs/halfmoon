@@ -13,7 +13,7 @@ class ApplicationController {
 	static $before_filter = array();
 
 	/* array of methods to call after processing actions, which will be passed
-	 * all buffered output and must return new outpu
+	 * all buffered output and must return new output
 	 */
 	static $after_filter = array();
 
@@ -42,6 +42,9 @@ class ApplicationController {
 	public $request = array();
 	public $params = array();
 	public $locals = array();
+
+	/* this will be set to a helper object before rendering a template */
+	public $helper = null;
 
 	private $did_render = false;
 	private $did_layout = false;
@@ -170,25 +173,32 @@ class ApplicationController {
 			"controller");
 
 		/* export variables set in the controller to the view */
-		foreach ($this->locals as $k => $v) {
-			if (in_array($k, $__special_vars)) {
-				Log::warn("tried to redefine \$" . $k . " passed from "
+		foreach ($this->locals as $__k => $__v) {
+			if (in_array($__k, $__special_vars)) {
+				Log::warn("tried to redefine \$" . $__k . " passed from "
 					. "controller");
 				continue;
 			}
 
-			$$k = $v;
+			$$__k = $__v;
 		}
 
 		/* and any passed as locals to the render() function */
-		foreach ($__vars as $k => $v) {
-			if (in_array($k, $__special_vars)) {
-				Log::warn("tried to redefine \$" . $k . " passed "
+		foreach ($__vars as $__k => $__v) {
+			if (in_array($__k, $__special_vars)) {
+				Log::warn("tried to redefine \$" . $__k . " passed "
 					. "from render() call");
 				continue;
 			}
 
-			$$k = $v;
+			$$__k = $__v;
+		}
+
+		/* make helpers available to the view */
+		$this->bring_in_helpers();
+		foreach ($this->_helper_refs as $__hn => $__hk) {
+			$$__hn = $__hk;
+			$$__hn->controller = $this;
 		}
 
 		/* define $controller where $this can't be used */
@@ -197,6 +207,42 @@ class ApplicationController {
 		Log::info("Rendering " . $__file);
 
 		require($__file);
+	}
+
+	/* setup each built-in helper to be $var = VarHelper, and the
+	 * application_helper and controller-specific helper to be $helper */
+	private $_helper_refs = null;
+	private function bring_in_helpers() {
+		if (!$this->_helper_refs) {
+			$this->_helper_refs = array();
+
+			foreach (get_declared_classes() as $class) {
+				if (preg_match("/^HalfMoon\\\\(.+)Helper$/", $class, $m))
+					$this->_helper_refs[strtolower($m[1])] = new $class;
+			}
+
+			/* bring in the application-wide helpers */
+			if (file_exists($__f = HALFMOON_ROOT . "/helpers/"
+			. "application_helper.php")) {
+				require_once($__f);
+
+				/* and a controller-specific one if it exists */
+				$controller = preg_replace("/Controller$/", "",
+					Utils::current_controller_name());
+
+				if (file_exists($__f = HALFMOON_ROOT . "/helpers/"
+				. strtolower($controller . "_controller.php"))) {
+					require_once($__f);
+
+					$n = $controller . "Helper";
+					$this->_helper_refs["helper"] = new $n;
+				}
+
+				/* otherwise just make it the app-wide one */
+				else
+					$this->_helper_refs["helper"] = new \ApplicationHelper;
+			}
+		}
 	}
 
 	/* the main entry point for the controller, sent by the router */
@@ -296,6 +342,13 @@ class ApplicationController {
 
 		if (file_exists(HALFMOON_ROOT . "/views/layouts/" . $layout .
 		".phtml")) {
+			/* make helpers available to the layout */
+			$this->bring_in_helpers();
+			foreach ($this->_helper_refs as $__hn => $__hk) {
+				$$__hn = $__hk;
+				$$__hn->controller = $this;
+			}
+
 			Log::info("Rendering layout " . $layout);
 			require(HALFMOON_ROOT . "/views/layouts/" . $layout . ".phtml");
 		} else

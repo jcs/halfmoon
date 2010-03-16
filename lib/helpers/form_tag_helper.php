@@ -5,6 +5,8 @@
 
 namespace HalfMoon;
 
+require_once("form_common.php");
+
 class FormTagHelper extends FormHelperCommon {
 	/* provide an html object id to use for a given field name */
 	protected function prefixed_field_id($field) {
