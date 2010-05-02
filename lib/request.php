@@ -268,6 +268,11 @@ class Request {
 		/* that's it, end of the line */
 		exit;
 	}
+
+	/* the user's browser as reported by the server */
+	public function user_agent() {
+		return $_SERVER["HTTP_USER_AGENT"];
+	}
 }
 
 ?>
