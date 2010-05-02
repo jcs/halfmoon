@@ -125,7 +125,7 @@ class HtmlHelper extends Helper {
 				$link .= $thing["controller"];
 			else
 				$link .= strtolower(preg_replace("/Controller$/", "",
-					current_controller_name()));
+					Utils::current_controller_name()));
 
 			if (isset($thing["action"]))
 				$link .= "/" . $thing["action"];
