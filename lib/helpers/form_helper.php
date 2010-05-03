@@ -28,7 +28,7 @@ class FormHelper extends FormTagHelper {
 
 	/* provide an html object id to use for a given field name */
 	protected function prefixed_field_id($field) {
-		return preg_replace("/[^a-z0-9]/i", "_",
+		return preg_replace("/[^a-z0-9]/", "_",
 			$this->form_prefix() . "_" . $field);
 	}
 
@@ -47,29 +47,15 @@ class FormHelper extends FormTagHelper {
 			return $this->form_object->$field;
 	}
 
-	/* all field names should be in an array named according to this form
-	 * object's class, but honor names/ids passed through as options */
-	protected function set_field_id_and_name($field, $options) {
-		if (!isset($options["id"]))
-			$options["id"] = $this->prefixed_field_id($field, $options);
-
-		if (!isset($options["name"]))
-			$options["name"] = $this->prefixed_field_name($field, $options);
-
-		return $options;
-	}
-
 	/* create an <input type="checkbox"> with a hidden input field to detect
 	 * when the checkbox has been unchecked (see rails docs for check_box, but
 	 * since php presents $_GET and $_POST with the last seen value, we have to
 	 * reverse the order of the checkbox and hidden input field) */
 	public function check_box($field, $options = array(), $checked_value = 1,
 	$unchecked_value = 0) {
-		$options = FormHelper::set_field_id_and_name($field, $options);
-
 		return "<input"
 			. " type=\"hidden\" "
-			. " name=\"" . $options["name"] . "\""
+			. " name=\"" . $this->prefixed_field_name($field) . "\""
 			. " value=\"" . h($unchecked_value) . "\""
 			. " />"
 			. $this->wrap_field_with_errors($field,
@@ -80,8 +66,6 @@ class FormHelper extends FormTagHelper {
 
 	/* create an <input> file upload field */
 	public function file_field($field, $options = array()) {
-		$options = FormHelper::set_field_id_and_name($field, $options);
-
 		return $this->wrap_field_with_errors($field,
 			$this->file_field_tag($field, $options)
 		);
@@ -89,23 +73,17 @@ class FormHelper extends FormTagHelper {
 
 	/* create a hidden <input> field */
 	public function hidden_field($field, $options = array()) {
-		$options = FormHelper::set_field_id_and_name($field, $options);
-
 		return $this->hidden_field_tag($field, $this->value_for_field($field),
 			$options);
 	}
 
 	/* create a <label> that references a field */
 	public function label($column, $caption = null, $options = array()) {
-		$options = FormHelper::set_field_id_and_name($field, $options);
-
 		return $this->label_tag($column, $caption, $options);
 	}
 
 	/* create an <input> password field, *not including any value* */
 	public function password_field($field, $options = array()) {
-		$options = FormHelper::set_field_id_and_name($field, $options);
-
 		return $this->wrap_field_with_errors($field,
 			$this->password_field_tag($field, $value = null, $options)
 		);
@@ -113,8 +91,6 @@ class FormHelper extends FormTagHelper {
 
 	/* create an <input> radio button */
 	public function radio_button($field, $value, $options = array()) {
-		$options = FormHelper::set_field_id_and_name($field, $options);
-
 		return $this->wrap_field_with_errors($field,
 			$this->radio_button_tag($field, $value,
 				($this->value_for_field($field) == $value), $options)
@@ -123,8 +99,6 @@ class FormHelper extends FormTagHelper {
 
 	/* create a <select> box with options */
 	public function select($field, $choices, $options = array()) {
-		$options = FormHelper::set_field_id_and_name($field, $options);
-
 		return $this->wrap_field_with_errors($field,
 			$this->select_tag($field, $choices, $this->value_for_field($field),
 				$options)
@@ -139,8 +113,6 @@ class FormHelper extends FormTagHelper {
 
 	/* create a <textarea> field */
 	public function text_area($field, $options = array()) {
-		$options = FormHelper::set_field_id_and_name($field, $options);
-
 		return $this->wrap_field_with_errors($field,
 			$this->text_area_tag($field, $this->value_for_field($field),
 				$options)
@@ -149,8 +121,6 @@ class FormHelper extends FormTagHelper {
 
 	/* create an <input> text field */
 	public function text_field($field, $options = array()) {
-		$options = FormHelper::set_field_id_and_name($field, $options);
-
 		return $this->wrap_field_with_errors($field,
 			$this->text_field_tag($field, $this->value_for_field($field),
 				$options)
