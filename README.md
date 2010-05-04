@@ -202,7 +202,7 @@ etc.
 
 		<?php
 
-		render(array("partial" => "header_image"));
+		$controller->render(array("partial" => "header_image"));
 		...
 
 		?>
@@ -267,7 +267,7 @@ design changes.
 
 		<h1><?= $this->title() ?></h1>
 
-		<? form_for($post, "/posts/update", array(), function($f) use ($controller) { ?>
+		<? $form->form_for($post, "/posts/update", array(), function($f) use ($controller) { ?>
 			<h2><?= $controller->sub_title(); ?></h2>
 			...
 		<? }); ?>
