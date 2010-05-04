@@ -349,6 +349,9 @@ class ApplicationController {
 				$$__hn->controller = $this;
 			}
 
+			/* define $controller where $this can't be used */
+			$controller = $this;
+
 			Log::info("Rendering layout " . $layout);
 			require(HALFMOON_ROOT . "/views/layouts/" . $layout . ".phtml");
 		} else
