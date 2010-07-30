@@ -13,29 +13,56 @@ use PDO;
  */
 class OciAdapter extends Connection
 {
+	static $QUOTE_CHARACTER = '';
+	static $DEFAULT_PORT = 1521;
+
+	public $dsn_params;
+
 	protected function __construct($info)
 	{
-		$this->connection = new PDO("oci:dbname=//$info->host/$info->db",$info->user,$info->pass,static::$PDO_OPTIONS);
+		try {
+			$this->dsn_params = isset($info->charset) ? ";charset=$info->charset" : "";
+			$this->connection = new PDO("oci:dbname=//$info->host/$info->db$this->dsn_params",$info->user,$info->pass,static::$PDO_OPTIONS);
+		} catch (PDOException $e) {
+			throw new DatabaseException($e);
+		}
 	}
 
-	public function default_port()
-	{
-		return 1521;
-	}
+	public function supports_sequences() { return true; }
 	
-	public function get_sequence_name($table)
+	public function get_next_sequence_value($sequence_name)
 	{
-		return $table . '_seq';
+		return $this->query_and_fetch_one('SELECT ' . $this->next_sequence_value($sequence_name) . ' FROM dual');
+	}
+
+	public function next_sequence_value($sequence_name)
+	{
+		return "$sequence_name.nextval";
+	}
+
+	public function date_to_string($datetime)
+	{
+		return $datetime->format('d-M-Y');
+	}
+
+	public function datetime_to_string($datetime)
+	{
+		return $datetime->format('d-M-Y h:i:s A');
+	}
+
+	// $string = DD-MON-YYYY HH12:MI:SS(\.[0-9]+) AM
+	public function string_to_datetime($string)
+	{
+		return parent::string_to_datetime(str_replace('.000000','',$string));
 	}
 
 	public function limit($sql, $offset, $limit)
 	{
-		$offset = intval($offset) + 1;
-		$stop = $offset + intval($limit) - 1;
+		$offset = intval($offset);
+		$stop = $offset + intval($limit);
 		return 
-			"SELECT * FROM (SELECT a.*, rownum rnum FROM (" .
-				$sql .
-			") a WHERE rownum <= $stop) WHERE rnum >= $offset";
+			"SELECT * FROM (SELECT a.*, rownum ar_rnum__ FROM ($sql) a " .
+			"WHERE rownum <= $stop) WHERE ar_rnum__ > $offset";
 	}
 
 	public function query_column_info($table)
@@ -60,12 +87,7 @@ class OciAdapter extends Connection
 		return $this->query("SELECT table_name FROM user_tables");
 	}
 
-	public function quote_name($string)
-	{
-		return "\"$string\"";
-	}
-
-	public function create_column($column)
+	public function create_column(&$column)
 	{
 		$column['column_name'] = strtolower($column['column_name']);
 		$column['data_type'] = strtolower(preg_replace('/\(.*?\)/','',$column['data_type']));
@@ -94,9 +116,14 @@ class OciAdapter extends Connection
 			$c->raw_type = $column['data_type'];
 
 		$c->map_raw_type();
-		$c->default	= $c->cast($column['data_default']);
+		$c->default	= $c->cast($column['data_default'],$this);
 
 		return $c;
+	}
+
+	public function set_encoding($charset)
+	{
+		// is handled in the constructor
 	}
 };
 ?>

@@ -28,6 +28,7 @@ class SQLBuilder
 
 	// for insert/update
 	private $data;
+	private $sequence;
 
 	/**
 	 * Constructor.
@@ -140,13 +141,17 @@ class SQLBuilder
 		return $this;
 	}
 
-	public function insert($hash)
+	public function insert($hash, $pk=null, $sequence_name=null)
 	{
 		if (!is_hash($hash))
 			throw new ActiveRecordException('Inserting requires a hash.');
 
 		$this->operation = 'INSERT';
 		$this->data = $hash;
+
+		if ($pk && $sequence_name)
+			$this->sequence = array($pk,$sequence_name);
+
 		return $this;
 	}
 
@@ -258,6 +263,27 @@ class SQLBuilder
 		return $hash;
 	}
 
+	/**
+	 * prepends table name to hash of field names to get around ambiguous fields when SQL builder
+	 * has joins
+	 *
+	 * @param array $hash
+	 * @return array $new
+	 */
+	private function prepend_table_name_to_fields($hash=array())
+	{
+		$new = array();
+		$table = $this->connection->quote_name($this->table);
+
+		foreach ($hash as $key => $value)
+		{
+			$k = $this->connection->quote_name($key);
+			$new[$table.'.'.$k] = $value;
+		}
+
+		return $new;
+	}
+
 	private function apply_where_conditions($args)
 	{
 		require_once 'Expressions.php';
@@ -265,7 +291,8 @@ class SQLBuilder
 
 		if ($num_args == 1 && is_hash($args[0]))
 		{
-			$e = new Expressions($this->connection,$args[0]);
+			$hash = is_null($this->joins) ? $args[0] : $this->prepend_table_name_to_fields($args[0]);
+			$e = new Expressions($this->connection,$hash);
 			$this->where = $e->to_s();
 			$this->where_values = array_flatten($e->values());
 		}
@@ -307,7 +334,16 @@ class SQLBuilder
 		require_once 'Expressions.php';
 		$keys = join(',',$this->quoted_key_names());
 
-		$e = new Expressions($this->connection,"INSERT INTO $this->table($keys) VALUES(?)",array_values($this->data));
+		if ($this->sequence)
+		{
+			$sql =
+				"INSERT INTO $this->table($keys," . $this->connection->quote_name($this->sequence[0]) .
+				") VALUES(?," . $this->connection->next_sequence_value($this->sequence[1]) . ")";
+		}
+		else
+			$sql = "INSERT INTO $this->table($keys) VALUES(?)";
+
+		$e = new Expressions($this->connection,$sql,array_values($this->data));
 		return $e->to_s();
 	}
 

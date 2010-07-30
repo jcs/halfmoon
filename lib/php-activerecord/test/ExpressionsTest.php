@@ -1,5 +1,6 @@
 <?php
 include 'helpers/config.php';
+require '../lib/Expressions.php';
 
 use ActiveRecord\Expressions;
 
@@ -134,7 +135,7 @@ class ExpressionsTest extends SnakeCase_PHPUnit_Framework_TestCase
 		$a = new Expressions(null,'name=?',"Tito's Guild");
 		$a->set_connection($conn);
 		$escaped = $conn->escape("Tito's Guild");
-		$this->assert_equals("name='$escaped'",$a->to_s(true));
+		$this->assert_equals("name=$escaped",$a->to_s(true));
 	}
 
 	public function test_bind()

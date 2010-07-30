@@ -11,6 +11,8 @@ namespace ActiveRecord;
  */
 class MysqlAdapter extends Connection
 {
+	static $DEFAULT_PORT = 3306;
+
 	public function beginTransaction()
 	{
 		return $this->query('BEGIN');
@@ -72,6 +74,11 @@ class MysqlAdapter extends Connection
 			$c->raw_type = 'date';
 			$c->length = 10;
 		}
+		elseif ($column['type'] == 'time')
+		{
+			$c->raw_type = 'time';
+			$c->length = 8;
+		}
 		else
 		{
 			preg_match('/^([A-Za-z0-9_]+)(\(([0-9]+(,[0-9]+)?)\))?/',$column['type'],$matches);
@@ -83,9 +90,15 @@ class MysqlAdapter extends Connection
 		}
 
 		$c->map_raw_type();
-		$c->default = $c->cast($column['default']);
+		$c->default = $c->cast($column['default'],$this);
 
 		return $c;
+	}
+
+	public function set_encoding($charset)
+	{
+		$params = array($charset);
+		$this->query('SET NAMES ?',$params);
 	}
 }
 ?>

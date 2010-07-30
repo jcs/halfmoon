@@ -1,6 +1,6 @@
 # PHP ActiveRecord #
 
-Version 0.9 beta
+Version 1.0
 
 by Kien La and Jacques Fuentes
 
@@ -23,15 +23,30 @@ Of course, there are some differences which will be obvious to the user if they 
 
 ## Minimum Requirements ##
 
-PHP 5.3+
+- PHP 5.3+
+- PDO driver for your respective database
 
 ## Supported Databases ##
 
 - MySQL
 - SQLite
-- (oracle and postgres very soon)
+- PostgreSQL
+- Oracle
 
-## Installation ##
+# Features ##
+
+- Finder methods
+- Dynamic finder methods
+- Writer methods
+- Relationships
+- Validations
+- Callbacks
+- Serializations (json/xml)
+- Transactions
+- Support for multiple adapters
+- Miscellaneous options such as: aliased/protected/accessible attributes
+
+### Installation ##
 
 Setup is very easy and straight-forward. There are essentially only two configuration points you must concern yourself with:
 
@@ -55,24 +70,6 @@ Alternatively (w/o the 5.3 closure):
 Once you have configured these two settings you are done. ActiveRecord takes care of the rest for you.
 It does not require that you map your table schema to yaml/xml files. It will query the database for this information and
 cache it so that it does not make multiple calls to the database for a single schema.
-
-## Features ##
-
-- Finder methods
-- Dynamic finder methods
-- Writer methods
-- Relationships
-- Validations
-- Callbacks
-- Serializations (json/xml)
-- Transactions
-- Support for multiple adapters
-- Miscellaneous options such as: aliased/protected/accessible attributes
-
-Here are some other features we hope to include in later versions:
-- Named scopes
-- More adapters
-- Relationship includes
 
 ## Basic CRUD ##
 

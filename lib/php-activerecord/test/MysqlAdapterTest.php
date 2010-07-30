@@ -19,14 +19,11 @@ class MysqlAdapterTest extends AdapterTest
 		$this->assert_same(null,$author_columns['some_enum']->length);
 	}
 
-	public function test_quote_name_does_not_over_quote()
+	public function test_set_charset()
 	{
-		$c = $this->conn;
-		$q = function($s) use ($c) { return $c->quote_name($s); };
-
-		$this->assert_equals("`string", $q("`string"));
-		$this->assert_equals("string`", $q("string`"));
-		$this->assert_equals("`string`", $q("`string`"));
+		$connection_string = ActiveRecord\Config::instance()->get_connection($this->connection_name);
+		$conn = ActiveRecord\Connection::instance($connection_string . '?charset=utf8');
+		$this->assert_equals('SET NAMES ?',$conn->last_query);
 	}
 }
 ?>

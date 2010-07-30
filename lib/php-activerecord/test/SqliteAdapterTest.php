@@ -4,9 +4,9 @@ require_once dirname(__FILE__) . '/../lib/adapters/SqliteAdapter.php';
 
 class SqliteAdapterTest extends AdapterTest
 {
-	public function setUp($connection_name=null)
+	public function set_up($connection_name=null)
 	{
-		parent::setUp('sqlite');
+		parent::set_up('sqlite');
 	}
 
 	public function tearDown()
@@ -33,15 +33,5 @@ class SqliteAdapterTest extends AdapterTest
 	// not supported
 	public function testCompositeKey() {}
 	public function testConnectWithPort() {}
-
-	public function test_quote_name_does_not_over_quote()
-	{
-		$c = $this->conn;
-		$q = function($s) use ($c) { return $c->quote_name($s); };
-
-		$this->assert_equals("`string", $q("`string"));
-		$this->assert_equals("string`", $q("string`"));
-		$this->assert_equals("`string`", $q("`string`"));
-	}
 }
 ?>

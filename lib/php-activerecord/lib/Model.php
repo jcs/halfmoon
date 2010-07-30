@@ -3,7 +3,6 @@
  * @package ActiveRecord
  */
 namespace ActiveRecord;
-use DateTime;
 
 /**
  * The base class for your models.
@@ -148,6 +147,13 @@ class Model
 	static $primary_key;
 
 	/**
+	 * Set this to explicitly specify the sequence name for the table.
+	 *
+	 * @var string
+	 */
+	static $sequence;
+
+	/**
 	 * Allows you to create aliases for attributes.
 	 *
 	 * <code>
@@ -228,7 +234,7 @@ class Model
 	 * You can also use this to define custom setters for attributes as well.
 	 *
 	 * <code>
-	 * class User extends ActiveRecord\Base {
+	 * class User extends ActiveRecord\Model {
 	 *   static $setters = array('password','more','even_more');
 	 *
 	 *   # now to define the setter methods. Note you must
@@ -250,7 +256,7 @@ class Model
 	 * custom setter for 'name':
 	 *
 	 * <code>
-	 * class User extends ActiveRecord\Base {
+	 * class User extends ActiveRecord\Model {
 	 *   static $setters = array('name');
 	 *
 	 *   # INCORRECT way to do it
@@ -276,7 +282,7 @@ class Model
 	 * Define customer getter methods for the model.
 	 *
 	 * <code>
-	 * class User extends ActiveRecord\Base {
+	 * class User extends ActiveRecord\Model {
 	 *   static $getters = array('middle_initial','more','even_more');
 	 *
 	 *   # now to define the getter method. Note you must
@@ -298,7 +304,7 @@ class Model
 	 * custom getter for 'name':
 	 *
 	 * <code>
-	 * class User extends ActiveRecord\Base {
+	 * class User extends ActiveRecord\Model {
 	 *   static $getters = array('name');
 	 *
 	 *   # INCORRECT way to do it
@@ -352,6 +358,12 @@ class Model
 		}
 
 		$this->set_attributes_via_mass_assignment($attributes, $guard_attributes);
+
+		// since all attribute assignment now goes thru assign_attributes() we want to reset
+		// dirty if instantiating via find since nothing is really dirty when doing that
+		if ($instantiating_via_find)
+			$this->__dirty = array();
+
 		$this->invoke_callback('after_construct',false);
 	}
 
@@ -410,6 +422,9 @@ class Model
 		if (array_key_exists($name,$this->attributes))
 			return $this->assign_attribute($name,$value);
 
+		if ($name == 'id')
+			return $this->assign_attribute($this->get_primary_key(true),$value);
+
 		foreach (static::$delegate as &$item)
 		{
 			if (($delegated_name = $this->is_delegated($name,$item)))
@@ -419,6 +434,12 @@ class Model
 		throw new UndefinedPropertyException(get_called_class(),$name);
 	}
 
+	public function __wakeup()
+	{
+		// make sure the models Table instance gets initialized when waking up
+		static::table();
+	}
+
 	/**
 	 * Assign a value to an attribute.
 	 *
@@ -426,18 +447,24 @@ class Model
 	 * @param mixed &$value Value of the attribute
 	 * @return mixed the attribute value
 	 */
-	public function assign_attribute($name, &$value)
+	public function assign_attribute($name, $value)
 	{
 		$table = static::table();
 
-		if (!$this->__dirty)
-			$this->__dirty = array();
-
 		if (array_key_exists($name,$table->columns) && !is_object($value))
-			$value = $table->columns[$name]->cast($value);
+			$value = $table->columns[$name]->cast($value,static::connection());
+
+		// convert php's \DateTime to ours
+		if ($value instanceof \DateTime)
+			$value = new DateTime($value->format('Y-m-d H:i:s T'));
+
+		// make sure DateTime values know what model they belong to so
+		// dirty stuff works when calling set methods on the DateTime object
+		if ($value instanceof DateTime)
+			$value->attribute_of($this,$name);
 
 		$this->attributes[$name] = $value;
-		$this->__dirty[$name] = true;
+		$this->flag_dirty($name);
 		return $value;
 	}
 
@@ -475,11 +502,9 @@ class Model
 
 		if ($name == 'id')
 		{
-			if (count($this->get_primary_key()) > 1)
-				throw new Exception("TODO composite key support");
-
-			if (isset($this->attributes[$table->pk[0]]))
-				return $this->attributes[$table->pk[0]];
+			$pk = $this->get_primary_key(true);
+			if (isset($this->attributes[$pk]))
+				return $this->attributes[$pk];
 		}
 
 		//do not remove - have to return null by reference in strict mode
@@ -501,6 +526,19 @@ class Model
 		}
 
 		throw new UndefinedPropertyException(get_called_class(),$name);
+	}
+
+	/**
+	 * Flags an attribute as dirty.
+	 *
+	 * @param string $name Attribute name
+	 */
+	public function flag_dirty($name)
+	{
+		if (!$this->__dirty)
+			$this->__dirty = array();
+
+		$this->__dirty[$name] = true;
 	}
 
 	/**
@@ -530,11 +568,30 @@ class Model
 	/**
 	 * Retrieve the primary key name.
 	 *
+	 * @param boolean Set to true to return the first value in the pk array only
 	 * @return string The primary key for the model
 	 */
-	public function get_primary_key()
+	public function get_primary_key($first=false)
 	{
-		return Table::load(get_class($this))->pk;
+		$pk = static::table()->pk;
+		return $first ? $pk[0] : $pk;
+	}
+
+	/**
+	 * Returns the actual attribute name if $name is aliased.
+	 *
+	 * @param string $name An attribute name
+	 * @return string
+	 */
+	public function get_real_attribute_name($name)
+	{
+		if (array_key_exists($name,$this->attributes))
+			return $name;
+
+		if (array_key_exists($name,static::$alias_attribute))
+			return static::$alias_attribute[$name];
+
+		return null;
 	}
 
 	/**
@@ -663,6 +720,16 @@ class Model
 	}
 
 	/**
+	 * Re-establishes the database connection with a new connection.
+	 *
+	 * @return Connection
+	 */
+	public static function reestablish_connection()
+	{
+		return static::table()->reestablish_connection();
+	}
+
+	/**
 	 * Returns the {@link Table} object for this model.
 	 *
 	 * Be sure to call in static scoping: static::table()
@@ -718,7 +785,7 @@ class Model
 	{
 		$this->verify_not_readonly('insert');
 
-		if ($validate && !$this->_validate())
+		if (($validate && !$this->_validate() || !$this->invoke_callback('before_create',false)))
 			return false;
 
 		$table = static::table();
@@ -726,18 +793,46 @@ class Model
 
 		self::transaction(function() use ($obj, $table) {
 			$obj->invoke_callback('before_create',false);
-			if (($dirty = $obj->dirty_attributes()))
-				$table->insert($dirty);
+
+			if (!($attributes = $obj->dirty_attributes()))
+				$attributes = $obj->attributes;
+
+			$pk = $obj->get_primary_key(true);
+			$use_sequence = false;
+
+			if ($table->sequence && !isset($attributes[$pk]))
+			{
+				if (($conn = static::connection()) instanceof OciAdapter)
+				{
+					// terrible oracle makes us select the nextval first
+					$attributes[$pk] = $conn->get_next_sequence_value($table->sequence);
+					$table->insert($attributes);
+					$obj->attributes[$pk] = $attributes[$pk];
+				}
+				else
+				{
+					// unset pk that was set to null
+					if (array_key_exists($pk,$attributes))
+						unset($attributes[$pk]);
+
+					$table->insert($attributes,$pk,$table->sequence);
+					$use_sequence = true;
+				}
+			}
 			else
-				$table->insert($obj->attributes);
+				$table->insert($attributes);
 
-			$pk = $obj->get_primary_key();
+			// if we've got an autoincrementing/sequenced pk set it
+			// don't need this check until the day comes that we decide to support composite pks
+			// if (count($pk) == 1)
+			{
+				$column = $table->get_column_by_inflected_name($pk);
 
-			// if we've got an autoincrementing pk set it
-			if (count($pk) == 1 && $table->get_column_by_inflected_name($pk[0])->auto_increment)
-				$obj->{$pk[0]} = $table->conn->insert_id($table->sequence);
+				if ($column->auto_increment || $use_sequence)
+					$obj->attributes[$pk] = $table->conn->insert_id($table->sequence);
+			}
 
-			$obj->invoke_callback('after_create',false);
+			$this->invoke_callback('after_create',false);
 		});
 
 		$this->__new_record = false;
@@ -792,7 +887,9 @@ class Model
 		if (empty($pk))
 			throw new ActiveRecordException("Cannot delete, no primary key defined for: " . get_called_class());
 
-		$this->invoke_callback('before_destroy',false);
+		if (!$this->invoke_callback('before_destroy',false))
+			return false;
+
 		static::table()->delete($pk);
 		$this->invoke_callback('after_destroy',false);
 
@@ -951,13 +1048,14 @@ class Model
 		$exceptions = array();
 		$use_attr_accessible = !empty(static::$attr_accessible);
 		$use_attr_protected = !empty(static::$attr_protected);
+		$connection = static::connection();
 
 		foreach ($attributes as $name => $value)
 		{
 			// is a normal field on the table
 			if (array_key_exists($name,$table->columns))
 			{
-				$value = $table->columns[$name]->cast($value);
+				$value = $table->columns[$name]->cast($value,$connection);
 				$name = $table->columns[$name]->inflected_name;
 			}
 
@@ -978,8 +1076,12 @@ class Model
 			}
 			else
 			{
+				// ignore OciAdapter's limit() stuff
+				if ($name == 'ar_rnum__')
+					continue;
+
 				// set arbitrary data
-				$this->attributes[$name] = $value;
+				$this->assign_attribute($name,$value);
 			}
 		}
 
@@ -1363,18 +1465,11 @@ class Model
 	 */
 	public static function find_by_pk($values, $options)
 	{
-		if (($expected = count($values)) <= 1)
-		{
-			$options['limit'] = 1;
-			$options['offset'] = 0;
-		}
-
 		$options['conditions'] = static::pk_conditions($values);
-
 		$list = static::table()->find($options);
 		$results = count($list);
 
-		if ($results != $expected)
+		if ($results != ($expected = count($values)))
 		{
 			$class = get_called_class();
 
@@ -1407,6 +1502,18 @@ class Model
 	public static function find_by_sql($sql, $values=null)
 	{
 		return static::table()->find_by_sql($sql, $values, true);
+	}
+
+	/**
+	 * Helper method to run arbitrary queries against the model's database connection.
+	 *
+	 * @param string $sql SQL to execute
+	 * @param array $values Bind values, if any, for the query
+	 * @return object A PDOStatement object
+	 */
+	public static function query($sql, $values=null)
+	{
+		return static::connection()->query($sql, $values);
 	}
 
 	/**
@@ -1573,6 +1680,7 @@ class Model
 	 * </code>
 	 *
 	 * @param Closure $closure The closure to execute. To cause a rollback have your closure return false or throw an exception.
+	 * @return boolean True if the transaction was committed, False if rolled back.
 	 */
 	public static function transaction($closure)
 	{
@@ -1587,10 +1695,12 @@ class Model
 				$did_begin = true;
 			}
 
-			if ($closure() === false) {
+			if ($closure() === false)
+			{
 				if ($did_begin)
 					$connection->rollback();
-			} elseif ($did_begin)
+			}
+			elseif ($did_begin)
 				$connection->commit();
 		}
 		catch (\Exception $e)
@@ -1600,6 +1710,7 @@ class Model
 
 			throw $e;
 		}
+		return true;
 	}
 };
 ?>

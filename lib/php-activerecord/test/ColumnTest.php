@@ -2,12 +2,14 @@
 include 'helpers/config.php';
 
 use ActiveRecord\Column;
+use ActiveRecord\DateTime;
 
 class ColumnTest extends SnakeCase_PHPUnit_Framework_TestCase
 {
-	public function setUp()
+	public function set_up()
 	{
 		$this->column = new Column();
+		$this->conn = ActiveRecord\ConnectionManager::get_connection(ActiveRecord\Config::instance()->get_default_connection());
 	}
 
 	public function assert_mapped_type($type, $raw_type)
@@ -19,10 +21,10 @@ class ColumnTest extends SnakeCase_PHPUnit_Framework_TestCase
 	public function assert_cast($type, $casted_value, $original_value)
 	{
 		$this->column->type = $type;
-		$value = $this->column->cast($original_value);
+		$value = $this->column->cast($original_value,$this->conn);
 
 		if ($original_value != null && ($type == Column::DATETIME || $type == Column::DATE))
-			$this->assert_true($value instanceof \DateTime);
+			$this->assert_true($value instanceof DateTime);
 		else
 			$this->assert_same($casted_value,$value);
 	}
@@ -72,7 +74,7 @@ class ColumnTest extends SnakeCase_PHPUnit_Framework_TestCase
 
 	public function test_cast()
 	{
-		$datetime = new \DateTime('2001-01-01');
+		$datetime = new DateTime('2001-01-01');
 		$this->assert_cast(Column::INTEGER,1,'1');
 		$this->assert_cast(Column::INTEGER,1,'1.5');
 		$this->assert_cast(Column::DECIMAL,1.5,'1.5');
@@ -100,16 +102,16 @@ class ColumnTest extends SnakeCase_PHPUnit_Framework_TestCase
 	{
 		$column = new Column();
 		$column->type = Column::DATE;
-		$this->assert_equals(null,$column->cast(null));
-		$this->assert_equals(null,$column->cast(''));
+		$this->assert_equals(null,$column->cast(null,$this->conn));
+		$this->assert_equals(null,$column->cast('',$this->conn));
 	}
 
 	public function test_empty_and_null_datetime_strings_should_return_null()
 	{
 		$column = new Column();
 		$column->type = Column::DATETIME;
-		$this->assert_equals(null,$column->cast(null));
-		$this->assert_equals(null,$column->cast(''));
+		$this->assert_equals(null,$column->cast(null,$this->conn));
+		$this->assert_equals(null,$column->cast('',$this->conn));
 	}
 }
 ?>

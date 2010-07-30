@@ -3,7 +3,6 @@
  * @package ActiveRecord
  */
 namespace ActiveRecord;
-use DateTime;
 
 /**
  * Class for a table column.
@@ -18,6 +17,7 @@ class Column
 	const DECIMAL	= 3;
 	const DATETIME	= 4;
 	const DATE		= 5;
+	const TIME		= 6;
 
 	/**
 	 * Map a type to an column type.
@@ -28,6 +28,7 @@ class Column
 		'datetime'	=> self::DATETIME,
 		'timestamp'	=> self::DATETIME,
 		'date'		=> self::DATE,
+		'time'		=> self::TIME,
 
 		'int'		=> self::INTEGER,
 		'tinyint'	=> self::INTEGER,
@@ -96,12 +97,19 @@ class Column
 	public $auto_increment;
 
 	/**
+	 * Name of the sequence to use for this column if any.
+	 * @var boolean
+	 */
+	public $sequence;
+
+	/**
 	 * Casts a value to the column's type.
 	 *
 	 * @param mixed $value The value to cast
+	 * @param Connection $connection The Connection this column belongs to
 	 * @return mixed type-casted value
 	 */
-	public function cast($value)
+	public function cast($value, $connection)
 	{
 		if ($value === null)
 			return null;
@@ -115,17 +123,14 @@ class Column
 			case self::DATE:
 				if (!$value)
 					return null;
-				
+
 				if ($value instanceof DateTime)
 					return $value;
 
-				$value = date_create($value);
-				$errors = \DateTime::getLastErrors();
+				if ($value instanceof \DateTime)
+					return new DateTime($value->format('Y-m-d H:i:s T'));
 
-				if ($errors['warning_count'] > 0 || $errors['error_count'] > 0)
-					return null;
-
-				return $value;
+				return $connection->string_to_datetime($value);
 		}
 		return $value;
 	}

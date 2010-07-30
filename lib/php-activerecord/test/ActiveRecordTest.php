@@ -116,12 +116,18 @@ class ActiveRecordTest extends DatabaseTest
 
 	public function test_hyphenated_column_names_to_underscore()
 	{
+		if ($this->conn instanceof ActiveRecord\OciAdapter)
+			return;
+
 		$keys = array_keys(RmBldg::first()->attributes());
 		$this->assert_true(in_array('rm_name',$keys));
 	}
 
 	public function test_column_names_with_spaces()
 	{
+		if ($this->conn instanceof ActiveRecord\OciAdapter)
+			return;
+
 		$keys = array_keys(RmBldg::first()->attributes());
 		$this->assert_true(in_array('space_out',$keys));
 	}
@@ -282,30 +288,33 @@ class ActiveRecordTest extends DatabaseTest
 	public function test_transaction_committed()
 	{
 		$original = Author::count();
-		Author::transaction(function() { Author::create(array("name" => "blah")); });
+		$ret = Author::transaction(function() { Author::create(array("name" => "blah")); });
 		$this->assert_equals($original+1,Author::count());
+		$this->assert_true($ret);
 	}
-
+	
 	public function test_transaction_committed_when_returning_true()
 	{
 		$original = Author::count();
-		Author::transaction(function() { Author::create(array("name" => "blah")); return true; });
+		$ret = Author::transaction(function() { Author::create(array("name" => "blah")); return true; });
 		$this->assert_equals($original+1,Author::count());
+		$this->assert_true($ret);
 	}
-
+	
 	public function test_transaction_rolledback_by_returning_false()
 	{
 		$original = Author::count();
-
-		Author::transaction(function()
+		
+		$ret = Author::transaction(function()
 		{
 			Author::create(array("name" => "blah"));
 			return false;
 		});
-
+		
 		$this->assert_equals($original,Author::count());
+		$this->assert_false($ret);
 	}
-
+	
 	public function test_transaction_rolledback_by_throwing_exception()
 	{
 		$original = Author::count();
@@ -415,13 +424,6 @@ class ActiveRecordTest extends DatabaseTest
 		Author::first()->find_by_name('sdf');
 	}
 
-	public function test_get_validation_rules()
-	{
-		$validators = RmBldg::first()->get_validation_rules();
-		$this->assert_true(array_key_exists('space_out',$validators));
-		$this->assert_true(in_array(array('with' => '/\A([^@\s]+)@((?:[-a-z0-9]+\.)+[a-z]{2,})\Z/i', 'validator' => 'validates_format_of'),$validators['space_out']));
-	}
-
 	public function test_clear_cache_for_specific_class()
 	{
 		$book_table1 = ActiveRecord\Table::load('Book');
@@ -431,6 +433,50 @@ class ActiveRecordTest extends DatabaseTest
 
 		$this->assert_true($book_table1 === $book_table2);
 		$this->assert_true($book_table1 !== $book_table3);
+	}
+
+	public function test_flag_dirty()
+	{
+		$author = new Author();
+		$author->flag_dirty('some_date');
+		$this->assert_has_keys('some_date', $author->dirty_attributes());
+	}
+
+	public function test_assigning_php_datetime_gets_converted_to_ar_datetime()
+	{
+		$author = new Author();
+		$author->created_at = $now = new \DateTime();
+		$this->assert_is_a("ActiveRecord\\DateTime",$author->created_at);
+		$this->assert_datetime_equals($now,$author->created_at);
+	}
+
+	public function test_assigning_from_mass_assignment_php_datetime_gets_converted_to_ar_datetime()
+	{
+		$author = new Author(array('created_at' => new \DateTime()));
+		$this->assert_is_a("ActiveRecord\\DateTime",$author->created_at);
+	}
+
+	public function test_get_real_attribute_name()
+	{
+		$venue = new Venue();
+		$this->assert_equals('name', $venue->get_real_attribute_name('name'));
+		$this->assert_equals('name', $venue->get_real_attribute_name('marquee'));
+		$this->assert_equals(null, $venue->get_real_attribute_name('invalid_field'));
+	}
+
+	public function test_id_setter_works_with_table_without_pk_named_attribute()
+	{
+		$author = new Author(array('id' => 123));
+		$this->assert_equals(123,$author->author_id);
+	}
+
+	public function test_query()
+	{
+		$row = Author::query('SELECT COUNT(*) AS n FROM authors',null)->fetch();
+		$this->assert_true($row['n'] > 1);
+
+		$row = Author::query('SELECT COUNT(*) AS n FROM authors WHERE name=?',array('Tito'))->fetch();
+		$this->assert_equals(array('n' => 1), $row);
 	}
 };
 ?>

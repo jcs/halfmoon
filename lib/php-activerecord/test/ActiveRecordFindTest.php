@@ -22,7 +22,7 @@ class ActiveRecordFindTest extends DatabaseTest
 	 */
 	public function test_find_by_pkno_results()
 	{
-		Author::find(999999999999);
+		Author::find(99999999);
 	}
 
 	public function test_find_by_multiple_pk_with_partial_match()
@@ -173,15 +173,15 @@ class ActiveRecordFindTest extends DatabaseTest
 	public function test_find_last()
 	{
 		$author = Author::last();
-		$this->assert_equals(3, $author->author_id);
-		$this->assert_equals('Bill Clinton',$author->name);
+		$this->assert_equals(4, $author->author_id);
+		$this->assert_equals('Uncle Bob',$author->name);
 	}
 
 	public function test_find_last_using_string_condition()
 	{
-		$author = Author::find('last', array('conditions' => 'author_id IN(1,2,3)'));
-		$this->assert_equals(3, $author->author_id);
-		$this->assert_equals('Bill Clinton',$author->name);
+		$author = Author::find('last', array('conditions' => 'author_id IN(1,2,3,4)'));
+		$this->assert_equals(4, $author->author_id);
+		$this->assert_equals('Uncle Bob',$author->name);
 	}
 
 	public function test_limit_before_order()
@@ -292,7 +292,7 @@ class ActiveRecordFindTest extends DatabaseTest
 	public function test_find_all_takes_limit_options()
 	{
 		$authors = Author::all(array('limit' => 1, 'offset' => 2, 'order' => 'name desc'));
-		$this->assert_equals('Bill Clinton',$authors[0]->name);
+		$this->assert_equals('George W. Bush',$authors[0]->name);
 	}
 
 	/**
@@ -306,7 +306,7 @@ class ActiveRecordFindTest extends DatabaseTest
 	public function test_find_with_select()
 	{
 		$author = Author::first(array('select' => 'name, 123 as bubba', 'order' => 'name desc'));
-		$this->assert_equals('Tito',$author->name);
+		$this->assert_equals('Uncle Bob',$author->name);
 		$this->assert_equals(123,$author->bubba);
 	}
 
@@ -325,28 +325,28 @@ class ActiveRecordFindTest extends DatabaseTest
 	{
 		JoinBook::$belongs_to = array(array('author'));
 		JoinBook::first(array('joins' => array('author','LEFT JOIN authors a ON(books.secondary_author_id=a.author_id)')));
-		$this->assert_true(strpos(JoinBook::table()->last_sql,'INNER JOIN `authors` ON(`books`.author_id = `authors`.author_id)') !== false);
-		$this->assert_true(strpos(JoinBook::table()->last_sql,'LEFT JOIN authors a ON(books.secondary_author_id=a.author_id)') !== false);
+		$this->assert_sql_has('INNER JOIN authors ON(books.author_id = authors.author_id)',JoinBook::table()->last_sql);
+		$this->assert_sql_has('LEFT JOIN authors a ON(books.secondary_author_id=a.author_id)',JoinBook::table()->last_sql);
 	}
 
 	public function test_joins_on_model_with_explicit_joins()
 	{
 		JoinBook::first(array('joins' => array('LEFT JOIN authors a ON(books.secondary_author_id=a.author_id)')));
-		$this->assert_true(strpos(JoinBook::table()->last_sql,'LEFT JOIN authors a ON(books.secondary_author_id=a.author_id)') !== false);
+		$this->assert_sql_has('LEFT JOIN authors a ON(books.secondary_author_id=a.author_id)',JoinBook::table()->last_sql);
 	}
 
 	public function test_group()
 	{
 		$venues = Venue::all(array('select' => 'state', 'group' => 'state'));
 		$this->assert_true(count($venues) > 0);
-		$this->assert_true(strpos(ActiveRecord\Table::load('Venue')->last_sql, 'GROUP BY state') !== false);
+		$this->assert_sql_has('GROUP BY state',ActiveRecord\Table::load('Venue')->last_sql);
 	}
 
 	public function test_group_with_order_and_limit_and_having()
 	{
 		$venues = Venue::all(array('select' => 'state', 'group' => 'state', 'having' => 'length(state) = 2', 'order' => 'state', 'limit' => 2));
 		$this->assert_true(count($venues) > 0);
-		$this->assert_true(strpos(ActiveRecord\Table::load('Venue')->last_sql, 'GROUP BY state HAVING length(state) = 2 ORDER BY state LIMIT 0,2') !== false);
+		$this->assert_sql_has($this->conn->limit('SELECT state FROM venues GROUP BY state HAVING length(state) = 2 ORDER BY state',0,2),Venue::table()->last_sql);
 	}
 
 	public function test_escape_quotes()
@@ -357,19 +357,33 @@ class ActiveRecordFindTest extends DatabaseTest
 
 	public function test_from()
 	{
-		$author = Author::find('first', array('from' => 'books'));
+		$author = Author::find('first', array('from' => 'books', 'order' => 'author_id asc'));
 		$this->assert_true($author instanceof Author);
 		$this->assert_not_null($author->book_id);
 
-		$author = Author::find('first', array('from' => 'authors'));
+		$author = Author::find('first', array('from' => 'authors', 'order' => 'author_id asc'));
 		$this->assert_true($author instanceof Author);
 		$this->assert_equals(1, $author->id);
 	}
 
 	public function test_having()
 	{
-		$author = Author::first(array('group' => "date(created_at)", 'having' => "created_at > '2009-01-01'"));
-		$this->assert_true(strpos(Author::table()->last_sql, "GROUP BY date(created_at) HAVING created_at > '2009-01-01'") !== false);
+		if ($this->conn instanceof ActiveRecord\OciAdapter)
+		{
+			$author = Author::first(array(
+				'select' => 'to_char(created_at,\'YYYY-MM-DD\') as created_at',
+				'group'  => 'to_char(created_at,\'YYYY-MM-DD\')',
+				'having' => "to_char(created_at,'YYYY-MM-DD') > '2009-01-01'"));
+			$this->assert_sql_has("GROUP BY to_char(created_at,'YYYY-MM-DD') HAVING to_char(created_at,'YYYY-MM-DD') > '2009-01-01'",Author::table()->last_sql);
+		}
+		else
+		{
+			$author = Author::first(array(
+				'select' => 'date(created_at) as created_at',
+				'group'  => 'date(created_at)',
+				'having' => "date(created_at) > '2009-01-01'"));
+			$this->assert_sql_has("GROUP BY date(created_at) HAVING date(created_at) > '2009-01-01'",Author::table()->last_sql);
+		}
 	}
 
 	/**
@@ -421,6 +435,23 @@ class ActiveRecordFindTest extends DatabaseTest
 		$this->assert_equals(2,Venue::count_by_state('VA'));
 		$this->assert_equals(3,Venue::count_by_state_or_name('VA','Warner Theatre'));
 		$this->assert_equals(0,Venue::count_by_state_and_name('VA','zzzzzzzzzzzzz'));
+	}
+
+	public function test_find_by_pk_should_not_use_limit()
+	{
+		Author::find(1);
+		$this->assert_sql_has('SELECT * FROM authors WHERE author_id=?',Author::table()->last_sql);
+	}
+
+	public function test_find_by_datetime()
+	{
+		$now = new DateTime();
+		$arnow = new ActiveRecord\DateTime();
+		$arnow->setTimestamp($now->getTimestamp());
+
+		Author::find(1)->update_attribute('created_at',$now);
+		$this->assert_not_null(Author::find_by_created_at($now));
+		$this->assert_not_null(Author::find_by_created_at($arnow));
 	}
 };
 ?>

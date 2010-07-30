@@ -3,7 +3,6 @@
  * @package ActiveRecord
  */
 namespace ActiveRecord;
-use DateTime;
 
 /**
  * Manages reading and writing to a database table.
@@ -78,20 +77,30 @@ class Table
 	{
 		$this->class = Reflections::instance()->add($class_name)->get($class_name);
 
-		// if connection name property is null the connection manager will use the default connection
-		$connection = $this->class->getStaticPropertyValue('connection',null);
-
-		$this->conn = ConnectionManager::get_connection($connection);
+		$this->reestablish_connection(false);
 		$this->set_table_name();
-		$this->set_sequence_name();
 		$this->get_meta_data();
 		$this->set_primary_key();
+		$this->set_sequence_name();
 		$this->set_delegates();
 		$this->set_setters_and_getters();
 
 		$this->callback = new CallBack($class_name);
 		$this->callback->register('before_save', function(Model $model) { $model->set_timestamps(); }, array('prepend' => true));
 		$this->callback->register('after_save', function(Model $model) { $model->reset_dirty(); }, array('prepend' => true));
+	}
+
+	public function reestablish_connection($close=true)
+	{
+		// if connection name property is null the connection manager will use the default connection
+		$connection = $this->class->getStaticPropertyValue('connection',null);
+
+		if ($close)
+		{
+			ConnectionManager::drop_connection($connection);
+			static::clear_cache();
+		}
+		return ($this->conn = ConnectionManager::get_connection($connection));
 	}
 
 	public function create_joins($joins)
@@ -102,6 +111,7 @@ class Table
 		$self = $this->table;
 		$ret = $space = '';
 
+		$existing_tables = array();
 		foreach ($joins as $value)
 		{
 			$ret .= $space;
@@ -109,7 +119,23 @@ class Table
 			if (stripos($value,'JOIN ') === false)
 			{
 				if (array_key_exists($value, $this->relationships))
-					$ret .= $this->get_relationship($value)->construct_inner_join_sql($this);
+				{
+					$rel = $this->get_relationship($value);
+
+					// if there is more than 1 join for a given table we need to alias the table names
+					if (array_key_exists($rel->class_name, $existing_tables))
+					{
+						$alias = $value;
+						$existing_tables[$rel->class_name]++;
+					}
+					else
+					{
+						$existing_tables[$rel->class_name] = true;
+						$alias = null;
+					}
+
+					$ret .= $rel->construct_inner_join_sql($this, false, $alias);
+				}
 				else
 					throw new RelationshipException("Relationship named $value has not been declared for class: {$this->class->getName()}");
 			}
@@ -189,8 +215,7 @@ class Table
 
 		$collect_attrs_for_includes = is_null($includes) ? false : true;
 		$list = $attrs = array();
-
-		$sth = $this->conn->query($sql,$values);
+		$sth = $this->conn->query($sql,$this->process_data($values));
 
 		while (($row = $sth->fetch()))
 		{
@@ -205,7 +230,7 @@ class Table
 			$list[] = $model;
 		}
 
-		if ($collect_attrs_for_includes)
+		if ($collect_attrs_for_includes && !empty($list))
 			$this->execute_eager_load($list, $attrs, $includes);
 
 		return $list;
@@ -250,9 +275,9 @@ class Table
 		return null;
 	}
 
-	public function get_fully_qualified_table_name()
+	public function get_fully_qualified_table_name($quote_name=true)
 	{
-		$table = $this->conn->quote_name($this->table);
+		$table = $quote_name ? $this->conn->quote_name($this->table) : $this->table;
 
 		if ($this->db_name)
 			$table = $this->conn->quote_name($this->db_name) . ".$table";
@@ -291,12 +316,12 @@ class Table
 		return array_key_exists($name, $this->relationships);
 	}
 
-	public function insert(&$data)
+	public function insert(&$data, $pk=null, $sequence_name=null)
 	{
 		$data = $this->process_data($data);
 
 		$sql = new SQLBuilder($this->conn,$this->get_fully_qualified_table_name());
-		$sql->insert($data,$this->pk[0],$this->sequence);
+		$sql->insert($data,$pk,$sequence_name);
 
 		$values = array_values($data);
 		return $this->conn->query(($this->last_sql = $sql->to_s()),$values);
@@ -336,7 +361,13 @@ class Table
 
 	private function get_meta_data()
 	{
-		$this->columns = $this->conn->columns($this->get_fully_qualified_table_name());
+		// as more adapters are added probably want to do this a better way
+		// than using instanceof but gud enuff for now
+		$quote_name = !($this->conn instanceof PgsqlAdapter);
+
+		$table_name = $this->get_fully_qualified_table_name($quote_name);
+		$conn = $this->conn;
+		$this->columns = Cache::get("get_meta_data-$table_name", function() use ($conn, $table_name) { return $conn->columns($table_name); });
 	}
 
 	/**
@@ -362,11 +393,18 @@ class Table
 
 	private function &process_data($hash)
 	{
+		if (!$hash)
+			return $hash;
+
 		foreach ($hash as $name => &$value)
 		{
-			// TODO this will probably need to be changed for oracle
-			if ($value instanceof DateTime)
-				$hash[$name] = $value->format('Y-m-d H:i:s T');
+			if ($value instanceof \DateTime)
+			{
+				if (isset($this->columns[$name]) && $this->columns[$name]->type == Column::DATE)
+					$hash[$name] = $this->conn->date_to_string($value);
+				else
+					$hash[$name] = $this->conn->datetime_to_string($value);
+			}
 			else
 				$hash[$name] = $value;
 		}
@@ -409,7 +447,11 @@ class Table
 
 	private function set_sequence_name()
 	{
-		$this->sequence = $this->class->getStaticPropertyValue('sequence',$this->conn->get_sequence_name($this->table));
+		if (!$this->conn->supports_sequences())
+			return;
+
+		if (!($this->sequence = $this->class->getStaticPropertyValue('sequence')))
+			$this->sequence = $this->conn->get_sequence_name($this->table,$this->pk[0]);
 	}
 
 	private function set_associations()
@@ -418,10 +460,10 @@ class Table
 
 		foreach ($this->class->getStaticProperties() as $name => $definitions)
 		{
-			if (!$definitions || !is_array($definitions))
+			if (!$definitions)# || !is_array($definitions))
 				continue;
 
-			foreach ($definitions as $definition)
+			foreach (wrap_strings_in_arrays($definitions) as $definition)
 			{
 				$relationship = null;
 

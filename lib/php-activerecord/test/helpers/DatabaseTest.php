@@ -23,6 +23,7 @@ class DatabaseTest extends SnakeCase_PHPUnit_Framework_TestCase
 			new SQLite3($this->db);
 		}
 
+		$this->connection_name = $connection_name;
 		$this->conn = ActiveRecord\ConnectionManager::get_connection($connection_name);
 
 		$GLOBALS['ACTIVERECORD_LOG'] = false;
@@ -51,6 +52,26 @@ class DatabaseTest extends SnakeCase_PHPUnit_Framework_TestCase
 		}
 
 		$this->assert_true(strpos($message,$contains) !== false);
+	}
+
+	/**
+	 * Returns true if $regex matches $actual.
+	 *
+	 * Takes database specific quotes into account by removing them. So, this won't
+	 * work if you have actual quotes in your strings.
+	 */
+	public function assert_sql_has($needle, $haystack)
+	{
+		$needle = str_replace(array('"','`'),'',$needle);
+		$haystack = str_replace(array('"','`'),'',$haystack);
+		return $this->assert_true(strpos($haystack,$needle) !== false);
+	}
+
+	public function assert_sql_doesnt_has($needle, $haystack)
+	{
+		$needle = str_replace(array('"','`'),'',$needle);
+		$haystack = str_replace(array('"','`'),'',$haystack);
+		return $this->assert_false(strpos($haystack,$needle) !== false);
 	}
 }
 ?>

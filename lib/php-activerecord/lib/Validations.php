@@ -109,7 +109,7 @@ class Validations
 		{
 			$attrs = $reflection->getStaticPropertyValue($validate);
 
-			foreach ($attrs as $attr)
+			foreach (wrap_strings_in_arrays($attrs) as $attr)
 			{
 				$field = $attr[0];
 
@@ -134,8 +134,12 @@ class Validations
 		$reflection = Reflections::instance()->get(get_class($this->model));
 
 		foreach ($this->validators as $validate)
-			$this->$validate($reflection->getStaticPropertyValue($validate));
+		{
+			$definition = $reflection->getStaticPropertyValue($validate);
+			$this->$validate(wrap_strings_in_arrays($definition));
+		}
 
+		$this->record->clear_model();
 		return $this->record;
 	}
 
@@ -155,6 +159,8 @@ class Validations
 	 *
 	 * <ul>
 	 * <li><b>message:</b> custom error message</li>
+	 * <li><b>allow_blank:</b> allow blank strings</li>
+	 * <li><b>allow_null:</b> allow null strings</li>
 	 * </ul>
 	 *
 	 * @param array $attrs Validation definition
@@ -186,6 +192,8 @@ class Validations
 	 * <ul>
 	 * <li><b>in/within:</b> attribute should/shouldn't be a value within an array</li>
 	 * <li><b>message:</b> custome error message</li>
+	 * <li><b>allow_blank:</b> allow blank strings</li>
+	 * <li><b>allow_null:</b> allow null strings</li>
 	 * </ul>
 	 *
 	 * @param array $attrs Validation definition
@@ -198,6 +206,15 @@ class Validations
 	/**
 	 * This is the opposite of {@link validates_include_of}.
 	 *
+	 * Available options:
+	 *
+	 * <ul>
+	 * <li><b>in/within:</b> attribute should/shouldn't be a value within an array</li>
+	 * <li><b>message:</b> custome error message</li>
+	 * <li><b>allow_blank:</b> allow blank strings</li>
+	 * <li><b>allow_null:</b> allow null strings</li>
+	 * </ul>
+	 *
 	 * @param array $attrs Validation definition
 	 * @see validates_inclusion_of
 	 */
@@ -208,6 +225,15 @@ class Validations
 
 	/**
 	 * Validates that a value is in or out of a specified list of values.
+	 *
+	 * Available options:
+	 *
+	 * <ul>
+	 * <li><b>in/within:</b> attribute should/shouldn't be a value within an array</li>
+	 * <li><b>message:</b> custome error message</li>
+	 * <li><b>allow_blank:</b> allow blank strings</li>
+	 * <li><b>allow_null:</b> allow null strings</li>
+	 * </ul>
 	 *
 	 * @see validates_inclusion_of
 	 * @see validates_exclusion_of
@@ -256,7 +282,7 @@ class Validations
 	 * Available options:
 	 *
 	 * <ul>
-	 * <li><b>integer_only:</b> value must be an integer (e.g. not a float)</li>
+	 * <li><b>only_integer:</b> value must be an integer (e.g. not a float)</li>
 	 * <li><b>even:</b> must be even</li>
 	 * <li><b>odd:</b> must be odd"</li>
 	 * <li><b>greater_than:</b> must be greater than specified number</li>
@@ -264,6 +290,8 @@ class Validations
 	 * <li><b>equal_to:</b> ...</li>
 	 * <li><b>less_than:</b> ...</li>
 	 * <li><b>less_than_or_equal_to:</b> ...</li>
+	 * <li><b>allow_blank:</b> allow blank strings</li>
+	 * <li><b>allow_null:</b> allow null strings</li>
 	 * </ul>
 	 *
 	 * @param array $attrs Validation definition
@@ -286,24 +314,21 @@ class Validations
 			if ($this->is_null_with_option($var, $options))
 				continue;
 
+			$not_a_number_message = (isset($options['message']) ? $options['message'] : Errors::$DEFAULT_ERROR_MESSAGES['not_a_number']);
+
 			if (true === $options['only_integer'] && !is_integer($var))
 			{
-				if (preg_match('/\A[+-]?\d+\Z/', (string)($var)))
-					break;
-
-				if (isset($options['message']))
-					$message = $options['message'];
-				else
-					$message = Errors::$DEFAULT_ERROR_MESSAGES['not_a_number'];
-
-				$this->record->add($attribute, $message);
-				continue;
+				if (!preg_match('/\A[+-]?\d+\Z/', (string)($var)))
+				{
+					$this->record->add($attribute, $not_a_number_message);
+					continue;
+				}
 			}
 			else
 			{
 				if (!is_numeric($var))
 				{
-					$this->record->add($attribute, Errors::$DEFAULT_ERROR_MESSAGES['not_a_number']);
+					$this->record->add($attribute, $not_a_number_message);
 					continue;
 				}
 
@@ -311,20 +336,16 @@ class Validations
 			}
 
 			foreach ($numericalityOptions as $option => $check)
-       		{
+			{
 				$option_value = $options[$option];
+				$message = (isset($options['message']) ? $options['message'] : Errors::$DEFAULT_ERROR_MESSAGES[$option]);
 
 				if ('odd' != $option && 'even' != $option)
 				{
 					$option_value = (float)$options[$option];
 
 					if (!is_numeric($option_value))
-						throw new  ValidationsArgumentError("$option must be a number");
-
-					if (isset($options['message']))
-						$message = $options['message'];
-					else
-						$message = Errors::$DEFAULT_ERROR_MESSAGES[$option];
+						throw new ValidationsArgumentError("$option must be a number");
 
 					$message = str_replace('%d', $option_value, $message);
 
@@ -345,12 +366,7 @@ class Validations
 				}
 				else
 				{
-					if (isset($options['message']))
-						$message = $options['message'];
-					else
-						$message = Errors::$DEFAULT_ERROR_MESSAGES[$option];
-
-					if ( ('odd' == $option && !( Utils::is_odd($var))) || ('even' == $option && ( Utils::is_odd($var))))
+					if (('odd' == $option && !Utils::is_odd($var)) || ('even' == $option && Utils::is_odd($var)))
 						$this->record->add($attribute, $message);
 				}
 			}
@@ -383,6 +399,8 @@ class Validations
 	 * <ul>
 	 * <li><b>with:</b> a regular expression</li>
 	 * <li><b>message:</b> custom error message</li>
+	 * <li><b>allow_blank:</b> allow blank strings</li>
+	 * <li><b>allow_null:</b> allow null strings</li>
 	 * </ul>
 	 *
 	 * @param array $attrs Validation definition
@@ -427,6 +445,9 @@ class Validations
 	 * <li><b>is:</b> attribute should be exactly n characters long</li>
 	 * <li><b>in/within:</b> attribute should be within an range array(min,max)</li>
 	 * <li><b>maximum/minimum:</b> attribute should not be above/below respectively</li>
+	 * <li><b>message:</b> custome error message</li>
+	 * <li><b>allow_blank:</b> allow blank strings</li>
+	 * <li><b>allow_null:</b> allow null strings</li>
 	 * </ul>
 	 *
 	 * @param array $attrs Validation definition
@@ -538,6 +559,15 @@ class Validations
 	 * }
 	 * </code>
 	 *
+	 * Available options:
+	 *
+	 * <ul>
+	 * <li><b>with:</b> a regular expression</li>
+	 * <li><b>message:</b> custom error message</li>
+	 * <li><b>allow_blank:</b> allow blank strings</li>
+	 * <li><b>allow_null:</b> allow null strings</li>
+	 * </ul>
+	 *
 	 * @param array $attrs Validation definition
 	 */
 	public function validates_uniqueness_of($attrs)
@@ -576,6 +606,7 @@ class Validations
 
 			foreach ($fields as $field)
 			{
+				$field = $this->model->get_real_attribute_name($field);
 				$sql .= " and {$field}=?";
 				array_push($conditions,$this->model->$field);
 			}
@@ -643,6 +674,15 @@ class Errors implements IteratorAggregate
 	}
 
 	/**
+	 * Nulls $model so we don't get pesky circular references. $model is only needed during the
+	 * validation process and so can be safely cleared once that is done.
+	 */
+	public function clear_model()
+	{
+		$this->model = null;
+	}
+
+	/**
 	 * Add an error message.
 	 *
 	 * @param string $attribute Name of an attribute on the model
@@ -699,7 +739,7 @@ class Errors implements IteratorAggregate
 		if (!$msg)
 			$msg = self::$DEFAULT_ERROR_MESSAGES['blank'];
 
-		if (!$this->model->$attribute)
+		if (($value = $this->model->$attribute) === '' || $value === null)
 			$this->add($attribute, $msg);
 	}
 

@@ -39,17 +39,9 @@ use \Closure;
 function classify($class_name, $singularize=false)
 {
 	if ($singularize)
-	{
-		$parts = explode('_',  Inflector::instance()->uncamelize($class_name));
-		$class_name = '';
-		foreach ($parts as $name)
-			$class_name .= '_' . Utils::singularize($name);
-
-		$class_name = ltrim($class_name, '_');
-	}
+    $class_name = Utils::singularize($class_name);
 
 	$class_name = Inflector::instance()->camelize($class_name);
-
 	return ucfirst($class_name);
 }
 
@@ -57,18 +49,15 @@ function classify($class_name, $singularize=false)
 function array_flatten(array $array)
 {
 	$i = 0;
-	$n = count($array);
 
-	while ($i < $n)
+	while ($i < count($array))
 	{
 		if (is_array($array[$i]))
 			array_splice($array,$i,1,$array[$i]);
-        else
+		else
 			++$i;
-
-		$n = count($array);
-    }
-    return $array;
+	}
+	return $array;
 }
 
 /**
@@ -145,6 +134,24 @@ function collect(&$enumerable, $name_or_closure)
 			$ret[] = $name_or_closure($value);
 	}
 	return $ret;
+}
+
+/**
+ * Wrap string definitions (if any) into arrays.
+ */
+function wrap_strings_in_arrays(&$strings)
+{
+	if (!is_array($strings))
+		$strings = array(array($strings));
+	else 
+	{
+		foreach ($strings as &$str)
+		{
+			if (!is_array($str))
+				$str = array($str);
+		}
+	}
+	return $strings;
 }
 
 /**
@@ -259,6 +266,7 @@ class Utils
         '/(h|bl)ouses$/i'           => "$1ouse",
         '/(corpse)s$/i'             => "$1",
         '/(us)es$/i'                => "$1",
+        '/(us|ss)$/i'               => "$1",
         '/s$/i'                     => ""
     );
 
