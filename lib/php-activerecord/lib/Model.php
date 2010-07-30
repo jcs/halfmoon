@@ -85,7 +85,7 @@ class Model
 	 *
 	 * @var array
 	 */
-	private $attributes = array();
+	public $attributes = array();
 
 	/**
 	 * Flag whether or not this model's attributes have been modified since it will either be null or an array of column_names that have been modified
@@ -832,7 +832,7 @@ class Model
 					$obj->attributes[$pk] = $table->conn->insert_id($table->sequence);
 			}
 
-			$this->invoke_callback('after_create',false);
+			$obj->invoke_callback('after_create',false);
 		});
 
 		$this->__new_record = false;
