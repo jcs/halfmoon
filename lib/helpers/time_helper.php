@@ -9,11 +9,13 @@ class TimeHelper extends Helper {
 	/* reports the approximate distance between two times */
 	public function distance_of_time_in_words($from_time, $to_time = 0,
 	$include_seconds = false) {
-		if (get_class($from_time) != "DateTime")
-			$from_time = new DateTime($from_time);
+		if (!in_array(get_class($from_time), array("DateTime",
+		"ActiveRecord\\DateTime")))
+			$from_time = new \DateTime($from_time);
 		
-		if (get_class($to_time) != "DateTime")
-			$to_time = new DateTime($to_time);
+		if (!in_array(get_class($to_time), array("DateTime",
+		"ActiveRecord\\DateTime")))
+			$to_time = new \DateTime($to_time);
 
 		$seconds_diff = intval($to_time->format("U")) -
 			intval($from_time->format("U"));
@@ -71,7 +73,8 @@ class TimeHelper extends Helper {
 	public function time_ago_in_words($from_time, $include_seconds = false) {
 		$now = new \DateTime("now");
 
-		if (get_class($from_time) == "DateTime")
+		if (in_array(get_class($from_time), array("DateTime",
+		"ActiveRecord\\DateTime")))
 			$now->setTimezone($from_time->getTimezone());
 		elseif (is_int($from_time))
 			$from_time = new \DateTime($from_time);
