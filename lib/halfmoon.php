@@ -72,6 +72,12 @@ ActiveRecord\Config::initialize(function($cfg) {
 			. $db["password"] . "@" . $db["hostname"] . ":" . $db["port"] . "/"
 			. $db["database"]
 	));
+
+	# support old globals for logging
+	if ($GLOBALS["ACTIVERECORD_LOG"]) {
+		$cfg->set_logging(true);
+		$cfg->set_logger($GLOBALS["ACTIVERECORD_LOGGER"]);
+	}
 });
 
 /* bring in all the controllers starting with the application_controller */
