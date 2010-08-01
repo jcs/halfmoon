@@ -298,8 +298,6 @@ class Table
 	{
 		if ($this->has_relationship($name))
 			return $this->relationships[$name];
-		elseif ($this->has_relationship($plural = Utils::pluralize($name)))
-			return $this->relationships[$plural];
 
 		if ($strict)
 			throw new RelationshipException("Relationship named $name has not been declared for class: {$this->class->getName()}");
