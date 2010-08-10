@@ -53,9 +53,12 @@ class FormHelper extends FormTagHelper {
 	 * reverse the order of the checkbox and hidden input field) */
 	public function check_box($field, $options = array(), $checked_value = 1,
 	$unchecked_value = 0) {
+		if (!isset($options["name"]))
+			$options["name"] = $this->prefixed_field_name($field);
+
 		return "<input"
 			. " type=\"hidden\" "
-			. " name=\"" . $this->prefixed_field_name($field) . "\""
+			. " name=\"" . $options["name"] . "\""
 			. " value=\"" . h($unchecked_value) . "\""
 			. " />"
 			. $this->wrap_field_with_errors($field,

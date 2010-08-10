@@ -62,16 +62,8 @@ class FormHelperCommon extends Helper {
 			throw new HalfMoonException("invalid argument passed");
 
 		$opts_s = "";
-		foreach ($options as $k => $v) {
-			switch (strtolower($k)) {
-			case "id":
-			case "name":
-				break;
-
-			default:
-				$opts_s .= " " . $k . "=\"" . $v . "\"";
-			}
-		}
+		foreach ($options as $k => $v)
+			$opts_s .= " " . $k . "=\"" . $v . "\"";
 
 		return $opts_s;
 	}

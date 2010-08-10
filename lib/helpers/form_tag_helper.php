@@ -40,20 +40,24 @@ class FormTagHelper extends FormHelperCommon {
 	$options = array()) {
 		$options = FormTagHelper::set_field_id_and_name($field, $options);
 
-		return "<input type=\"checkbox\""
-			. " id=\"" . $options["id"] . "\""
-			. " name=\"" . $options["name"] . "\""
-			. " value=\"" . h($value) . "\""
-			. ($checked ? " checked=\"checked\"" : "")
-			. $this->options_to_s($options)
-			. " />";
+		if (!isset($options["type"]))
+			$options["type"] = "checkbox";
+
+		if (!isset($options["value"]))
+			$options["value"] = h($value);
+
+		if ($checked)
+			$options["checked"] = "checked";
+
+		return "<input" . $this->options_to_s($options) . " />";
 	}
 
 	/* create an <input> file upload field */
 	public function file_field_tag($field, $options = array()) {
 		$options = FormTagHelper::set_field_id_and_name($field, $options);
 
-		$options["type"] = "file";
+		if (!isset($options["type"]))
+			$options["type"] = "file";
 
 		return $this->text_field_tag($field, null, $options);
 	}
@@ -62,7 +66,8 @@ class FormTagHelper extends FormHelperCommon {
 	public function hidden_field_tag($field, $value, $options = array()) {
 		$options = FormTagHelper::set_field_id_and_name($field, $options);
 
-		$options["type"] = "hidden";
+		if (!isset($options["type"]))
+			$options["type"] = "hidden";
 
 		return $this->text_field_tag($field, $value, $options);
 	}
@@ -77,10 +82,7 @@ class FormTagHelper extends FormHelperCommon {
 		if (is_null($caption))
 			$caption = $column;
 
-		return "<label"
-			. " for=\"" . $options["for"] . "\""
-			. $this->options_to_s($options)
-			. ">"
+		return "<label" . $this->options_to_s($options) . ">"
 			. $caption
 			. "</label>";
 	}
@@ -90,7 +92,8 @@ class FormTagHelper extends FormHelperCommon {
 	$options = array()) {
 		$options = FormTagHelper::set_field_id_and_name($field, $options);
 
-		$options["type"] = "password";
+		if (!isset($options["type"]))
+			$options["type"] = "password";
 
 		return $this->text_field_tag($field, $value = null, $options);
 	}
@@ -100,13 +103,16 @@ class FormTagHelper extends FormHelperCommon {
 	$options = array()) {
 		$options = FormTagHelper::set_field_id_and_name($field, $options);
 
-		return "<input type=\"radio\""
-			. " id=\"" . $options["id"] . "\""
-			. " name=\"" . $options["name"] . "\""
-			. " value=\"" . h($value) . "\""
-			. ($checked ? " checked=\"checked\"" : "")
-			. $this->options_to_s($options)
-			. " />";
+		if (!isset($options["type"]))
+			$options["type"] = "radio";
+
+		if (!isset($options["value"]))
+			$options["value"] = h($value);
+
+		if ($checked)
+			$options["checked"] = "checked";
+
+		return "<input " . $this->options_to_s($options) . " />";
 	}
 
 	/* create a <select> box with options */
@@ -114,11 +120,7 @@ class FormTagHelper extends FormHelperCommon {
 	$options = array()) {
 		$options = FormTagHelper::set_field_id_and_name($field, $options);
 
-		return "<select"
-			. " id=\"" . $options["id"] . "\""
-			. " name=\"" . $options["name"] . "\""
-			. $this->options_to_s($options)
-			. ">"
+		return "<select" . $this->options_to_s($options) . ">"
 			. $this->options_for_select($choices, $selected)
 			. "</select>";
 	}
@@ -128,12 +130,12 @@ class FormTagHelper extends FormHelperCommon {
 		if (!isset($options["name"]))
 			$options["name"] = "commit";
 
-		return "<input"
-			. " type=\"submit\""
-			. " name=\"" . $options["name"] . "\""
-			. " value=\"" . $value . "\""
-			. $this->options_to_s($options)
-			. " />";
+		if (!isset($options["type"]))
+			$options["type"] = "submit";
+
+		$options["value"] = $value;
+
+		return "<input" . $this->options_to_s($options) . " />";
 	}
 
 	/* create a <textarea> field */
@@ -147,11 +149,7 @@ class FormTagHelper extends FormHelperCommon {
 			unset($options["size"]);
 		}
 
-		return "<textarea "
-			. " id=\"" . $options["id"] . "\""
-			. " name=\"" . $options["name"] . "\""
-			. $this->options_to_s($options)
-			. ">"
+		return "<textarea " . $this->options_to_s($options) . ">"
 			. h($content)
 			. "</textarea>";
 	}
@@ -163,13 +161,9 @@ class FormTagHelper extends FormHelperCommon {
 		if (!isset($options["type"]))
 			$options["type"] = "text";
 
-		return "<input"
-			. " type=\"" . $options["type"] . "\""
-			. " id=\"" . $options["id"] . "\""
-			. " name=\"" . $options["name"] . "\""
-			. " value=\"" . h($value) . "\""
-			. $this->options_to_s($options)
-			. " />";
+		$options["value"] = h($value);
+
+		return "<input" . $this->options_to_s($options) . " />";
 	}
 }
 
