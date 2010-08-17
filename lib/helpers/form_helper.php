@@ -47,14 +47,24 @@ class FormHelper extends FormTagHelper {
 			return $this->form_object->$field;
 	}
 
+	/* honor names/ids passed through as options */
+	private function set_field_id_and_name($field, $options) {
+		if (!isset($options["id"]))
+			$options["id"] = $this->prefixed_field_id($field, $options);
+
+		if (!isset($options["name"]))
+			$options["name"] = $this->prefixed_field_name($field, $options);
+
+		return $options;
+	}
+
 	/* create an <input type="checkbox"> with a hidden input field to detect
 	 * when the checkbox has been unchecked (see rails docs for check_box, but
 	 * since php presents $_GET and $_POST with the last seen value, we have to
 	 * reverse the order of the checkbox and hidden input field) */
 	public function check_box($field, $options = array(), $checked_value = 1,
 	$unchecked_value = 0) {
-		if (!isset($options["name"]))
-			$options["name"] = $this->prefixed_field_name($field);
+		$options = $this->set_field_id_and_name($field, $options);
 
 		return "<input"
 			. " type=\"hidden\" "
@@ -69,6 +79,8 @@ class FormHelper extends FormTagHelper {
 
 	/* create an <input> file upload field */
 	public function file_field($field, $options = array()) {
+		$options = $this->set_field_id_and_name($field, $options);
+
 		return $this->wrap_field_with_errors($field,
 			$this->file_field_tag($field, $options)
 		);
@@ -76,6 +88,8 @@ class FormHelper extends FormTagHelper {
 
 	/* create a hidden <input> field */
 	public function hidden_field($field, $options = array()) {
+		$options = $this->set_field_id_and_name($field, $options);
+
 		return $this->hidden_field_tag($field, $this->value_for_field($field),
 			$options);
 	}
@@ -87,6 +101,8 @@ class FormHelper extends FormTagHelper {
 
 	/* create an <input> password field, *not including any value* */
 	public function password_field($field, $options = array()) {
+		$options = $this->set_field_id_and_name($field, $options);
+
 		return $this->wrap_field_with_errors($field,
 			$this->password_field_tag($field, $value = null, $options)
 		);
@@ -94,6 +110,8 @@ class FormHelper extends FormTagHelper {
 
 	/* create an <input> radio button */
 	public function radio_button($field, $value, $options = array()) {
+		$options = $this->set_field_id_and_name($field, $options);
+
 		return $this->wrap_field_with_errors($field,
 			$this->radio_button_tag($field, $value,
 				($this->value_for_field($field) == $value), $options)
@@ -102,6 +120,8 @@ class FormHelper extends FormTagHelper {
 
 	/* create a <select> box with options */
 	public function select($field, $choices, $options = array()) {
+		$options = $this->set_field_id_and_name($field, $options);
+
 		return $this->wrap_field_with_errors($field,
 			$this->select_tag($field, $choices, $this->value_for_field($field),
 				$options)
@@ -111,11 +131,16 @@ class FormHelper extends FormTagHelper {
 	/* create an <input> submit button */
 	public function submit_button($value = "Submit Changes",
 	$options = array()) {
+		if (!isset($options["name"]))
+			$options["name"] = "commit";
+
 		return $this->submit_tag($value, $options);
 	}
 
 	/* create a <textarea> field */
 	public function text_area($field, $options = array()) {
+		$options = $this->set_field_id_and_name($field, $options);
+
 		return $this->wrap_field_with_errors($field,
 			$this->text_area_tag($field, $this->value_for_field($field),
 				$options)
@@ -124,6 +149,8 @@ class FormHelper extends FormTagHelper {
 
 	/* create an <input> text field */
 	public function text_field($field, $options = array()) {
+		$options = $this->set_field_id_and_name($field, $options);
+
 		return $this->wrap_field_with_errors($field,
 			$this->text_field_tag($field, $this->value_for_field($field),
 				$options)

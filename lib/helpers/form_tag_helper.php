@@ -19,7 +19,7 @@ class FormTagHelper extends FormHelperCommon {
 	}
 
 	/* honor names/ids passed through as options */
-	protected function set_field_id_and_name($field, $options) {
+	private function set_field_id_and_name($field, $options) {
 		if (!isset($options["id"]))
 			$options["id"] = $this->field_id($field, $options);
 
