@@ -229,104 +229,6 @@ class Model
 	static $delegate = array();
 
 	/**
-	 * Define customer setters methods for the model.
-	 *
-	 * You can also use this to define custom setters for attributes as well.
-	 *
-	 * <code>
-	 * class User extends ActiveRecord\Model {
-	 *   static $setters = array('password','more','even_more');
-	 *
-	 *   # now to define the setter methods. Note you must
-	 *   # prepend set_ to your method name:
-	 *   function set_password($plaintext) {
-	 *     $this->encrypted_password = md5($plaintext);
-	 *   }
-	 * }
-	 *
-	 * $user = new User();
-	 * $user->password = 'plaintext';  # will call $user->set_password('plaintext')
-	 * </code>
-	 *
-	 * If you define a custom setter with the same name as an attribute then you
-	 * will need to use assign_attribute() to assign the value to the attribute.
-	 * This is necessary due to the way __set() works.
-	 *
-	 * For example, assume 'name' is a field on the table and we're defining a
-	 * custom setter for 'name':
-	 *
-	 * <code>
-	 * class User extends ActiveRecord\Model {
-	 *   static $setters = array('name');
-	 *
-	 *   # INCORRECT way to do it
-	 *   # function set_name($name) {
-	 *   #   $this->name = strtoupper($name);
-	 *   # }
-	 *
-	 *   function set_name($name) {
-	 *     $this->assign_attribute('name',strtoupper($name));
-	 *   }
-	 * }
-	 *
-	 * $user = new User();
-	 * $user->name = 'bob';
-	 * echo $user->name; # => BOB
-	 * </code>
-	 *
-	 * @var array
-	 */
-	static $setters = array();
-
-	/**
-	 * Define customer getter methods for the model.
-	 *
-	 * <code>
-	 * class User extends ActiveRecord\Model {
-	 *   static $getters = array('middle_initial','more','even_more');
-	 *
-	 *   # now to define the getter method. Note you must
-	 *   # prepend get_ to your method name:
-	 *   function get_middle_initial() {
-	 *     return $this->middle_name{0};
-	 *   }
-	 * }
-	 *
-	 * $user = new User();
-	 * echo $user->middle_name;  # will call $user->get_middle_name()
-	 * </code>
-	 *
-	 * If you define a custom getter with the same name as an attribute then you
-	 * will need to use read_attribute() to get the attribute's value.
-	 * This is necessary due to the way __get() works.
-	 *
-	 * For example, assume 'name' is a field on the table and we're defining a
-	 * custom getter for 'name':
-	 *
-	 * <code>
-	 * class User extends ActiveRecord\Model {
-	 *   static $getters = array('name');
-	 *
-	 *   # INCORRECT way to do it
-	 *   # function get_name() {
-	 *   #   return strtoupper($this->name);
-	 *   # }
-	 *
-	 *   function get_name() {
-	 *     return strtoupper($this->read_attribute('name'));
-	 *   }
-	 * }
-	 *
-	 * $user = new User();
-	 * $user->name = 'bob';
-	 * echo $user->name; # => BOB
-	 * </code>
-	 *
-	 * @var array
-	 */
-	static $getters = array();
-
-	/**
 	 * Constructs a model.
 	 *
 	 * When a user instantiates a new object (e.g.: it was not ActiveRecord that instantiated via a find)
@@ -346,9 +248,6 @@ class Model
 	public function __construct(array $attributes=array(), $guard_attributes=true, $instantiating_via_find=false, $new_record=true)
 	{
 		$this->__new_record = $new_record;
-
-		require_once 'Validations.php';
-		$this->errors = new Errors($this);
 
 		// initialize attributes applying defaults
 		if (!$instantiating_via_find)
@@ -372,6 +271,49 @@ class Model
 	 * as they are not checked/invoked inside of read_attribute(). This circumvents the problem with
 	 * a getter being accessed with the same name as an actual attribute.
 	 *
+	 * You can also define customer getter methods for the model.
+	 *
+	 * EXAMPLE:
+	 * <code>
+	 * class User extends ActiveRecord\Model {
+	 *
+	 *   # define custom getter methods. Note you must
+	 *   # prepend get_ to your method name:
+	 *   function get_middle_initial() {
+	 *     return $this->middle_name{0};
+	 *   }
+	 * }
+	 *
+	 * $user = new User();
+	 * echo $user->middle_name;  # will call $user->get_middle_name()
+	 * </code>
+	 *
+	 * If you define a custom getter with the same name as an attribute then you
+	 * will need to use read_attribute() to get the attribute's value.
+	 * This is necessary due to the way __get() works.
+	 *
+	 * For example, assume 'name' is a field on the table and we're defining a
+	 * custom getter for 'name':
+	 *
+	 * <code>
+	 * class User extends ActiveRecord\Model {
+	 *
+	 *   # INCORRECT way to do it
+	 *   # function get_name() {
+	 *   #   return strtoupper($this->name);
+	 *   # }
+	 *
+	 *   function get_name() {
+	 *     return strtoupper($this->read_attribute('name'));
+	 *   }
+	 * }
+	 *
+	 * $user = new User();
+	 * $user->name = 'bob';
+	 * echo $user->name; # => BOB
+	 * </code>
+	 *
+	 *
 	 * @see read_attribute()
 	 * @param string $name Name of an attribute
 	 * @return mixed The value of the attribute
@@ -379,7 +321,7 @@ class Model
 	public function &__get($name)
 	{
 		// check for getter
-		if (in_array("get_$name",static::$getters))
+		if (method_exists($this, "get_$name"))
 		{
 			$name = "get_$name";
 			$value = $this->$name();
@@ -401,7 +343,49 @@ class Model
 	}
 
 	/**
-	 * Magic allows un-defined attributes to set via $attributes
+	 * Magic allows un-defined attributes to set via $attributes.
+	 *
+	 * You can also define customer setter methods for the model.
+	 *
+	 * EXAMPLE:
+	 * <code>
+	 * class User extends ActiveRecord\Model {
+	 *
+	 *   # define custom setter methods. Note you must
+	 *   # prepend set_ to your method name:
+	 *   function set_password($plaintext) {
+	 *     $this->encrypted_password = md5($plaintext);
+	 *   }
+	 * }
+	 *
+	 * $user = new User();
+	 * $user->password = 'plaintext';  # will call $user->set_password('plaintext')
+	 * </code>
+	 *
+	 * If you define a custom setter with the same name as an attribute then you
+	 * will need to use assign_attribute() to assign the value to the attribute.
+	 * This is necessary due to the way __set() works.
+	 *
+	 * For example, assume 'name' is a field on the table and we're defining a
+	 * custom setter for 'name':
+	 *
+	 * <code>
+	 * class User extends ActiveRecord\Model {
+	 *
+	 *   # INCORRECT way to do it
+	 *   # function set_name($name) {
+	 *   #   $this->name = strtoupper($name);
+	 *   # }
+	 *
+	 *   function set_name($name) {
+	 *     $this->assign_attribute('name',strtoupper($name));
+	 *   }
+	 * }
+	 *
+	 * $user = new User();
+	 * $user->name = 'bob';
+	 * echo $user->name; # => BOB
+	 * </code>
 	 *
 	 * @throws {@link UndefinedPropertyException} if $name does not exist
 	 * @param string $name Name of attribute, relationship or other to set
@@ -413,7 +397,7 @@ class Model
 		if (array_key_exists($name, static::$alias_attribute))
 			$name = static::$alias_attribute[$name];
 
-		elseif (in_array("set_$name",static::$setters))
+		elseif (method_exists($this,"set_$name"))
 		{
 			$name = "set_$name";
 			return $this->$name($value);
@@ -938,7 +922,9 @@ class Model
 				return false;
 		}
 
-		$this->errors = $validator->validate();
+		// need to store reference b4 validating so that custom validators have access to add errors
+		$this->errors = $validator->get_record();
+		$validator->validate();
 
 		foreach (array('after_validation', "after_$validation_on") as $callback)
 			$this->invoke_callback($callback,false);
@@ -1257,7 +1243,7 @@ class Model
 			$method = str_replace($association_name, 'association', $method);
 			$table = static::table();
 
-			if (($association = $table->get_relationship($association_name)) || 
+			if (($association = $table->get_relationship($association_name)) ||
 				  ($association = $table->get_relationship(($association_name = Utils::pluralize($association_name)))))
 			{
 				// access association to ensure that the relationship has been loaded
