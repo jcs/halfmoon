@@ -28,12 +28,14 @@ require_once(HALFMOON_ROOT . "/halfmoon/lib/rescue.php");
 require_once(HALFMOON_ROOT . "/halfmoon/lib/utilities.php");
 require_once(HALFMOON_ROOT . "/halfmoon/lib/singleton.php");
 
-$helpers = glob(HALFMOON_ROOT . "/halfmoon/lib/helpers/*helper.php");
-usort($helpers, function($a, $b) {
-	return basename($b) == "helper.php" ? 1 : -1;
-});
-foreach ($helpers as $helper)
-	require_once($helper);
+require_once(HALFMOON_ROOT . "/halfmoon/lib/helpers/global_helper.php");
+require_once(HALFMOON_ROOT . "/halfmoon/lib/helpers/helper.php");
+require_once(HALFMOON_ROOT . "/halfmoon/lib/helpers/html_helper.php");
+require_once(HALFMOON_ROOT . "/halfmoon/lib/helpers/form_common.php");
+require_once(HALFMOON_ROOT . "/halfmoon/lib/helpers/form_tag_helper.php");
+require_once(HALFMOON_ROOT . "/halfmoon/lib/helpers/form_helper.php");
+require_once(HALFMOON_ROOT . "/halfmoon/lib/helpers/time_helper.php");
+require_once(HALFMOON_ROOT . "/halfmoon/lib/helpers/prototype_helper.php");
 
 require_once(HALFMOON_ROOT . "/halfmoon/lib/controller.php");
 require_once(HALFMOON_ROOT . "/halfmoon/lib/request.php");
