@@ -14,6 +14,11 @@ class FormHelperCommon extends Helper {
 		if (!isset($options["method"]))
 			$options["method"] = "post";
 
+		if (isset($options["multipart"]) && $options["multipart"]) {
+			unset($options["multipart"]);
+			$options["enctype"] = "multipart/form-data";
+		}
+
 		print "<form"
 			. $this->options_to_s($options)
 			. " action=\"" . HtmlHelper::link_from_obj_or_string($url_or_obj)
