@@ -21,10 +21,10 @@ class HtmlHelper extends Helper {
 	public function error_messages_for($obj, $obj_name = "") {
 		if ($obj->errors && $obj->errors->size()) {
 			if ($obj_name == "")
-				$obj_name = ActiveRecord\Utils::singularize(strtolower(
+				$obj_name = \ActiveRecord\Utils::singularize(strtolower(
 					get_class($obj)));
 
-			if (ActiveRecord\Utils::pluralize_if(2, $obj_name) == "2 "
+			if (\ActiveRecord\Utils::pluralize_if(2, $obj_name) == "2 "
 			. $obj_name)
 			  $obj_name = "these " . $obj_name;
 			else
@@ -33,7 +33,7 @@ class HtmlHelper extends Helper {
 			$html = "<p>"
 				. "<div class=\"flash-error\">"
 				. "<strong>" . $obj->errors->size() . " "
-				. ActiveRecord\Utils::pluralize_if($obj->errors->size(),
+				. \ActiveRecord\Utils::pluralize_if($obj->errors->size(),
 					"error")
 				. " prohibited " . $obj_name . " from being "
 				. ($obj->is_new_record() ? "created" : "saved") . ":</strong>"
