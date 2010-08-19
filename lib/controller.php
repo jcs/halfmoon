@@ -28,6 +28,10 @@ class ApplicationController {
 	 */
 	static $verify = array();
 
+	/* if non-empty, recurse through GET/POST params and filter out the values
+	 * of any parameter names that match, replacing them with '[FILTERED]' */
+	static $filter_parameter_logging = array();
+
 	/* per-controller session options, can be "off", "on", or a per-action
 	 * setting like: array("on", "only" => array("foo", "bar")) */
 	static $session = "";
@@ -55,6 +59,51 @@ class ApplicationController {
 	public function __construct($request) {
 		$this->request = $request;
 		$this->params = &$request->params;
+
+		if (array_keys($this->params)) {
+			$params_log = "  Parameters: ";
+
+			/* the closure can't access static vars */
+			$filters = static::$filter_parameter_logging;
+
+			$recursor = function($params) use (&$recursor, &$params_log,
+			$filters) {
+				$params_log .= "{";
+				$done_first = false;
+				foreach ($params as $k => $v) {
+					if ($done_first)
+						$params_log .= ", ";
+					else
+						$done_first = true;
+
+					$params_log .= "\"" . $k . "\"=>";
+
+					if (is_array($v))
+						$recursor($v);
+					else {
+						$filter = false;
+
+						if (is_array($filters) && count($filters)) {
+							foreach ($filters as $field)
+								if (preg_match("/" . preg_quote($field, "/")
+								. "/i", $k)) {
+									$filter = true;
+									break;
+								}
+						}
+						
+						if ($filter)
+							$params_log .= "[FILTERED]";
+						else
+							$params_log .= "\"" . $v . "\"";
+					}
+				}
+				$params_log .= "}";
+			};
+			$recursor($this->params);
+
+			Log::info($params_log);
+		}
 	}
 
 	/* turn local class variables into $variables when rendering views */

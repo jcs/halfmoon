@@ -153,9 +153,6 @@ class Router extends Singleton {
 			. $request->remote_ip() . ") [" . $request->request_method()
 			. "]");
 
-		if (array_keys($request->params))
-			Log::info("  Parameters: " . json_encode($request->params));
-
 		$controller = new $c($request);
 		$controller->render_action($route["action"], array());
 	}
