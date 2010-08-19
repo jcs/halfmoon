@@ -33,9 +33,12 @@ class EncryptedCookieSessionStore {
 	private $data = array();
 
 	public function __construct($key) {
+		if (!function_exists("mcrypt_encrypt"))
+			throw new \HalfMoon\HalfMoonException("mcrypt extension not "
+				. "installed");
 		if (strlen($key) != 32)
-			throw new \HalfMoon\HalfMoonException("cookie encryption key must be 32 "
-				. "characters long");
+			throw new \HalfMoon\HalfMoonException("cookie encryption key must "
+				. "be 32 characters long");
 
 		$this->key = pack("H*", $key);
 	}
