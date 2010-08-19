@@ -65,6 +65,11 @@ class PrototypeHelper extends FormHelper {
 			. "encodeURIComponent('"
 			. $this->controller->form_authenticity_token() . "')";
 
+		/* support onCreate, onSuccess, etc. */
+		foreach ($options as $k => $v)
+			if (preg_match("/^on.+$/", $k))
+				$js_options[$k] = $v;
+
 		return $this->options_for_javascript($js_options);
 	}
 
