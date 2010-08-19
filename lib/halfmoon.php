@@ -15,7 +15,7 @@ set_include_path(get_include_path() . PATH_SEPARATOR . HALFMOON_ROOT);
 
 /* some sane defaults */
 date_default_timezone_set("UTC");
-session_name("halfmoon_session");
+session_name("_halfmoon_session");
 
 /* we assume to be in the development environment unless told otherwise */
 if (!defined("HALFMOON_ENV"))
@@ -40,6 +40,8 @@ require_once(HALFMOON_ROOT . "/halfmoon/lib/helpers/prototype_helper.php");
 require_once(HALFMOON_ROOT . "/halfmoon/lib/controller.php");
 require_once(HALFMOON_ROOT . "/halfmoon/lib/request.php");
 require_once(HALFMOON_ROOT . "/halfmoon/lib/router.php");
+
+require_once(HALFMOON_ROOT . "/halfmoon/lib/config.php");
 
 /* load site-specific boot settings */
 if (file_exists(HALFMOON_ROOT . "/config/boot.php"))

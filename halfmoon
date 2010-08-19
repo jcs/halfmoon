@@ -4,7 +4,7 @@ prog=`basename "$0"`
 hmdir=`dirname "$0"`
 
 usage () {
-	echo "usage: $prog <\"create\" dir>"
+	echo "usage: $prog \"create\" <dir>"
 	exit 1
 }
 
@@ -28,6 +28,13 @@ create () {
 		cp -rp $1/halfmoon/skel/. $1/ && \
 		mkdir $1/models && \
 		rm -rf $1/halfmoon/.git && \
+		echo "done."
+
+	echo -n "creating random encryption key for session storage... "
+		RANDKEY=`openssl rand 16 -hex`
+		sed -e "s/\"encryption_key\" => \"\"/\"encryption_key\" => \"${RANDKEY}\"/" \
+			$1/config/boot.php > $1/config/boot.php.tmp && \
+		mv -f $1/config/boot.php.tmp $1/config/boot.php && \
 		echo "done."
 
 	echo ""

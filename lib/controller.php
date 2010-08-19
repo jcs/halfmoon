@@ -143,6 +143,9 @@ class ApplicationController {
 
 		Log::info("Redirected to " . $link);
 
+		/* end session first so it can write the cookie */
+		session_write_close();
+
 		header("Location: " . $link);
 
 		/* and bail */
@@ -326,6 +329,9 @@ class ApplicationController {
 			$this->render_layout();
 
 		$this->process_after_filters($action);
+
+		/* end session first so it can write the cookie */
+		session_write_close();
 
 		/* flush out everything, we're done playing with buffers */
 		ob_end_flush();
