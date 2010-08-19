@@ -30,6 +30,6 @@ elseif (HALFMOON_ENV == "production") {
 }
 
 /* settings for all environments */
-date_default_timezone_set("US/Arizona");
+date_default_timezone_set("US/Chicago");
 
 ?>
