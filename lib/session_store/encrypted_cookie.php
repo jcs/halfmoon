@@ -30,7 +30,6 @@ class EncryptedCookieSessionStore {
 
 	private $cookie_name = "";
 	private $key = null;
-	private $data = array();
 
 	public function __construct($key) {
 		if (!function_exists("mcrypt_encrypt"))
