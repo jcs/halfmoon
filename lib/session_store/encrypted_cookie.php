@@ -96,7 +96,7 @@ class EncryptedCookieSessionStore {
 			throw new \HalfMoon\InvalidCookieData("cookie data too long ("
 				. strlen($cookie) . " > " . static::$MAX_COOKIE_LENGTH . ")");
 
-		setcookie(
+		@setcookie(
 			$this->cookie_name,
 			$cookie,
 			time() + ini_get("session.cookie_lifetime"),
