@@ -69,6 +69,7 @@ etc.
 		$ halfmoon/halfmoon create /var/www/example/
 		copying halfmoon framework... done.
 		creating skeleton directory structure... done.
+		creating random encryption key for session storage... done.
 
 		   /var/www/example/:
 		   total 14
@@ -109,6 +110,12 @@ etc.
 			# uncomment in a production environment, otherwise we are
 			# assuming to be running in development
 			#SetEnv HALFMOON_ENV production
+
+			# if suhosin is installed, disable session encryption and
+			# bump the maximum id length since we're handling sessions
+			# on our own
+			php_flag suhosin.session.encrypt off
+			php_value suhosin.session.max_id_length 1024
 
 			# enable mod_rewrite
 			RewriteEngine on
