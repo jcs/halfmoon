@@ -49,6 +49,9 @@ class EncryptedCookieSessionStore {
     }
 
     public function read($id) {
+		if (!isset($_COOKIE[$this->cookie_name]))
+			return "";
+
 		list($e_iv, $e_data) = explode("--", $_COOKIE[$this->cookie_name], 2);
 
 		if (strlen($e_iv) && strlen($e_data)) {
