@@ -112,13 +112,17 @@ class ApplicationController {
 	}
 
 	public function __get($name) {
-		return $this->locals[$name];
+		if (isset($this->locals[$name]))
+			return $this->locals[$name];
+		else
+			return null;
 	}
 
 	/* store an error in the session to be printed on the next view with the
 	 * flash_errors() helper */
 	public function add_flash_error($string) {
-		if (!$_SESSION["flash_errors"])
+		if (!isset($_SESSION["flash_errors"]) ||
+		!is_array($SESSION["flash_errors"]))
 			$_SESSION["flash_errors"] = array();
 
 		array_push($_SESSION["flash_errors"], $string);
@@ -127,7 +131,8 @@ class ApplicationController {
 	/* store a notice in the session to be printed on the next view with the
 	 * flash_notices() helper */
 	public function add_flash_notice($string) {
-		if (!$_SESSION["flash_notices"])
+		if (!isset($_SESSION["flash_notices"]) ||
+		!is_array($SESSION["flash_notices"]))
 			$_SESSION["flash_notices"] = array();
 
 		array_push($_SESSION["flash_notices"], $string);
