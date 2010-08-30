@@ -21,10 +21,10 @@ class FormTagHelper extends FormHelperCommon {
 	/* honor names/ids passed through as options */
 	private function set_field_id_and_name($field, $options) {
 		if (!isset($options["id"]))
-			$options["id"] = $this->field_id($field, $options);
+			$options["id"] = $this->field_id($field);
 
 		if (!isset($options["name"]))
-			$options["name"] = $this->field_name($field, $options);
+			$options["name"] = $this->field_name($field);
 
 		return $options;
 	}
@@ -73,11 +73,12 @@ class FormTagHelper extends FormHelperCommon {
 	}
 
 	/* create a <label> that references a field */
-	public function label_tag($column, $caption = null, $options = array()) {
-		$options = FormTagHelper::set_field_id_and_name($field, $options);
+	public function label_tag($field, $caption = null, $options = array()) {
+		if (!isset($options["id"]))
+			$options["id"] = $this->field_id($field) . "_label";
 
 		if (!isset($options["for"]))
-			$options["for"] = $this->field_id($column);
+			$options["for"] = $this->field_id($field);
 
 		if (is_null($caption))
 			$caption = $column;

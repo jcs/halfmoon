@@ -50,10 +50,10 @@ class FormHelper extends FormTagHelper {
 	/* honor names/ids passed through as options */
 	private function set_field_id_and_name($field, $options) {
 		if (!isset($options["id"]))
-			$options["id"] = $this->prefixed_field_id($field, $options);
+			$options["id"] = $this->prefixed_field_id($field);
 
 		if (!isset($options["name"]))
-			$options["name"] = $this->prefixed_field_name($field, $options);
+			$options["name"] = $this->prefixed_field_name($field);
 
 		return $options;
 	}
