@@ -95,8 +95,11 @@ class FormHelper extends FormTagHelper {
 	}
 
 	/* create a <label> that references a field */
-	public function label($column, $caption = null, $options = array()) {
-		return $this->label_tag($column, $caption, $options);
+	public function label($field, $caption = null, $options = array()) {
+		if (!isset($options["for"]))
+			$options["for"] = $this->prefixed_field_id($field);
+
+		return $this->label_tag($field, $caption, $options);
 	}
 
 	/* create an <input> password field, *not including any value* */
