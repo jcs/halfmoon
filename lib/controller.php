@@ -213,7 +213,15 @@ class ApplicationController {
 				header("Content-type: application/xml");
 				$this->_really_render_file($xml_file, $vars);
 			}
-			
+
+			elseif (file_exists($js_file = HALFMOON_ROOT . "/views/"
+			. $tf . ".pjs")) {
+				/* TODO: check for an existing content-type already set by the
+				 * user */
+				header("Content-type: text/javascript");
+				$this->_really_render_file($js_file, $vars);
+			}
+
 			else
 				throw new RenderException("no template file " . $full_file);
 		}
@@ -368,25 +376,26 @@ class ApplicationController {
 
 		$layout = null;
 
+		if (!is_array($this::$layout))
+			$this::$layout = array($this::$layout);
+
 		/* check for an overridden layout and options */
-		if (count((array)$this::$layout)) {
-			do {
-				if (is_array($this::$layout[1])) {
-					/* don't override for specific actions */
-					if ($this::$layout[1]["except"] && in_array($params["action"],
-					(array)$this::$layout[1]["except"]))
-						break;
+		do {
+			if (is_array($this::$layout[1])) {
+				/* don't override for specific actions */
+				if ($this::$layout[1]["except"] && in_array($params["action"],
+				(array)$this::$layout[1]["except"]))
+					break;
 
-					/* only override for certain actions */
-					if ($this::$layout[1]["only"] && !in_array($params["action"],
-					(array)$this::$layout[1]["only"]))
-						break;
-				}
+				/* only override for certain actions */
+				if ($this::$layout[1]["only"] && !in_array($params["action"],
+				(array)$this::$layout[1]["only"]))
+					break;
+			}
 
-				/* still here, override layout */
-				$layout = $this::$layout[0];
-			} while (0);
-		}
+			/* still here, override layout */
+			$layout = $this::$layout[0];
+		} while (0);
 
 		/* if no specific layout was set, check for a controller-specific one */
 		if (!$layout && isset($this->params["controller"]) &&
