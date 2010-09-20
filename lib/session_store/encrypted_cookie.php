@@ -39,6 +39,10 @@ class EncryptedCookieSessionStore {
 			throw new \HalfMoon\HalfMoonException("cookie encryption key must "
 				. "be 32 characters long");
 
+		/* disable php's own sending of session cookies since they will
+		 * conflict with what we're generating here */
+		ini_set("session.use_cookies", "off");
+
 		$this->key = pack("H*", $key);
 	}
 
@@ -102,7 +106,7 @@ class EncryptedCookieSessionStore {
 		@setcookie(
 			$this->cookie_name,
 			$cookie,
-			time() + ini_get("session.cookie_lifetime"),
+			($e = ini_get("session.cookie_lifetime") ? time() + $e : 0),
 			ini_get("session.cookie_path"),
 			ini_get("session.cookie_domain"),
 			ini_get("session.cookie_secure"),
