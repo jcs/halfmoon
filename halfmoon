@@ -19,6 +19,11 @@ create () {
 			echo "done."
 	fi
 
+	if ! [ -d $1 ]; then
+		echo "couldn't make directory, exiting"
+		exit 1
+	fi
+
 	echo -n "copying halfmoon framework... " && \
 		mkdir $1/halfmoon && \
 		cp -rp $hmdir/. $1/halfmoon/ && \
