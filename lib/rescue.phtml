@@ -94,6 +94,19 @@ foreach ($exception->getTrace() as $call) {
 </p>
 
 <p>
+<h4>Cookies</h4>
+</p>
+<p>
+<div class="info">
+<?php if (isset($_COOKIE)) { ?>
+	<?php foreach ((array)$_COOKIE as $k => $v) { ?>
+		<?php echo h(var_export($k, true) . ": " . var_export($v, true)) ?><br />
+	<?php } ?>
+<?php } ?>
+</div>
+</p>
+
+<p>
 <h3>Session</h3>
 </p>
 <p>
@@ -105,5 +118,6 @@ foreach ($exception->getTrace() as $call) {
 <?php } ?>
 </div>
 </p>
+
 </body>
 </html>
