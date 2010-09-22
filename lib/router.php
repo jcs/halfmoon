@@ -72,24 +72,25 @@ class Router extends Singleton {
 				for ($x = 0; $x < count($route_pieces); $x++) {
 					/* look for a condition */
 					if (preg_match("/^:(.+)$/", $route_pieces[$x], $m)) {
-						$reg_or_string = isset($route["conditions"]) ?
+						$regex_or_string = isset($route["conditions"]) ?
 							@Utils::A((array)$route["conditions"], $m[1]) :
 							NULL;
 
-						/* if the corresponding path piece isn't there, it's
-						 * ok.  this lets controller/:action/:id match when the
-						 * route is just "controller", assigning :action and
-						 * :id to nothing */
+						/* if the corresponding path piece isn't there and
+						 * there is either no condition, or a condition that
+						 * matches against a blank string, it's ok.  this lets
+						 * controller/:action/:id match when the route is just
+						 * "controller", assigning :action and :id to nothing */
 
-						if (isset($path_pieces[$x]) && ($reg_or_string &&
-						!Utils::strcasecmp_or_preg_match($reg_or_string,
-						$path_pieces[$x])))
-							$match = false;
-						else
+						if ($regex_or_string == NULL ||
+						Utils::strcasecmp_or_preg_match($regex_or_string,
+						$path_pieces[$x]))
 							/* store this named parameter (e.g. "/:blah" route
 							 * on a path of "/hi" defines $route["blah"] to be
 							 * "hi") */
 							$route[$m[1]] = @$path_pieces[$x];
+						else
+							$match = false;
 					}
 					
 					/* look for a glob condition */
