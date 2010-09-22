@@ -75,7 +75,7 @@ class TimeHelper extends Helper {
 
 		if (in_array(get_class($from_time), array("DateTime",
 		"ActiveRecord\\DateTime")))
-			$now->setTimezone($from_time->getTimezone());
+			@$now->setTimezone($from_time->getTimezone());
 		elseif (is_int($from_time))
 			$from_time = new \DateTime($from_time);
 
