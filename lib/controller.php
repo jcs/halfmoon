@@ -465,7 +465,7 @@ class ApplicationController {
 		}
 
 		/* still here, we want a session */
-		session_start();
+		$this->start_session();
 	}
 
 	/* verify any options requiring verification */
@@ -581,9 +581,26 @@ class ApplicationController {
 		}
 	}
 
+	private function start_session() {
+		try {
+			session_start();
+		} catch (\HalfMoon\InvalidCookieData $e) {
+			/* probably a decryption failure.  rather than assume the user is
+			 * an attacker, try to invalidate their session so they get a new
+			 * cookie.  on a reload, they'll at least start with a clean
+			 * session instead of continuing to get 500 errors forever. */
+			session_destroy();
+
+			/* and then throw the error so they see a 500 and see that
+			 * something was wrong, which may help explain their new session on
+			 * the reload. */
+			throw $e;
+		}
+	}
+
 	public function form_authenticity_token() {
 		/* explicitly enable sessions so we can store/retrieve the token */
-		@session_start();
+		$this->start_session();
 
 		if (@!$_SESSION["_csrf_token"])
 			$_SESSION["_csrf_token"] = Utils::random_hash();

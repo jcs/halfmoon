@@ -65,7 +65,7 @@ class EncryptedCookieSessionStore {
 			$iv = mcrypt_decrypt(MCRYPT_RIJNDAEL_128, $this->key, $e_iv,
 				MCRYPT_MODE_ECB);
 
-			$data_and_hmac = mcrypt_decrypt(MCRYPT_RIJNDAEL_256, $this->key,
+			$data_and_hmac = @mcrypt_decrypt(MCRYPT_RIJNDAEL_256, $this->key,
 				$e_data, MCRYPT_MODE_CFB, $iv);
 
 			list($hmac, $data) = explode("--", $data_and_hmac, 2);
@@ -117,6 +117,16 @@ class EncryptedCookieSessionStore {
 	}
 
     public function destroy($id) {
+		@setcookie(
+			$this->cookie_name,
+			"",
+			($e = ini_get("session.cookie_lifetime") ? time() + $e : 0),
+			ini_get("session.cookie_path"),
+			ini_get("session.cookie_domain"),
+			ini_get("session.cookie_secure"),
+			ini_get("session.cookie_httponly")
+		);
+
 		return true;
 	}
 
