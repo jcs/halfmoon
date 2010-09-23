@@ -405,6 +405,8 @@ class Table
 				else
 					$hash[$name] = $this->conn->datetime_to_string($value);
 			}
+			elseif (isset($this->columns[$name]) && $this->columns[$name]->type == Column::BOOLEAN)
+				$hash[$name] = (int)$value;
 			else
 				$hash[$name] = $value;
 		}
