@@ -8,4 +8,11 @@ function h($text) {
 	return htmlspecialchars($text);
 }
 
+function array_last(&$array) {
+	if (count($array))
+		return $array[count($array) - 1];
+	else
+		return NULL;
+}
+
 ?>
