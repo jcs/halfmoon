@@ -5,6 +5,10 @@
 	should do per-environment setup like logging, tweaking php settings, etc.
 */
 
+/* session settings, change according to your application requirements */
+session_name("_halfmoon_session");
+session_set_cookie_params($lifetime = 0, $path = "/");
+
 /* activate encrypted cookie storage; requires the mcrypt php extension */
 HalfMoon\Config::set_session_store(
 	"encrypted_cookie",
@@ -13,10 +17,6 @@ HalfMoon\Config::set_session_store(
 	 * "openssl rand 16 -hex" will generate one for you. */
 	array("encryption_key" => "")
 );
-
-/* session settings, change according to your application requirements */
-session_name("_halfmoon_session");
-session_set_cookie_params($lifetime = 0, $path = "/");
 
 /* a timezone is required for DateTime functions */
 date_default_timezone_set("UTC");
