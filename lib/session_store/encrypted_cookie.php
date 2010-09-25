@@ -103,28 +103,30 @@ class EncryptedCookieSessionStore {
 			throw new \HalfMoon\InvalidCookieData("cookie data too long ("
 				. strlen($cookie) . " > " . static::$MAX_COOKIE_LENGTH . ")");
 
+		$cparams = session_get_cookie_params();
 		@setcookie(
 			$this->cookie_name,
 			$cookie,
-			($e = ini_get("session.cookie_lifetime") ? time() + $e : 0),
-			ini_get("session.cookie_path"),
-			ini_get("session.cookie_domain"),
-			ini_get("session.cookie_secure"),
-			ini_get("session.cookie_httponly")
+			($cparams["lifetime"] ? time() + $cparams["lifetime"] : 0),
+			$cparams["path"],
+			$cparams["domain"],
+			$cparams["secure"],
+			$cparams["httponly"]
 		);
 
 		return true;
 	}
 
     public function destroy($id) {
+		$cparams = session_get_cookie_params();
 		@setcookie(
 			$this->cookie_name,
 			"",
-			($e = ini_get("session.cookie_lifetime") ? time() + $e : 0),
-			ini_get("session.cookie_path"),
-			ini_get("session.cookie_domain"),
-			ini_get("session.cookie_secure"),
-			ini_get("session.cookie_httponly")
+			($cparams["lifetime"] ? time() + $cparams["lifetime"] : 0),
+			$cparams["path"],
+			$cparams["domain"],
+			$cparams["secure"],
+			$cparams["httponly"]
 		);
 
 		return true;
