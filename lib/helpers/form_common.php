@@ -48,8 +48,13 @@ class FormHelperCommon extends Helper {
 
 		foreach ($choices as $key => $val) {
 			if ($array_of_arrays) {
-				$key = $val[0];
-				$val = $val[1];
+				if (Utils::is_assoc($val)) {
+					$key = Utils::A(array_keys($val), 0);
+					$val = Utils::A(array_values($val), 0);
+				} else {
+					$key = $val[0];
+					$val = $val[1];
+				}
 			} elseif (!$is_assoc)
 				$key = $val;
 
