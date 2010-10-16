@@ -64,7 +64,7 @@ abstract class AbstractRelationship implements InterfaceRelationship
 	 *
 	 * @var array
 	 */
-	static protected $valid_association_options = array('class_name', 'class', 'foreign_key', 'conditions', 'select', 'readonly');
+	static protected $valid_association_options = array('class_name', 'class', 'foreign_key', 'conditions', 'include', 'select', 'readonly');
 
 	/**
 	 * Constructs a relationship.
