@@ -43,7 +43,8 @@ etc.
 ## requirements ##
 
 -	php 5.3 or higher with the pdo database extensions you wish to use
-	with activerecord (pdo-mysql, pdo-pgsql, etc.)
+	with activerecord (pdo-mysql, pdo-pgsql, etc.).  the mcrypt
+	extension is required for using the encrypted cookie session store.
 
 -	apache 1 or 2, with mod_rewrite enabled.  development of halfmoon is
 	done on openbsd in a chroot()'d apache 1 server, so any other
@@ -95,9 +96,12 @@ etc.
 			CustomLog logs/example_access combined
 
 			# halfmoon will log a few lines for each request with some
-			# useful information about routing, timing, etc. so this log
-			# is not strictly an error log.  but since apache directs
-			# all stderr logging to one place, errors go here too.
+			# useful information about routing, timing, etc., but
+			# because of a php/apache bug that prevents stderr output
+			# from going into the proper log file for virtual hosts,
+			# halfmoon has to use error_log() to log these things so
+			# messages are prefixed with '[error]' just like proper
+			# errors.  http://bugs.php.net/bug.php?id=51304
 			ErrorLog logs/example_info
 
 			# this should point to your public directory where index.php
