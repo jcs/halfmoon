@@ -8,7 +8,7 @@ namespace HalfMoon;
 class Request {
 	const TRUSTED_PROXIES = '/^127\.0\.0\.1$|^(10|172\.(1[6-9]|2[0-9]|30|31)|192\.168)\./i';
 
-	private $start_time;
+	public $start_times = array();
 
 	public $url, $scheme, $host, $port, $path, $query;
 
@@ -22,10 +22,9 @@ class Request {
 
 	public function __construct($url, $get_vars, $post_vars, $headers,
 	$start_time = null) {
-		if ($start_time)
-			$this->start_time = $start_time;
-		else
-			$this->start_time = microtime(true);
+		$this->start_times["init"] = ($start_time ? $start_time
+			: microtime(true));
+		$this->start_times["request"] = microtime(true);
 
 		$url_parts = parse_url($url);
 
@@ -92,17 +91,31 @@ class Request {
 		try {
 			Router::instance()->routeRequest($this);
 
-			$total_time = (float)(microtime(time()) - $this->start_time);
-			if (\ActiveRecord\ConnectionManager::connection_count())
+			/* we now have a list of when each part of the process started, so
+			 * we can build deltas to see how long each part took */
+			$end_time = microtime(true);
+
+			$framework_time = (float)($this->start_times["request"] -
+				$this->start_times["init"]);
+			$app_time = (float)($end_time - $this->start_times["app"]);
+			$total_time = (float)($end_time - $this->start_times["init"]);
+
+			if (\ActiveRecord\ConnectionManager::connection_count()) {
 				$db_time = (float)\ActiveRecord\ConnectionManager::
 					get_connection()->reset_database_time();
+				$app_time -= $db_time;
+			}
 
 			Log::info("Completed in " . sprintf("%0.5f", $total_time)
 				. (isset($db_time) ? " | DB: " . sprintf("%0.5f", $db_time)
 					. " (" . intval(($db_time / $total_time) * 100) . "%)" : "")
+				. " | App: " . sprintf("%0.5f", $app_time)
+					. " (" . intval(($app_time / $total_time) * 100) . "%)"
+				. " | Framework: " . sprintf("%0.5f", $framework_time)
+					. " (" . intval(($framework_time / $total_time) * 100) . "%)"
 				. " [" . $this->url . "]");
 		}
-		
+
 		catch (\Exception $e) {
 			$this->rescue($e);
 		}

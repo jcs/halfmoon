@@ -154,6 +154,8 @@ class Router extends Singleton {
 			. $request->remote_ip() . ") [" . $request->request_method()
 			. "]");
 
+		$request->start_times["app"] = microtime(true);
+
 		$controller = new $c($request);
 		$controller->render_action($route["action"], array());
 	}
