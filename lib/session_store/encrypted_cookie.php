@@ -56,6 +56,9 @@ class EncryptedCookieSessionStore {
 		if (!isset($_COOKIE[$this->cookie_name]))
 			return "";
 
+		if ($_COOKIE[$this->cookie_name] == "")
+			return "";
+
 		list($e_iv, $e_data) = explode("--", $_COOKIE[$this->cookie_name], 2);
 
 		if (strlen($e_iv) && strlen($e_data)) {
@@ -70,8 +73,8 @@ class EncryptedCookieSessionStore {
 
 			list($hmac, $data) = explode("--", $data_and_hmac, 2);
 
-			if (!strlen($hmac) || !strlen($data))
-				throw new \HalfMoon\InvalidCookieData("no HMAC or data");
+			if (!strlen($hmac))
+				throw new \HalfMoon\InvalidCookieData("no HMAC");
 
 			if (hash_hmac("sha1", $data, $this->key, $raw = true) !== $hmac)
 				throw new \HalfMoon\InvalidCookieData("invalid HMAC");
