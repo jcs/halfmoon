@@ -20,8 +20,12 @@ class Request {
 
 	public $headers = array();
 
-	public function __construct($url, $get_vars, $post_vars, $headers) {
-		$this->start_time = microtime(true);
+	public function __construct($url, $get_vars, $post_vars, $headers,
+	$start_time = null) {
+		if ($start_time)
+			$this->start_time = $start_time;
+		else
+			$this->start_time = microtime(true);
 
 		$url_parts = parse_url($url);
 
