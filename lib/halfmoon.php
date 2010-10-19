@@ -10,9 +10,6 @@ if (floatval(phpversion()) < 5.3)
 /* where our app lives (not just where halfmoon lives) */
 define("HALFMOON_ROOT", realpath(dirname(__FILE__) . "/../../"));
 
-/* append our root to the include path to pick up user-installed code */
-set_include_path(get_include_path() . PATH_SEPARATOR . HALFMOON_ROOT);
-
 /* some sane defaults */
 date_default_timezone_set("UTC");
 session_name("_halfmoon_session");
@@ -43,12 +40,15 @@ require_once(HALFMOON_ROOT . "/halfmoon/lib/router.php");
 
 require_once(HALFMOON_ROOT . "/halfmoon/lib/config.php");
 
+/* bring in activerecord */
+require_once(HALFMOON_ROOT . "/halfmoon/lib/php-activerecord/ActiveRecord.php");
+
+/* append our root to the include path to pick up user-installed code */
+set_include_path(get_include_path() . PATH_SEPARATOR . HALFMOON_ROOT);
+
 /* load site-specific boot settings */
 if (file_exists(HALFMOON_ROOT . "/config/boot.php"))
 	require_once(HALFMOON_ROOT . "/config/boot.php");
-
-/* bring in activerecord */
-require_once(HALFMOON_ROOT . "/halfmoon/lib/php-activerecord/ActiveRecord.php");
 
 /* establish db config from ../config/db.ini */
 ActiveRecord\Config::initialize(function($cfg) {
