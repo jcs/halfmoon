@@ -9,12 +9,12 @@ require_once("form_common.php");
 
 class FormTagHelper extends FormHelperCommon {
 	/* provide an html object id to use for a given field name */
-	protected function field_id($field) {
+	public function field_id($field) {
 		return preg_replace("/[^a-z0-9]+/i", "_", $field);
 	}
 
 	/* provide an html object name to use for a given field name */
-	protected function field_name($field) {
+	public function field_name($field) {
 		return $field;
 	}
 

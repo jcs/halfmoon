@@ -27,13 +27,13 @@ class FormHelper extends FormTagHelper {
 	}
 
 	/* provide an html object id to use for a given field name */
-	protected function prefixed_field_id($field) {
+	public function prefixed_field_id($field) {
 		return preg_replace("/[^a-z0-9]/", "_",
 			$this->form_prefix() . "_" . $field);
 	}
 
 	/* provide an html object name to use for a given field name */
-	protected function prefixed_field_name($field) {
+	public function prefixed_field_name($field) {
 		return $this->form_prefix() . "[" . $field . "]";
 	}
 
