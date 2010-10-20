@@ -4,20 +4,22 @@ if (!defined('PHP_VERSION_ID') || PHP_VERSION_ID < 50300)
 
 define('PHP_ACTIVERECORD_VERSION_ID','1.0');
 
-require 'lib/Singleton.php';
-require 'lib/Config.php';
-require 'lib/Utils.php';
-require 'lib/DateTime.php';
-require 'lib/Model.php';
-require 'lib/Table.php';
-require 'lib/ConnectionManager.php';
-require 'lib/Connection.php';
-require 'lib/SQLBuilder.php';
-require 'lib/Reflections.php';
-require 'lib/Inflector.php';
-require 'lib/CallBack.php';
-require 'lib/Exceptions.php';
-require 'lib/Cache.php';
+define('PHP_ACTIVERECORD_ROOT', realpath(dirname(__FILE__)) . "/");
+
+require(PHP_ACTIVERECORD_ROOT . 'lib/Singleton.php');
+require(PHP_ACTIVERECORD_ROOT . 'lib/Config.php');
+require(PHP_ACTIVERECORD_ROOT . 'lib/Utils.php');
+require(PHP_ACTIVERECORD_ROOT . 'lib/DateTime.php');
+require(PHP_ACTIVERECORD_ROOT . 'lib/Model.php');
+require(PHP_ACTIVERECORD_ROOT . 'lib/Table.php');
+require(PHP_ACTIVERECORD_ROOT . 'lib/ConnectionManager.php');
+require(PHP_ACTIVERECORD_ROOT . 'lib/Connection.php');
+require(PHP_ACTIVERECORD_ROOT . 'lib/SQLBuilder.php');
+require(PHP_ACTIVERECORD_ROOT . 'lib/Reflections.php');
+require(PHP_ACTIVERECORD_ROOT . 'lib/Inflector.php');
+require(PHP_ACTIVERECORD_ROOT . 'lib/CallBack.php');
+require(PHP_ACTIVERECORD_ROOT . 'lib/Exceptions.php');
+require(PHP_ACTIVERECORD_ROOT . 'lib/Cache.php');
 
 spl_autoload_register('activerecord_autoload');
 
