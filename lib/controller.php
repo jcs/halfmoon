@@ -489,7 +489,7 @@ class ApplicationController {
 
 			/* still here, do any actions */
 			if (isset($verification["redirect_to"]))
-				return redirect_to($verification["redirect_to"]);
+				return $this->redirect_to($verification["redirect_to"]);
 		}
 	}
 
