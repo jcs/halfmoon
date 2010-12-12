@@ -44,7 +44,8 @@ etc.
 
 -	php 5.3 or higher with the pdo database extensions you wish to use
 	with activerecord (pdo-mysql, pdo-pgsql, etc.).  the mcrypt
-	extension is required for using the encrypted cookie session store.
+	extension is required for using the encrypted cookie session store
+	(see [this page](http://michaelgracie.com/2009/09/23/plugging-mcrypt-into-php-on-mac-os-x-snow-leopard-10.6.1/) for mac os x instructions).
 
 -	apache 1 or 2, with mod_rewrite enabled.  development of halfmoon is
 	done on openbsd in a chroot()'d apache 1 server, so any other
