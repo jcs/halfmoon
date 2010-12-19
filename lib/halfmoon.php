@@ -50,39 +50,7 @@ set_include_path(get_include_path() . PATH_SEPARATOR . HALFMOON_ROOT);
 if (file_exists(HALFMOON_ROOT . "/config/boot.php"))
 	require_once(HALFMOON_ROOT . "/config/boot.php");
 
-/* establish db config from ../config/db.ini */
-ActiveRecord\Config::initialize(function($cfg) {
-	$db = array(
-		"adapter"  => "mysql",
-		"username" => "username",
-		"password" => "password",
-		"hostname" => "localhost",
-		"database" => "database",
-		"port" => 3306,
-	);
-
-	$db_config = parse_ini_file(HALFMOON_ROOT . "/config/db.ini", true);
-
-	if (!isset($db_config[HALFMOON_ENV]))
-		throw new HalfMoon\ConfigException("no database configuration found "
-			. "for \"" . HALFMOON_ENV . "\" environment");
-
-	$db = array_merge($db, $db_config[HALFMOON_ENV]);
-
-	$cfg->set_model_directory(realpath(HALFMOON_ROOT . "/models/"));
-
-	$cfg->set_connections(array(
-		"development" => $db["adapter"] . "://" . $db["username"] . ":"
-			. $db["password"] . "@" . $db["hostname"] . ":" . $db["port"] . "/"
-			. $db["database"]
-	));
-
-	# support old globals for logging
-	if ($GLOBALS["ACTIVERECORD_LOG"]) {
-		$cfg->set_logging(true);
-		$cfg->set_logger($GLOBALS["ACTIVERECORD_LOGGER"]);
-	}
-});
+HalfMoon\Config::initialize_activerecord();
 
 /* bring in all the controllers starting with the application_controller */
 $controllers = glob(HALFMOON_ROOT . "/controllers/*_controller.php");
