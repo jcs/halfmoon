@@ -157,7 +157,7 @@ class Router extends Singleton {
 		$request->start_times["app"] = microtime(true);
 
 		$controller = new $c($request);
-		$controller->render_action($route["action"], array());
+		$controller->render_action($route["action"]);
 	}
 }
 
