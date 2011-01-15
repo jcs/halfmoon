@@ -63,7 +63,7 @@ etc.
 
 2.	fetch the halfmoon source code:
 
-		$ git pull git://github.com/jcs/halfmoon.git
+		$ git clone git://github.com/jcs/halfmoon.git
 
 3.	run the halfmoon script to create your skeleton directory at your
 	root directory created in step 1:
