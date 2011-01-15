@@ -14,7 +14,7 @@ create () {
 	fi
 
 	if ! [ -d $1 ]; then
-		echo -n "creating $1... " && \
+		/bin/echo -n "creating $1... " && \
 			(mkdir $1 || exit) && \
 			echo "done."
 	fi
@@ -24,18 +24,18 @@ create () {
 		exit 1
 	fi
 
-	echo -n "copying halfmoon framework... " && \
+	/bin/echo -n "copying halfmoon framework... " && \
 		mkdir $1/halfmoon && \
 		cp -rp $hmdir/. $1/halfmoon/ && \
 		echo "done."
 
-	echo -n "creating skeleton directory structure... " && \
+	/bin/echo -n "creating skeleton directory structure... " && \
 		cp -rp $1/halfmoon/skel/. $1/ && \
 		mkdir $1/models && \
 		rm -rf $1/halfmoon/.git && \
 		echo "done."
 
-	echo -n "creating random encryption key for session storage... "
+	/bin/echo -n "creating random encryption key for session storage... "
 		RANDKEY=`openssl rand 16 -hex`
 		sed -e "s/\"encryption_key\" => \"\"/\"encryption_key\" => \"${RANDKEY}\"/" \
 			$1/config/boot.php > $1/config/boot.php.tmp && \
