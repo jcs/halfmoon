@@ -1,5 +1,5 @@
 
-	 ,-,
+	 .-.
 	( (  halfmoon
 	 `-`
 
@@ -16,7 +16,7 @@ development environment which logs things to Apache's error log and
 displays errors in the browser.
 
 Its URL routing works similarly as well, supporting a catch-all default
-route of `:controller/:action/:id` and a root url ("/") route.
+route of `:controller/:action/:id` and a root URL (`/`) route.
 
 Form helpers work similar to Rails.  For example, doing this in Rails:
 
