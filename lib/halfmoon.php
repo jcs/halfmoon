@@ -40,7 +40,6 @@ require_once(HALFMOON_ROOT . "/halfmoon/lib/router.php");
 
 require_once(HALFMOON_ROOT . "/halfmoon/lib/config.php");
 
-/* bring in activerecord */
 require_once(HALFMOON_ROOT . "/halfmoon/lib/php-activerecord/ActiveRecord.php");
 
 /* append our root to the include path to pick up user-installed code */
