@@ -7,15 +7,19 @@ namespace HalfMoon;
 
 class Config extends Singleton {
 	public $activerecord;
+	public $db_config;
 
-	public function initialize_activerecord() {
+	public function load_db_config() {
+		if (Config::instance()->db_config)
+			return Config::instance()->db_config;
+
 		$db_config = parse_ini_file(HALFMOON_ROOT . "/config/db.ini", true);
 
 		if (!isset($db_config[HALFMOON_ENV]))
 			throw new HalfMoon\ConfigException("no database configuration "
 				. "found for \"" . HALFMOON_ENV . "\" environment");
 
-		$db = array_merge(array(
+		Config::instance()->db_config = array_merge(array(
 			"adapter"  => "mysql",
 			"username" => "username",
 			"password" => "password",
@@ -24,6 +28,12 @@ class Config extends Singleton {
 			"socket"   => "",
 			"port" => 3306,
 		), $db_config[HALFMOON_ENV]);
+
+		return Config::instance()->db_config;
+	}
+
+	public function initialize_activerecord() {
+		$db = Config::instance()->load_db_config();
 
 		Config::instance()->activerecord = \ActiveRecord\Config::instance();
 		Config::instance()->activerecord->set_model_directory(realpath(HALFMOON_ROOT
