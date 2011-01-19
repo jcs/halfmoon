@@ -1,24 +1,24 @@
 
 	 ,-,
-	( (  halfmoon tiny mvc framework for php
+	( (  halfmoon
 	 `-`
 
-## overview ##
+## Overview ##
 
 halfmoon, combined with [php-activerecord](http://github.com/kla/php-activerecord),
-is a tiny mvc framework for php 5.3 that tries to use the conventions of
-ruby on rails wherever possible and reasonable.
+is a tiny MVC framework for PHP 5.3 that tries to use the conventions of
+Ruby on Rails wherever possible and reasonable.
 
-it has a similar directory structure to a rails project, with the root
+It has a similar directory structure to a Rails project, with the root
 level containing models, views, controllers, and helpers directories.
-it supports a concept of environments like rails, defaulting to a
-development environment which logs things to apache's error log and
+It supports a concept of environments like Rails, defaulting to a
+development environment which logs things to Apache's error log and
 displays errors in the browser.
 
-its url routing works similarly as well, supporting a catch-all default
-route of :controller/:action/:id and a root url ("/") route.
+Its URL routing works similarly as well, supporting a catch-all default
+route of `:controller/:action/:id` and a root url ("/") route.
 
-form helpers work similar to rails.  for example, doing this in rails:
+Form helpers work similar to Rails.  For example, doing this in Rails:
 
 	<% form_for :post, @post, :url => "/posts/update" do |f| %>
 		<%= f.label :title, "Post Title" %>
@@ -36,42 +36,43 @@ is similar to this in halfmoon:
 		<?= $f->submit_button("Submit") ?>
 	<? }); ?>
 
-with $form being an alias to a FormHelper object automatically setup by
-the controller.  there are other helpers available like $time, $html,
-etc.
+with `$form` being an alias to a FormHelper object automatically setup
+by the controller.  There are other helpers available like `$time`,
+`$html`, etc.
 
-## requirements ##
+## Requirements ##
 
--	php 5.3 or higher with the pdo database extensions you wish to use
-	with activerecord (pdo-mysql, pdo-pgsql, etc.).
+-	PHP 5.3 or higher with the PDO database extensions you wish to use
+	with php-activerecord (pdo-mysql, pdo-pgsql, etc.).
 
-	the mcrypt extension is required for using the encrypted cookie
-	session store (see [this page](http://michaelgracie.com/2009/09/23/plugging-mcrypt-into-php-on-mac-os-x-snow-leopard-10.6.1/) for mac os x instructions).
+	The `mcrypt` extension is required for using the encrypted cookie
+	session store (see [this page](http://michaelgracie.com/2009/09/23/plugging-mcrypt-into-php-on-mac-os-x-snow-leopard-10.6.1/) for Mac OS X instructions).
 
-	the pcntl extension is required to use dbconsole.  the same
-	instructions for mac os can be applied (download the php tarball for
-	the version installed, untar, "cd ext/pcntl; phpize; ./configure;
-	make; make install", enable in php.ini.
+	The `pcntl` extension is required to use script/dbconsole.  The same
+	instructions for Mac OS can be applied (download the PHP tarball for the
+	version installed, untar, `cd ext/pcntl; phpize; ./configure;
+	make; make install`, enable in php.ini.
 
--	apache 1 or 2, with mod_rewrite enabled.  development of halfmoon is
-	done on openbsd in a chroot()'d apache 1 server, so any other
+-	Apache 1 or 2, with mod_rewrite enabled.  Development of halfmoon is
+	done on OpenBSD in a chroot()'d Apache 1 server, so any other
 	environment should work fine.
 
 
-## installation ##
+## Installation ##
 
-1.	(optional) create the root directory where you will be storing
+1.	(Optional) Create the root directory where you will be storing
 	everything.  halfmoon will do this for you but if you are creating
 	it somewhere where you need sudo permissions, do it manually:
 
 		$ sudo mkdir /var/www/example/
 		$ sudo chown `whoami` /var/www/example
 
-2.	fetch the halfmoon source code:
+2.	Fetch the halfmoon source code into your home directory or somewhere
+	convenient (not in the directory you are setting up halfmoon in):
 
 		$ git clone git://github.com/jcs/halfmoon.git
 
-3.	run the halfmoon script to create your skeleton directory at your
+3.	Run the halfmoon script to create your skeleton directory at your
 	root directory created in step 1:
 
 		$ halfmoon/halfmoon create /var/www/example/
@@ -91,10 +92,10 @@ etc.
 
 		welcome to halfmoon!
 
-	at a later point, halfmoon will be installed system-wide, so that
-	running "halfmoon create ..." will work from anywhere.
+	At a later point, halfmoon will be installed system-wide, so that
+	running "`halfmoon create ...`" will work from anywhere.
 
-4.	setup an apache virtual host with a DocumentRoot pointing to the
+4.	Setup an Apache Virtual Host with a DocumentRoot pointing to the
     public/ directory:
 
 		<VirtualHost 127.0.0.1>
@@ -139,20 +140,21 @@ etc.
 			RewriteRule ^(.*)$ /index.php/%{REQUEST_URI} [QSA,L]
 		</VirtualHost>
 
-5.	create the database, grant permissions, and put those settings in
-	the config/db.ini file under the development section.
+5.	(Optional) Create the database and its tables and grant permissions.
+	Put those settings in the `config/db.ini` file under the development
+	section.
 
-	by default, halfmoon runs in development mode unless the
+	By default, halfmoon runs in development mode unless the
 	HALFMOON_ENV environment variable is set to something else (such as
 	via the commented out example above, using apache's SetEnv function).
 
 
-## development overview ##
+## Usage Overview ##
 
-1.	create models in the models/ directory according to your database
+1.	Create models in the `models/` directory according to your database
 	tables.
 
-	example models/Post.php:
+	Example `models/Post.php`:
 
 		<?php
 
@@ -164,10 +166,10 @@ etc.
 
 		?>
 
-2.	create controllers in the controllers/ directory to map urls to
+2.	Create controllers in the `controllers/` directory to map urls to
 	actions.
 
-	example controllers/posts_controller.rb:
+	Example `controllers/posts_controller.rb`:
 
 		<?php
 
@@ -181,42 +183,42 @@ etc.
 
 		?>
 
-	to set variables in the namespace of the view, use "$this->varname".
-	in the above example, $posts is an array of all posts and is visible
-	to the view template php file.
+	To set variables in the namespace of the view, use `$this->varname`.
+	In the above example, `$posts` is an array of all posts and is
+	visible to the view template php file.
 
-	the index action will be called by default when a route does
+	The index action will be called by default when a route does
     not specify an action.
 
-	defining a $before_filter array of functions will call them before
-	processing the action.  if any of them return false (such as one
+	Defining a `$before_filter` array of functions will call them before
+	processing the action.  If any of them return false (such as one
 	failing to authenticate the user and wanting to redirect to a login
 	page), processing will stop, no other before_filters will be run,
 	and the controller action will not be run.
 
-3.	create views in the views/ directory.  by default, controller
-	actions will try to render views/(controller)/(action).phtml.
-    for example, these urls:
+3.	Create views in the `views/` directory.  By default, controller
+	actions will try to render `views/*controller*/*action*.phtml`.
+    For example, these URLs:
 
 		/posts
 		/posts/index
 
 	will both call the index action in the posts controller, which
-	will render views/posts/index.phtml.
+	will render `views/posts/index.phtml`.
 
-	a url of:
+	A URL of:
 
 		/posts/view/1
 
 	would map (using the default catch-all route) to the posts
-	controller, calling the view action with $id set to 1, and then
-	render views/posts/view.phtml.
+	controller, calling the `view` action with `$id` set to 1, and then
+	render `views/posts/view.phtml`.
 
-	partial views are snippets of html that are shared among views and
-	can be included in a view template with render function.  their
+	Partial views are snippets of HTML that are shared among views and
+	can be included in a view template with render function.  Their
 	filenames must start with underscores.
 
-	for example, if views/posts/index.phtml contained:
+	For example, if `views/posts/index.phtml` contained:
 
 		<?php
 
@@ -225,38 +227,40 @@ etc.
 
 		?>
 
-	then views/posts/_header_image.phtml would be brought in.
+	then `views/posts/_header_image.phtml` would be brought in.
 
-	after a controller renders its view file, it is stored in the
-	$content_for_layout variable and the views/layouts/application.phtml
-	file is rendered.  be sure to print $content_for_layout somewhere in
+	After a controller renders its view file, it is stored in the
+	`$content_for_layout` variable and the `views/layouts/application.phtml`
+	file is rendered.  be sure to print `$content_for_layout` somewhere in
 	that file.
 
-4.	(optional) configure a root route to specify which controller/action
-	should be used for viewing the root ("/") url via config/routes.php:
+4.	(Optional) Configure a root route to specify which controller/action
+	should be used for viewing the root (`/`) URL via `config/routes.php`:
 
 		HalfMoon\Router::instance()->addRootRoute(array(
 			"controller" => "posts",
 			"action" => "homepage"
 		));
 
-	this uses the same rules as other routes, calling the index action
+	this uses the same rules as other routes, calling the `index` action
 	if it is not specified.
 
-	if your site should always present a static page (like a
-	login/splash page) at the root url, then simply make a
-	public/index.html file to avoid processing through halfmoon.
+	If your site should always present a static page (like a
+	login/splash page) at the root URL, then simply make a
+	public/index.html file to avoid processing through halfmoon.  This
+	is handled entirely outside of halfmoon by apache, because of the
+	`mod_rewrite` rule.
 
-5.	change or create site-specific and environment-specific settings in
-	the config/boot.php script.  this can be used to adjust logging,
-	tweak php settings, or set global php variables that you need.
+5.	Change or create site-specific and environment-specific settings in
+	the `config/boot.php` script.  This can be used to adjust logging,
+	tweak PHP settings, or set global PHP variables that you need.
 
 
-## moving to production ##
+## Moving to Production ##
 
-1.	copy the entire directory tree (/var/www/example in this example)
-	somewhere, setup an apache virtual host like the example above, but
-	use the SetEnv apache function to change the HALFMOON_ENV
+1.	Copy the entire directory tree (/var/www/example in this example)
+	somewhere, setup an Apache Virtual Host like the example above, but
+	use the `SetEnv` apache function to change the `HALFMOON_ENV`
 	environment to "production".
 
 		<VirtualHost ...>
@@ -265,23 +269,23 @@ etc.
 			...
 		</VirtualHost>
 
-	this will use the database configured in config/db.ini under the
+	This will use the database configured in `config/db.ini` under the
 	production group, and any settings you have changed in
-	config/boot.php that are environment-specific (such as disabling
+	`config/boot.php` that are environment-specific (such as disabling
 	logging).
 
 
-## caveats ##
+## Caveats ##
 
-there are some differences to be aware of between rails and halfmoon.
-some are due to differences between ruby and php and some are just
+There are some differences to be aware of between Rails and halfmoon.
+Some are due to differences between Ruby and PHP and some are just
 design changes.
 
-1.	the body of the form_for() will be executed in a different context,
-	so $this will not point to the controller as it does elsewhere in
-	the view.  to get around this, $controller is defined and (along
+1.	The body of the `form_for()` will be executed in a different context,
+	so `$this` will not point to the controller as it does elsewhere in
+	the view.  To get around this, `$controller` is defined and (along
 	with any other local variables needed) can be passed into the
-	form_for() body like so:
+	`form_for()` body like so:
 
 		<h1><?= $this->title() ?></h1>
 
@@ -290,34 +294,42 @@ design changes.
 			...
 		<? }); ?>
 
-	this is due to the [design of closures in php](http://wiki.php.net/rfc/closures/removal-of-this).
+	This is due to the [design of closures in php](http://wiki.php.net/rfc/closures/removal-of-this).
 
-2.	"list" and "new" are reserved keywords in php, so these cannot be
-	used as the controller actions like rails sets up by default.
+	Due to this, it is recommended to just always use `$controller` in
+	views.
 
-	it is suggested to use "build" instead of "new", and "index" instead
-	of "list".  of course, "list" and "new" can still be used in the url
+2.	`list` and `new` are reserved keywords in PHP, so these cannot be
+	used as the controller actions like Rails sets up by default.
+
+	It is suggested to use `build` instead of `new`, and `index` instead
+	of `list`.  Of course, `list` and `new` can still be used in the URL
 	by adding a specific route to map them to different controller
-	actions.
+	actions:
 
-3.	sessions are disabled by default, but can be enabled per-controller
-	or per-action.  in a controller, define a static $session variable
+		HalfMoon\Router::instance()->addRoute(array(
+			"url" => ":controller/list",
+			"action" => "index",
+		));
+
+3.	Sessions are disabled by default, but can be enabled per-controller
+	or per-action.  In a controller, define a static `$session` variable
 	and either turn it on for the entire controller:
 
 		static $session = "on";
 
-	or just on for specific actions with "except" or "only" arrays:
+	or just on for specific actions with `except` or `only` arrays:
 
 		static $session = array("on", "only" => array("login"));
 
-	to reverse the settings (enable it for the entire application but
-	disable it for specific actions), define it to "on" in your
-	ApplicationController and then just turn it off per-controller.
+	To reverse the settings (enable it for the entire application but
+	disable it for specific actions), define it to "`on`" in your
+	`ApplicationController` and then just turn it off per-controller.
 
-	note: when using the built-in form helper (form_for) with a POST
+	Note: when using the built-in form helper (form_for) with a `POST`
 	form and XSRF protection is enabled, sessions will be explicitly
-	enabled to allow storing the token in the session pre-POST and then
-	retrieving it on the POST.
+	enabled to allow storing the token in the session pre-`POST` and then
+	retrieving it on the `POST`.
 
 
 ### vim:ts=4:tw=72:ft=markdown
