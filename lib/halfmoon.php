@@ -18,9 +18,16 @@ session_name("_halfmoon_session");
 if (!defined("HALFMOON_ENV"))
     define("HALFMOON_ENV", "development");
 
-require_once(HALFMOON_ROOT . "/halfmoon/lib/logging.php");
 require_once(HALFMOON_ROOT . "/halfmoon/lib/exceptions.php");
-require_once(HALFMOON_ROOT . "/halfmoon/lib/rescue.php");
+
+/* install error handlers as soon as possible */
+require_once(HALFMOON_ROOT . "/halfmoon/lib/rescuer.php");
+
+/* set some sane defaults */
+date_default_timezone_set("UTC");
+session_name("_halfmoon_session");
+
+require_once(HALFMOON_ROOT . "/halfmoon/lib/logging.php");
 
 require_once(HALFMOON_ROOT . "/halfmoon/lib/utilities.php");
 require_once(HALFMOON_ROOT . "/halfmoon/lib/singleton.php");

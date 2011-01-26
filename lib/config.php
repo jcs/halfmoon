@@ -9,6 +9,9 @@ class Config extends Singleton {
 	public $activerecord;
 	public $db_config;
 
+	public $exception_notification_recipient;
+	public $exception_notification_subject;
+
 	public function load_db_config() {
 		if (Config::instance()->db_config)
 			return Config::instance()->db_config;
@@ -90,6 +93,14 @@ class Config extends Singleton {
 			throw new \HalfMoon\HalfMoonException("unknown session store: "
 				. $store);
 		}
+	}
+
+	public function set_exception_notification_recipient($recipient) {
+		Config::instance()->exception_notification_recipient = $recipient;
+	}
+
+	public function set_exception_notification_subject($subject) {
+		Config::instance()->exception_notification_subject = $subject;
 	}
 }
 

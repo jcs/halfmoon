@@ -117,7 +117,8 @@ class Request {
 		}
 
 		catch (\Exception $e) {
-			$this->rescue($e);
+			/* rescue, log, notify (if necessary), exit */
+			Rescuer::rescue_exception($e, $this);
 		}
 	}
 
@@ -171,119 +172,6 @@ class Request {
 	/* "GET", "PUT", etc. */
 	public function request_method() {
 		return strtoupper($this->headers["REQUEST_METHOD"]);
-	}
-
-	/* exception handler, log it and pass it off to rescue_in_public */
-	private function rescue($exception) {
-		/* kill all buffered output */
-		while (@ob_end_clean())
-			;
-
-		$str = get_class($exception);
-
-		/* activerecord includes the stack trace in the message, so strip it
-		 * out */
-		if ($exception instanceof \ActiveRecord\DatabaseException)
-			$str .= ": " . preg_replace("/\nStack trace:.*/s", "",
-				$exception->getMessage());
-		elseif ($exception->getMessage())
-			$str .= ": " . $exception->getMessage();
-
-		Log::error($str . ":");
-
-		foreach ($exception->getTrace() as $call)
-			Log::error("    "
-				. (isset($call["file"]) ? $call["file"] : $call["class"])
-				. ":"
-				. (isset($call["line"]) ? $call["line"] : "")
-				. " in " . $call["function"] . "()");
-
-		return $this->rescue_in_public($exception, $str);
-	}
-
-	/* return a friendly error page to the user (or a full one with debugging
-	 * if we're in development mode with display_errors turned on) */
-	private function rescue_in_public($exception, $title) {
-		if (HALFMOON_ENV == "development" && ini_get("display_errors"))
-			require_once(dirname(__FILE__) . "/rescue.phtml");
-		else {
-			/* production mode, try to handle gracefully */
-
-			if ($exception instanceof \HalfMoon\RoutingException) {
-				header($_SERVER["SERVER_PROTOCOL"] . " 404 File Not Found");
-
-				if (file_exists($f = HALFMOON_ROOT . "/public/404.html")) {
-					Log::error("Rendering " . $f);
-					require_once($f);
-				} else {
-					/* failsafe */
-					?>
-					<html>
-					<head>
-					<title>File Not Found</title>
-					</head>
-					<body>
-					<h1>File Not Found</h1>
-					The file you requested could not be found.  An additional error
-					occured while processing the error document.
-					</body>
-					</html>
-					<?php
-				}
-			}
-			
-			elseif ($exception instanceof \HalfMoon\InvalidAuthenticityToken) {
-				/* be like rails and give the odd 422 status */
-				header($_SERVER["SERVER_PROTOCOL"] . " 422 Unprocessable Entity");
-
-				if (file_exists($f = HALFMOON_ROOT . "/public/422.html")) {
-					Log::error("Rendering " . $f);
-					require_once($f);
-				} else {
-					/* failsafe */
-					?>
-					<html>
-					<head>
-					<title>Change Rejected</title>
-					</head>
-					<body>
-					<h1>Change Rejected</h1>
-					The change you submitted was rejected due to a security
-					problem.  An additional error occured while processing the
-					error document.
-					</body>
-					</html>
-					<?php
-				}
-			}
-			
-			else {
-				header($_SERVER["SERVER_PROTOCOL"] . " 500 Server Error");
-
-				if (file_exists($f = HALFMOON_ROOT . "/public/500.html")) {
-					Log::error("Rendering " . $f);
-					require_once($f);
-				} else {
-					/* failsafe */
-					?>
-					<html>
-					<head>
-					<title>Application Error</title>
-					</head>
-					<body>
-					<h1>Application Error</h1>
-					An internal application error occured while processing your
-					request.  Additionally, an error occured while processing the
-					error document.
-					</body>
-					</html>
-					<?php
-				}
-			}
-		}
-
-		/* that's it, end of the line */
-		exit;
 	}
 
 	/* the user's browser as reported by the server */

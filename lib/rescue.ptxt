@@ -1,0 +1,78 @@
+<?php
+/*	vim:ft=php
+
+	text file rendered in exception handler notifier when in the production
+	environment
+*/
+
+print $title . "\n";
+
+foreach ($exception->getTrace() as $call) {
+	if (isset($call["file"]))
+		print "  " . $call["file"];
+	else
+		print "  " . $call["class"];
+
+	print ":" . (isset($call["line"]) ? $call["line"] : "") . " in "
+		. $call["function"] . "()\n";
+}
+
+print "\n";
+print str_repeat("-", 75) . "\n";
+print " Request\n";
+print str_repeat("-", 75) . "\n";
+print "\n";
+print " HALFMOON_ROOT:  " . HALFMOON_ROOT . "\n";
+
+if (!is_null($request)) {
+	print " URL:            " . $request->url . "\n";
+	print " Remote IP:      " . $request->remote_ip() . "\n";
+	print "\n";
+
+	foreach (array("get", "post") as $a) {
+		print " " . strtoupper($a) . ":" . (str_repeat(" ", 15 - strlen($a)));
+
+		$printed = false;
+		if (isset($request->$a))
+			foreach ((array)$request->$a as $k => $v) {
+				$printed = true;
+				print var_export($k, true) . ": " . var_export($v, true) . "\n";
+			}
+
+		if (!$printed)
+			print "{}\n";
+	}
+}
+
+print "\n";
+print str_repeat("-", 75) . "\n";
+print " Uploaded Files\n";
+print str_repeat("-", 75) . "\n";
+
+if (isset($_FILES)) {
+	print "\n";
+	foreach ((array)$_FILES as $k => $v)
+		print var_export($k, true) . ": " . var_export($v, true) . "\n";
+}
+
+print "\n";
+print str_repeat("-", 75) . "\n";
+print " Cookies\n";
+print str_repeat("-", 75) . "\n";
+
+if (isset($_COOKIE)) {
+	print "\n";
+	foreach ((array)$_COOKIE as $k => $v)
+		print " " . var_export($k, true) . ": " . var_export($v, true) . "\n";
+}
+
+print "\n";
+print str_repeat("-", 75) . "\n";
+print " Session\n";
+print str_repeat("-", 75) . "\n";
+
+if (isset($_SESSION)) {
+	print "\n";
+	foreach ((array)$_SESSION as $k => $v)
+		print " " . var_export($k, true) . ": " . var_export($v, true) . "\n";
+}

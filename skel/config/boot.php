@@ -6,7 +6,7 @@
 */
 
 /* session settings, change according to your application requirements */
-session_name("_halfmoon_session");
+session_name("_%%APP_NAME%%_session");
 session_set_cookie_params($lifetime = 0, $path = "/");
 
 /* activate encrypted cookie storage; requires the mcrypt php extension */
@@ -15,7 +15,7 @@ HalfMoon\Config::set_session_store(
 
 	/* you must define a random encryption key here of 32 characters.
 	 * "openssl rand 16 -hex" will generate one for you. */
-	array("encryption_key" => "")
+	array("encryption_key" => "%%COOKIE_ENCRYPTION_KEY%%")
 );
 
 /* a timezone is required for DateTime functions */
@@ -43,7 +43,13 @@ if (HALFMOON_ENV == "development") {
 elseif (HALFMOON_ENV == "production") {
 	/* be quiet in production */
 
+	/* don't display actual php error messages to the user, just generic error
+	 * pages (see skel/500.html) */
 	ini_set("display_errors", 0);
+
+	/* uncomment to send emails of error backtraces and debugging info */
+	# HalfMoon\Config::set_exception_notification_recipient("you@example.com");
+	# HalfMoon\Config::set_exception_notification_subject("[%%APP_NAME%%]");
 }
 
 ?>

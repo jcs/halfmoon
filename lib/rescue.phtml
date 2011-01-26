@@ -32,29 +32,30 @@
 <div class="info">
 <?php
 
-foreach ($exception->getTrace() as $call) {
-	if (isset($call["file"])) {
-		$fileparts = explode("/", $call["file"]);
+if (!is_null($exception) && is_object($exception))
+	foreach ($exception->getTrace() as $call) {
+		if (isset($call["file"])) {
+			$fileparts = explode("/", $call["file"]);
 
-		for ($x = 0; $x < count($fileparts); $x++) {
-			$fileparts[$x] = h($fileparts[$x]);
+			for ($x = 0; $x < count($fileparts); $x++) {
+				$fileparts[$x] = h($fileparts[$x]);
 
-			if ($x == count($fileparts) - 1)
-				$fileparts[$x] = "<strong>" . $fileparts[$x] . "</strong>";
+				if ($x == count($fileparts) - 1)
+					$fileparts[$x] = "<strong>" . $fileparts[$x] . "</strong>";
+			}
+
+			?>
+			<?php echo join("/", $fileparts); ?><?php
+		} else {
+			?><?php echo h($call["class"]) ?><?php
 		}
-
-		?>
-		<?php echo join("/", $fileparts); ?><?php
-	} else {
-		?><?php echo h($call["class"]) ?><?php
+		
+		?>:<?php echo h(isset($call["line"]) ? $call["line"] : "") ?>
+		in
+		<strong><?php echo h($call["function"]) ?>()</strong>
+		<br />
+		<?php
 	}
-	
-	?>:<?php echo h(isset($call["line"]) ? $call["line"] : "") ?>
-	in
-	<strong><?php echo h($call["function"]) ?>()</strong>
-	<br />
-	<?php
-}
 
 ?>
 </div>
@@ -69,8 +70,8 @@ foreach ($exception->getTrace() as $call) {
 	</p>
 	<p>
 	<div class="info">
-	<?php if (isset($this->$a)) { ?>
-		<?php foreach ((array)$this->$a as $k => $v) { ?>
+	<?php if (isset($request->$a)) { ?>
+		<?php foreach ((array)$request->$a as $k => $v) { ?>
 			<strong><?php echo h(var_export($k, true)) ?></strong>:
 				<?php echo h(var_export($v, true)) ?><br />
 		<?php } ?>
