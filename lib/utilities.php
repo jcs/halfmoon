@@ -59,6 +59,7 @@ class Utils {
 		return ($int >= $low_and_high[0] && $int <= $low_and_high[1]);
 	}
 
+	/* return a 40-character random string */
 	static function random_hash() {
 		return sha1(pack("N10",
 			mt_rand(), mt_rand(), mt_rand(), mt_rand(), mt_rand(),
