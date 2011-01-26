@@ -13,8 +13,10 @@ create () {
 		usage
 	fi
 
+	APP_NAME=`basename $1`
+
 	if ! [ -d $1 ]; then
-		/bin/echo -n "creating $1... " && \
+		/bin/echo -n "creating $APP_NAME in $1... " && \
 			(mkdir $1 || exit) && \
 			echo "done."
 	fi
@@ -37,10 +39,15 @@ create () {
 
 	/bin/echo -n "creating random encryption key for session storage... "
 		RANDKEY=`openssl rand 16 -hex`
-		sed -e "s/\"encryption_key\" => \"\"/\"encryption_key\" => \"${RANDKEY}\"/" \
+		sed -e "s/%%COOKIE_ENCRYPTION_KEY%%/${RANDKEY}/" \
+			-e "s/%%APP_NAME%%/${APP_NAME}/g" \
 			$1/config/boot.php > $1/config/boot.php.tmp && \
 		mv -f $1/config/boot.php.tmp $1/config/boot.php && \
 		echo "done."
+
+	sed -e "s/%%APP_NAME%%/${APP_NAME}/g" \
+		$1/views/layouts/application.phtml > $1/views/layouts/application.phtml.tmp && \
+		mv -f $1/views/layouts/application.phtml.tmp $1/views/layouts/application.phtml
 
 	echo ""
 	echo "   $1:"
