@@ -155,6 +155,15 @@ class ActiveRecordTest extends DatabaseTest
 		$venue->reload();
 		$this->assert_equals('NY', $venue->state);
 	}
+	
+	public function test_reload_protected_attribute()
+	{
+		$book = BookAttrAccessible::find(1);
+	
+		$book->name = "Should not stay";
+		$book->reload();
+		$this->assert_not_equals("Should not stay", $book->name);
+	}
 
 	public function test_active_record_model_home_not_set()
 	{
@@ -356,11 +365,33 @@ class ActiveRecordTest extends DatabaseTest
 		$this->assert_null($event->state);
 	}
 
-	public function test_delegate_setter()
+	public function test_delegate_set_attribute()
 	{
 		$event = Event::first();
 		$event->state = 'MEXICO';
 		$this->assert_equals('MEXICO',$event->venue->state);
+	}
+
+	public function test_delegate_getter_gh_98()
+	{
+		Venue::$use_custom_get_state_getter = true;
+
+		$event = Event::first();
+		$this->assert_equals('ny', $event->venue->state);
+		$this->assert_equals('ny', $event->state);
+
+		Venue::$use_custom_get_state_getter = false;
+	}
+
+	public function test_delegate_setter_gh_98()
+	{
+		Venue::$use_custom_set_state_setter = true;
+
+		$event = Event::first();
+		$event->state = 'MEXICO';
+		$this->assert_equals('MEXICO#',$event->venue->state);
+
+		Venue::$use_custom_set_state_setter = false;
 	}
 
 	public function test_table_name_with_underscores()
@@ -439,8 +470,19 @@ class ActiveRecordTest extends DatabaseTest
 		$author = new Author();
 		$author->flag_dirty('some_date');
 		$this->assert_has_keys('some_date', $author->dirty_attributes());
+		$this->assert_true($author->attribute_is_dirty('some_date'));
+		$author->save();
+		$this->assert_false($author->attribute_is_dirty('some_date'));
 	}
-
+	
+	public function test_flag_dirty_attribute()
+	{
+		$author = new Author();
+		$author->flag_dirty('some_inexistant_property');
+		$this->assert_null($author->dirty_attributes());
+		$this->assert_false($author->attribute_is_dirty('some_inexistant_property'));
+	}
+	
 	public function test_assigning_php_datetime_gets_converted_to_ar_datetime()
 	{
 		$author = new Author();

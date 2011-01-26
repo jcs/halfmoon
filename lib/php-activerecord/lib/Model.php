@@ -159,13 +159,13 @@ class Model
 	 * <code>
 	 * class Person extends ActiveRecord\Model {
 	 *   static $alias_attribute = array(
-	 *     'the_first_name' => 'first_name',
-	 *     'the_last_name' => 'last_name');
+	 *     'alias_first_name' => 'first_name',
+	 *     'alias_last_name' => 'last_name');
 	 * }
 	 *
 	 * $person = Person::first();
-	 * $person->the_first_name = 'Tito';
-	 * echo $person->the_first_name;
+	 * $person->alias_first_name = 'Tito';
+	 * echo $person->alias_first_name;
 	 * </code>
 	 *
 	 * @var array
@@ -199,6 +199,8 @@ class Model
 	 *
 	 * This is the opposite of {@link attr_accessible $attr_accessible} and the format
 	 * for defining these are exactly the same.
+	 *
+	 * If the attribute is both accessible and protected, it is treated as protected.
 	 *
 	 * @var array
 	 */
@@ -240,7 +242,7 @@ class Model
 	 * </code>
 	 *
 	 * @param array $attributes Hash containing names and values to mass assign to the model
-	 * @param boolean $guard_attributes Set to true to guard attributes
+	 * @param boolean $guard_attributes Set to true to guard protected/non-accessible attributes
 	 * @param boolean $instantiating_via_find Set to true if this model is being created from a find call
 	 * @param boolean $new_record Set to true if this should be considered a new record
 	 * @return Model
@@ -501,7 +503,7 @@ class Model
 				$to = $item['to'];
 				if ($this->$to)
 				{
-					$val =& $this->$to->$delegated_name;
+					$val =& $this->$to->__get($delegated_name);
 					return $val;
 				}
 				else
@@ -537,6 +539,16 @@ class Model
 
 		$dirty = array_intersect_key($this->attributes,$this->__dirty);
 		return !empty($dirty) ? $dirty : null;
+	}
+
+	/**
+	 * Check if a particular attribute has been modified since loading the model.
+	 * @param string $attribute	Name of the attribute
+	 * @return boolean TRUE if it has been modified.
+	 */
+	public function attribute_is_dirty($attribute)
+	{
+		return $this->__dirty && $this->__dirty[$attribute] && array_key_exists($attribute, $this->attributes);
 	}
 
 	/**
@@ -858,6 +870,121 @@ class Model
 	}
 
 	/**
+	 * Deletes records matching conditions in $options
+	 *
+	 * Does not instantiate models and therefore does not invoke callbacks
+	 *
+	 * Delete all using a hash:
+	 *
+	 * <code>
+	 * YourModel::delete_all(array('conditions' => array('name' => 'Tito')));
+	 * </code>
+	 *
+	 * Delete all using an array:
+	 *
+	 * <code>
+	 * YourModel::delete_all(array('conditions' => array('name = ?', 'Tito')));
+	 * </code>
+	 *
+	 * Delete all using a string:
+	 *
+	 * <code>
+	 * YourModel::delete_all(array('conditions' => 'name = "Tito"));
+	 * </code>
+	 *
+	 * An options array takes the following parameters:
+	 *
+	 * <ul>
+	 * <li><b>conditions:</b> Conditions using a string/hash/array</li>
+	 * <li><b>limit:</b> Limit number of records to delete (MySQL & Sqlite only)</li>
+	 * <li><b>order:</b> A SQL fragment for ordering such as: 'name asc', 'id desc, name asc' (MySQL & Sqlite only)</li>
+	 * </ul>
+	 *
+	 * @params array $options
+	 * return integer Number of rows affected
+	 */
+	public static function delete_all($options=array())
+	{
+		$table = static::table();
+		$conn = static::connection();
+		$sql = new SQLBuilder($conn, $table->get_fully_qualified_table_name());
+
+		$conditions = is_array($options) ? $options['conditions'] : $options;
+
+		if (is_array($conditions) && !is_hash($conditions))
+			call_user_func_array(array($sql, 'delete'), $conditions);
+		else
+			$sql->delete($conditions);
+
+		if (isset($options['limit']))
+			$sql->limit($options['limit']);
+
+		if (isset($options['order']))
+			$sql->order($options['order']);
+
+		$values = $sql->bind_values();
+		$ret = $conn->query(($table->last_sql = $sql->to_s()), $values);
+		return $ret->rowCount();
+	}
+
+	/**
+	 * Updates records using set in $options
+	 *
+	 * Does not instantiate models and therefore does not invoke callbacks
+	 *
+	 * Update all using a hash:
+	 *
+	 * <code>
+	 * YourModel::update_all(array('set' => array('name' => "Bob")));
+	 * </code>
+	 *
+	 * Update all using a string:
+	 *
+	 * <code>
+	 * YourModel::update_all(array('set' => 'name = "Bob"'));
+	 * </code>
+	 *
+	 * An options array takes the following parameters:
+	 *
+	 * <ul>
+	 * <li><b>set:</b> String/hash of field names and their values to be updated with
+	 * <li><b>conditions:</b> Conditions using a string/hash/array</li>
+	 * <li><b>limit:</b> Limit number of records to update (MySQL & Sqlite only)</li>
+	 * <li><b>order:</b> A SQL fragment for ordering such as: 'name asc', 'id desc, name asc' (MySQL & Sqlite only)</li>
+	 * </ul>
+	 *
+	 * @params array $options
+	 * return integer Number of rows affected
+	 */
+	public static function update_all($options=array())
+	{
+		$table = static::table();
+		$conn = static::connection();
+		$sql = new SQLBuilder($conn, $table->get_fully_qualified_table_name());
+
+		$sql->update($options['set']);
+
+		if (isset($options['conditions']) && ($conditions = $options['conditions']))
+		{
+			if (is_array($conditions) && !is_hash($conditions))
+				call_user_func_array(array($sql, 'where'), $conditions);
+			else
+				$sql->where($conditions);
+		}
+
+		if (isset($options['limit']))
+			$sql->limit($options['limit']);
+
+		if (isset($options['order']))
+			$sql->order($options['order']);
+
+		$values = $sql->bind_values();
+		$ret = $conn->query(($table->last_sql = $sql->to_s()), $values);
+		return $ret->rowCount();
+
+	}
+
+	/**
 	 * Deletes this model from the database and returns true if successful.
 	 *
 	 * @return boolean
@@ -1027,7 +1154,7 @@ class Model
 	 *
 	 * @throws ActiveRecord\UndefinedPropertyException
 	 * @param array $attributes An array in the form array(name => value, ...)
-	 * @param boolean $guard_attributes Flag of whether or not attributes should be guarded
+	 * @param boolean $guard_attributes Flag of whether or not protected/non-accessible attributes should be guarded
 	 */
 	private function set_attributes_via_mass_assignment(array &$attributes, $guard_attributes)
 	{
@@ -1116,7 +1243,7 @@ class Model
 		$this->__relationships = array();
 		$pk = array_values($this->get_values_for($this->get_primary_key()));
 
-		$this->set_attributes($this->find($pk)->attributes);
+		$this->set_attributes_via_mass_assignment($this->find($pk)->attributes, false);
 		$this->reset_dirty();
 
 		return $this;
@@ -1604,6 +1731,43 @@ class Model
 		return $this->serialize('Xml', $options);
 	}
 
+   /**
+   * Returns an CSV representation of this model.
+   * Can take optional delimiter and enclosure
+   * (defaults are , and double quotes)
+   *
+   * Ex:
+   * <code>
+   * ActiveRecord\CsvSerializer::$delimiter=';';
+   * ActiveRecord\CsvSerializer::$enclosure='';
+   * YourModel::find('first')->to_csv(array('only'=>array('name','level')));
+   * returns: Joe,2
+   *
+   * YourModel::find('first')->to_csv(array('only_header'=>true,'only'=>array('name','level')));
+   * returns: name,level
+   * </code>
+   *
+   * @see Serialization
+   * @param array $options An array containing options for csv serialization (see {@link Serialization} for valid options)
+   * @return string CSV representation of the model
+   */
+  public function to_csv(array $options=array())
+  {
+    return $this->serialize('Csv', $options);
+  }
+
+	/**
+	 * Returns an Array representation of this model.
+	 *
+	 * @see Serialization
+	 * @param array $options An array containing options for json serialization (see {@link Serialization} for valid options)
+	 * @return array Array representation of the model
+	 */
+	public function to_array(array $options=array())
+	{
+		return $this->serialize('Array', $options);
+	}
+
 	/**
 	 * Creates a serializer based on pre-defined to_serializer()
 	 *
@@ -1617,7 +1781,7 @@ class Model
 	 * <li><b>include:</b> a string or array of associated models to include in the final serialized product.</li>
 	 * </ul>
 	 *
-	 * @param string $type Either Xml or Json
+	 * @param string $type Either Xml, Json, Csv or Array
 	 * @param array $options Options array for the serializer
 	 * @return string Serialized representation of the model
 	 */

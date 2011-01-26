@@ -78,6 +78,23 @@ class ValidationsTest extends DatabaseTest
 		$this->assert_equals(array("Name can't be blank"),array_values($book->errors->full_messages(array('hash' => true))));
 	}
 
+	public function test_to_array()
+	{
+		$book = new BookValidations();
+		$book->is_valid();
+
+		$this->assert_equals(array("name" => array("Name can't be blank")), $book->errors->to_array());
+	}
+	
+	public function test_toString()
+	{
+		$book = new BookValidations();
+		$book->is_valid();
+		$book->errors->add('secondary_author_id', "is invalid");
+		
+		$this->assert_equals("Name can't be blank\nSecondary author id is invalid", (string) $book->errors);
+	}
+
 	public function test_validates_uniqueness_of()
 	{
 		BookValidations::create(array('name' => 'bob'));

@@ -6,6 +6,9 @@ define('PHP_ACTIVERECORD_VERSION_ID','1.0');
 
 define('PHP_ACTIVERECORD_ROOT', realpath(dirname(__FILE__)) . "/");
 
+if (!defined('PHP_ACTIVERECORD_AUTOLOAD_PREPEND'))
+	define('PHP_ACTIVERECORD_AUTOLOAD_PREPEND',true);
+
 require(PHP_ACTIVERECORD_ROOT . 'lib/Singleton.php');
 require(PHP_ACTIVERECORD_ROOT . 'lib/Config.php');
 require(PHP_ACTIVERECORD_ROOT . 'lib/Utils.php');
@@ -21,7 +24,8 @@ require(PHP_ACTIVERECORD_ROOT . 'lib/CallBack.php');
 require(PHP_ACTIVERECORD_ROOT . 'lib/Exceptions.php');
 require(PHP_ACTIVERECORD_ROOT . 'lib/Cache.php');
 
-spl_autoload_register('activerecord_autoload');
+if (!defined('PHP_ACTIVERECORD_AUTOLOAD_DISABLE'))
+	spl_autoload_register('activerecord_autoload',false,PHP_ACTIVERECORD_AUTOLOAD_PREPEND);
 
 function activerecord_autoload($class_name)
 {
