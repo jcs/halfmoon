@@ -4,155 +4,157 @@
 	http://david.acz.org/halfmoon_console/ says "This software is public domain."
 */
 
-if (!function_exists("readline"))
-	die("readline extension not installed/loaded. exiting.\n");
+namespace HalfMoon;
 
 require_once(dirname(__FILE__) . "/../halfmoon.php");
 
-function __halfmoon_console__init() {
-	error_reporting(E_ALL | E_STRICT);
+class Console {
+	public static $have_readline;
+	public $line;
+	public $history;
 
-	ini_set("error_log", NULL);
-	ini_set("log_errors", 1);
-	ini_set("html_errors", 0);
-	ini_set("display_errors", 0);
+	public function __construct() {
+		Console::$have_readline = function_exists("readline");
 
-	while (ob_get_level())
-		ob_end_clean();
+		error_reporting(E_ALL | E_STRICT);
 
-	ob_implicit_flush(true);
+		ini_set("error_log", NULL);
+		ini_set("log_errors", 1);
+		ini_set("html_errors", 0);
+		ini_set("display_errors", 0);
 
-	print "Loading " . HALFMOON_ENV . " environment (halfmoon)\n";
+		while (ob_get_level())
+			ob_end_clean();
 
-	/* TODO: forcibly load models so they're in the tab-completion cache */
+		ob_implicit_flush(true);
 
-	__halfmoon_console__loop();
-}
+		print "Loading " . HALFMOON_ENV . " environment (halfmoon)\n";
 
-function __halfmoon_console__rl_complete($line, $pos, $cursor) {
-	$consts = array_keys(get_defined_constants());
-	$vars = array_keys($GLOBALS);
-	$funcs = get_defined_functions();
-	$classes = get_declared_classes();
+		/* TODO: forcibly load models so they're in the tab-completion cache */
 
-	/* hide internal functions */
-	$s = "__halfmoon_console__";
-	foreach ($funcs["user"] as $i)
-		if (substr($i, 0, strlen($s)) != $s)
-			$funcs["internal"][] = $i;
-	$funcs = $funcs["internal"];
+		$this->loop();
+	}
 
-	return array_merge($consts, $vars, $funcs, $classes);
-}
+	public function readline_complete($line, $pos, $cursor) {
+		$consts = array_keys(get_defined_constants());
+		$vars = array_keys($GLOBALS);
+		$funcs = get_defined_functions();
+		$classes = get_declared_classes();
 
-function __halfmoon_console__loop() {
-	for (;;) {
-		readline_completion_function("__halfmoon_console__rl_complete");
-		$__halfmoon_console__line = readline(">> ");
+		return array_merge($consts, $vars, $funcs, $classes);
+	}
 
-		if ($__halfmoon_console__line === false) {
-			echo "\n";
-			break;
-		}
-
-		if (strlen($__halfmoon_console__line) == 0)
-			continue;
-
-		if (!isset($__halfmoon_console__hist) ||
-		($__halfmoon_console__line != $__halfmoon_console__hist)) {
-			readline_add_history($__halfmoon_console__line);
-			$__halfmoon_console__hist = $__halfmoon_console__line;
-		}
-
-		if (__halfmoon_console__is_immediate($__halfmoon_console__line))
-			$__halfmoon_console__line = "return (" . $__halfmoon_console__line
-				. ")";
-
-		ob_start();
-
-		try {
-			$ret = eval("unset(\$__halfmoon_console__line); "
-				. $__halfmoon_console__line . ";");
-
-			if (ob_get_length() == 0) {
-				if (is_bool($ret))
-					echo ($ret ? "true" : "false");
-				else if (is_string($ret))
-					echo "'" . addcslashes($ret, "\0..\37\177..\377")  . "'";
-				else if (!is_null($ret))
-					print_r($ret);
+	public function loop() {
+		for (;;) {
+			if (Console::$have_readline) {
+				readline_completion_function("__halfmoon_console__rl_complete");
+				$this->line = readline(">> ");
+			} else {
+				print ">> ";
+				$this->line = trim(fgets(STDIN));
 			}
 
-			unset($ret);
-		} catch (Exception $exception) {
-			$title = get_class($exception);
+			if ($this->line === false ||
+			(!Console::$have_readline && feof(STDIN))) {
+				echo "\n";
+				break;
+			}
 
-			/* activerecord includes the stack trace in the message, so strip
-			 * it out */
-			if ($exception instanceof \ActiveRecord\DatabaseException)
-				$title .= ": " . preg_replace("/\nStack trace:.*/s", "",
-					$exception->getMessage());
-			elseif ($exception->getMessage())
-				$title .= ": " . $exception->getMessage() . " in "
-					. $exception->getFile() . " on line "
-					. $exception->getLine();
+			if (strlen($this->line) == 0)
+				continue;
 
-			print $title . "\n";
+			if (Console::$have_readline && (!isset($this->history) ||
+			($this->line != $this->history))) {
+				readline_add_history($this->line);
+				$this->history = $this->line;
+			}
 
-			foreach ($exception->getTrace() as $call)
-				print "    "
-					. (isset($call["file"]) ? $call["file"] : $call["class"])
-					. ":"
-					. (isset($call["line"]) ? $call["line"] : "")
-					. " in " . $call["function"] . "()\n";
+			if ($this->is_immediate($this->line))
+				$this->line = "return (" . $this->line . ")";
+
+			ob_start();
+
+			try {
+				$ret = eval($this->line . ";");
+
+				if (ob_get_length() == 0) {
+					if (is_bool($ret))
+						echo ($ret ? "true" : "false");
+					else if (is_string($ret))
+						echo "'" . addcslashes($ret, "\0..\37\177..\377")  . "'";
+					else if (!is_null($ret))
+						print_r($ret);
+				}
+
+				unset($ret);
+			} catch (\Exception $exception) {
+				$title = get_class($exception);
+
+				/* activerecord includes the stack trace in the message, so strip
+				 * it out */
+				if ($exception instanceof \ActiveRecord\DatabaseException)
+					$title .= ": " . preg_replace("/\nStack trace:.*/s", "",
+						$exception->getMessage());
+				elseif ($exception->getMessage())
+					$title .= ": " . $exception->getMessage() . " in "
+						. $exception->getFile() . " on line "
+						. $exception->getLine();
+
+				print $title . "\n";
+
+				foreach ($exception->getTrace() as $call)
+					print "    "
+						. (isset($call["file"]) ? $call["file"] : $call["class"])
+						. ":"
+						. (isset($call["line"]) ? $call["line"] : "")
+						. " in " . $call["function"] . "()\n";
+			}
+
+			$out = ob_get_contents();
+			ob_end_clean();
+
+			if ((strlen($out) > 0) && (substr($out, -1) != "\n"))
+				$out .= "\n";
+
+			echo $out;
+
+			unset($out);
+		}
+	}
+
+	public function is_immediate($line) {
+		$skip = array("class", "declare", "die", "echo", "exit", "for",
+					  "foreach", "function", "global", "if", "include",
+					  "include_once", "print", "require", "require_once",
+					  "return", "static", "switch", "unset", "while");
+		$okeq = array("===", "!==", "==", "!=", "<=", ">=");
+		$code = "";
+		$sq = false;
+		$dq = false;
+		for ($i = 0; $i < strlen($line); $i++) {
+			$c = $line{$i};
+			if ($c == "'")
+				$sq = !$sq;
+			else if ($c == '"')
+				$dq = !$dq;
+			else if (($sq) || ($dq)) {
+				if ($c == "\\")
+					$i++;
+			} else
+				$code .= $c;
 		}
 
-		$out = ob_get_contents();
-		ob_end_clean();
+		$code = str_replace($okeq, "", $code);
 
-		if ((strlen($out) > 0) && (substr($out, -1) != "\n"))
-			$out .= "\n";
-
-		echo $out;
-
-		unset($out);
-	}
-}
-
-function __halfmoon_console__is_immediate($line) {
-	$skip = array("class", "declare", "die", "echo", "exit", "for",
-				  "foreach", "function", "global", "if", "include",
-				  "include_once", "print", "require", "require_once",
-				  "return", "static", "switch", "unset", "while");
-	$okeq = array("===", "!==", "==", "!=", "<=", ">=");
-	$code = "";
-	$sq = false;
-	$dq = false;
-	for ($i = 0; $i < strlen($line); $i++) {
-		$c = $line{$i};
-		if ($c == "'")
-			$sq = !$sq;
-		else if ($c == '"')
-			$dq = !$dq;
-		else if (($sq) || ($dq)) {
-			if ($c == "\\")
-				$i++;
-		} else
-			$code .= $c;
-	}
-
-	$code = str_replace($okeq, "", $code);
-
-	if (strcspn($code, ";{=") != strlen($code))
-		return false;
-
-	foreach (preg_split("/[^A-Za-z0-9_]/", $code) as $i)
-		if (in_array($i, $skip))
+		if (strcspn($code, ";{=") != strlen($code))
 			return false;
 
-	return true;
-}
+		foreach (preg_split("/[^A-Za-z0-9_]/", $code) as $i)
+			if (in_array($i, $skip))
+				return false;
 
-__halfmoon_console__init();
+		return true;
+	}
+}
 
 ?>
