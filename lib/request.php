@@ -118,7 +118,10 @@ class Request {
 
 		catch (\Exception $e) {
 			/* rescue, log, notify (if necessary), exit */
-			Rescuer::rescue_exception($e, $this);
+			if (class_exists("\\HalfMoon\\Rescuer"))
+				Rescuer::rescue_exception($e, $this);
+			else
+				throw $e;
 		}
 	}
 

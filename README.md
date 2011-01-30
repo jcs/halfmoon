@@ -48,10 +48,12 @@ by the controller.  There are other helpers available like `$time`,
 	The `mcrypt` extension is required for using the encrypted cookie
 	session store (see [this page](http://michaelgracie.com/2009/09/23/plugging-mcrypt-into-php-on-mac-os-x-snow-leopard-10.6.1/) for Mac OS X instructions).
 
-	The `pcntl` extension is required to use script/dbconsole.  The same
-	instructions for Mac OS can be applied (download the PHP tarball for the
-	version installed, untar, `cd ext/pcntl; phpize; ./configure;
-	make; make install`, enable in php.ini.
+	The `pcntl` extension is required to use script/dbconsole and the
+	`readline` extension is required to use script/console.  Both can be
+	installed on Mac OS X with the same instructions for mcrypt but no
+	extra dependencies (download the PHP tarball for the version that
+	`php -v` reports, untar, `cd ext/{pcntl,readline}; phpize;
+	./configure; make; make install`, enable in php.ini.
 
 -	Apache 1 or 2, with mod_rewrite enabled.  Development of halfmoon is
 	done on OpenBSD in a chroot()'d Apache 1 server, so any other
