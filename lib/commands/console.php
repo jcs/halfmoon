@@ -6,15 +6,34 @@
 
 namespace HalfMoon;
 
-require_once(dirname(__FILE__) . "/../halfmoon.php");
-
 class Console {
+	private $args;
 	public static $have_readline;
 	public $line;
 	public $history;
 
-	public function __construct() {
+	public function __construct($args) {
+		$this->args = $args;
+
 		Console::$have_readline = function_exists("readline");
+
+		for ($x = 1; $x < count($args); $x++)
+			switch ($args[$x]) {
+			case "-h":
+			case "--help":
+				$this->usage();
+				break;
+			
+			default:
+				if (substr($args[$x], 0, 1) == "-")
+					$this->usage();
+				elseif (defined("HALFMOON_ENV"))
+					$this->usage();
+				else
+					define("HALFMOON_ENV", $args[$x]);
+			}
+
+		require_once(dirname(__FILE__) . "/../halfmoon.php");
 
 		error_reporting(E_ALL | E_STRICT);
 
@@ -28,11 +47,15 @@ class Console {
 
 		ob_implicit_flush(true);
 
-		print "Loading " . HALFMOON_ENV . " environment (halfmoon)\n";
-
 		/* TODO: forcibly load models so they're in the tab-completion cache */
 
+		print "Loaded " . HALFMOON_ENV . " environment (halfmoon)\n";
+
 		$this->loop();
+	}
+
+	public function usage() {
+		die("usage: " . $this->args[0] . " [-h] [environment]\n");
 	}
 
 	public function readline_complete($line, $pos, $cursor) {

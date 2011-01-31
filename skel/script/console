@@ -3,6 +3,6 @@
 
 require_once(dirname(__FILE__) . "/../halfmoon/lib/commands/console.php");
 
-new \HalfMoon\Console;
+new \HalfMoon\Console($argv);
 
 ?>
