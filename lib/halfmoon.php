@@ -58,15 +58,20 @@ set_include_path(get_include_path() . PATH_SEPARATOR . HALFMOON_ROOT);
 if (file_exists(HALFMOON_ROOT . "/config/boot.php"))
 	require_once(HALFMOON_ROOT . "/config/boot.php");
 
-HalfMoon\Config::initialize_activerecord();
+/* autoload controllers and helpers as needed */
+function halfmoon_autoload($class_name) {
+	if (preg_match("/^([A-Za-z0-9_]+)(Controller|Helper)$/", $class_name, $m)) {
+		$file = HALFMOON_ROOT . "/" . (strtolower($m[2]) . "s") . "/"
+			. strtolower($m[1]) . "_" . strtolower($m[2]) . ".php";
 
-/* bring in all the controllers starting with the application_controller */
-$controllers = glob(HALFMOON_ROOT . "/controllers/*_controller.php");
-usort($controllers, function($a, $b) {
-	return basename($b) == "application_controller.php" ? 1 : -1;
-});
-foreach ($controllers as $controller)
-	require_once($controller);
+		if (file_exists($file))
+			require_once($file);
+	}
+}
+
+spl_autoload_register("halfmoon_autoload", false, false);
+
+HalfMoon\Config::initialize_activerecord();
 
 /* bring in the route table and route our request */
 HalfMoon\Router::initialize(function($router) {
