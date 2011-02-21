@@ -33,7 +33,7 @@ class Console {
 					define("HALFMOON_ENV", $args[$x]);
 			}
 
-		require_once(dirname(__FILE__) . "/../halfmoon.php");
+		require_once(__DIR__ . "/../halfmoon.php");
 
 		error_reporting(E_ALL | E_STRICT);
 
@@ -70,8 +70,9 @@ class Console {
 	public function loop() {
 		for (;;) {
 			if (Console::$have_readline) {
-				readline_completion_function("__halfmoon_console__rl_complete");
-				$this->line = readline(">> ");
+				readline_completion_function(array($this,
+					"readline_complete"));
+				$this->line = @readline(">> ");
 			} else {
 				print ">> ";
 				$this->line = trim(fgets(STDIN));
@@ -98,7 +99,7 @@ class Console {
 			ob_start();
 
 			try {
-				$ret = eval($this->line . ";");
+				$ret = @eval($this->line . ";");
 
 				if (ob_get_length() == 0) {
 					if (is_bool($ret))
