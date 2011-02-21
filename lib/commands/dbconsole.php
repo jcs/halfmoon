@@ -15,6 +15,7 @@ class DBConsole {
 			die("pcntl extension not installed/loaded. exiting.\n");
 
 		$this->args = $args;
+		$this->include_password = false;
 
 		for ($x = 1; $x < count($args); $x++)
 			switch ($args[$x]) {
@@ -36,8 +37,6 @@ class DBConsole {
 				else
 					define("HALFMOON_ENV", $args[$x]);
 			}
-
-		$this->include_password = false;
 
 		$this->run_db_utility();
 	}
@@ -82,7 +81,7 @@ class DBConsole {
 			if (!$bin_path)
 				die("cannot find mysql in \$PATH\n");
 
-			pcntl_exec($bin_path, $args);
+			pcntl_exec($bin_path, $bin_args);
 			break;
 
 		default:
