@@ -46,7 +46,7 @@ class DBConsole {
 	}
 
 	public function run_db_utility() {
-		require_once(dirname(__FILE__) . "/../halfmoon.php");
+		require_once(__DIR__ . "/../halfmoon.php");
 
 		$db_config = Config::instance()->db_config;
 

@@ -123,7 +123,7 @@ class Rescuer {
 			@ob_end_clean();
 
 		if (HALFMOON_ENV == "development" && ini_get("display_errors"))
-			require_once(dirname(__FILE__) . "/rescue.phtml");
+			require_once(__DIR__ . "/rescue.phtml");
 		else {
 			/* production mode, try to handle gracefully */
 
