@@ -161,7 +161,7 @@ class Request {
 			return ($this->_remote_ip = $this->headers["HTTP_CLIENT_IP"]);
 		}
 
-		if (count($forwarded_for)) {
+		if (!empty($forwarded_for)) {
 			while (count($forwarded_for) > 1 &&
 			preg_match(Request::TRUSTED_PROXIES, trim(end($forwarded_for))))
 				array_pop($forwarded_for);

@@ -9,10 +9,10 @@ function h($text) {
 }
 
 function array_last(&$array) {
-	if (count($array))
-		return $array[count($array) - 1];
-	else
+	if (empty($array))
 		return NULL;
+	else
+		return $array[count($array) - 1];
 }
 
 ?>

@@ -8,7 +8,7 @@ if (floatval(phpversion()) < 5.3)
 		. phpversion() . ")");
 
 /* where our app lives (not just where halfmoon lives) */
-define("HALFMOON_ROOT", realpath(dirname(__FILE__) . "/../../"));
+define("HALFMOON_ROOT", realpath(__DIR__ . "/../../"));
 
 /* some sane defaults */
 date_default_timezone_set("UTC");

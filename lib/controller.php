@@ -83,7 +83,7 @@ class ApplicationController {
 					else {
 						$filter = false;
 
-						if (is_array($filters) && count($filters)) {
+						if (is_array($filters) && !empty($filters)) {
 							foreach ($filters as $field)
 								if (preg_match("/" . preg_quote($field, "/")
 								. "/i", $k)) {

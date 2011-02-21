@@ -43,7 +43,7 @@ class Router extends Singleton {
 		/* find and take the first matching route, storing route components in
 		 * $params */
 		if ($request->path == "") {
-			if (!count($this->rootRoutes))
+			if (empty($this->rootRoutes))
 				throw new HalfMoonException("no root route defined");
 
 			foreach ($this->rootRoutes as $route) {

@@ -1,7 +1,7 @@
 #!/usr/bin/env php
 <?php
 
-require_once(dirname(__FILE__) . "/../halfmoon/lib/commands/dbconsole.php");
+require_once(__DIR__ . "/../halfmoon/lib/commands/dbconsole.php");
 
 new \HalfMoon\DBConsole($argv);
 
