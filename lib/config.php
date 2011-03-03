@@ -12,7 +12,7 @@ class Config extends Singleton {
 	public $exception_notification_recipient;
 	public $exception_notification_subject;
 
-	public function load_db_config() {
+	public static function load_db_config() {
 		if (Config::instance()->db_config)
 			return Config::instance()->db_config;
 
@@ -35,7 +35,7 @@ class Config extends Singleton {
 		return Config::instance()->db_config;
 	}
 
-	public function initialize_activerecord() {
+	public static function initialize_activerecord() {
 		$db = Config::instance()->load_db_config();
 
 		Config::instance()->activerecord = \ActiveRecord\Config::instance();
@@ -62,7 +62,7 @@ class Config extends Singleton {
 		}
 	}
 
-	public function set_session_store($store, $options = array()) {
+	public static function set_session_store($store, $options = array()) {
 		switch (strtolower($store)) {
 		case "encrypted_cookie":
 			require_once(HALFMOON_ROOT
@@ -95,11 +95,11 @@ class Config extends Singleton {
 		}
 	}
 
-	public function set_exception_notification_recipient($recipient) {
+	public static function set_exception_notification_recipient($recipient) {
 		Config::instance()->exception_notification_recipient = $recipient;
 	}
 
-	public function set_exception_notification_subject($subject) {
+	public static function set_exception_notification_subject($subject) {
 		Config::instance()->exception_notification_subject = $subject;
 	}
 }
