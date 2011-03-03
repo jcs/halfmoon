@@ -20,12 +20,7 @@ class Log {
 
 	/* print_r() to the error log */
 	static function error_log_r($param) {
-		ob_start();
-		print_r($param);
-		$lines = explode("\n", ob_get_clean());
-
-		foreach ($lines as $line)
-			error_log($line);
+		array_map("error_log", explode("\n", print_r($param, true)));
 	}
 }
 
