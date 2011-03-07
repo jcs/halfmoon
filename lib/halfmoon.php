@@ -22,7 +22,7 @@ require_once(HALFMOON_ROOT . "/halfmoon/lib/exceptions.php");
 
 /* install error handlers as soon as possible if we're not running on the
  * command line */
-if (defined("STDOUT") && !posix_isatty(STDOUT))
+if (!defined("STDOUT") || !posix_isatty(STDOUT))
 	require_once(HALFMOON_ROOT . "/halfmoon/lib/rescuer.php");
 
 /* set some sane defaults */
