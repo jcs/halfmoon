@@ -224,21 +224,25 @@ class HtmlHelper extends Helper {
 			$files = array($files);
 
 		foreach ($files as $file) {
-			$file .= ".css";
+			$file_value = $file;
 
-			$mtime = 0;
-			if (file_exists(HALFMOON_ROOT . "/public/stylesheets/" . $file))
-				$mtime = filemtime(HALFMOON_ROOT . "/public/stylesheets/"
-					. $file);
+			if (!strpos($file_value, "?")) {
+				if (!preg_match("/\.css$/i", $file_value))
+					$file_value .= ".css";
+
+				$mtime = 0;
+				if (file_exists(HALFMOON_ROOT . "/public/stylesheets/" . $file))
+					$file_value .= "?" . filemtime(HALFMOON_ROOT
+						. "/public/stylesheets/" . $file);
+			}
 
 			if (isset($options["xml"]))
 				$out .= "<?xml-stylesheet type=\"text/css\" "
-					. "href=\"/stylesheets/" . $file . ($mtime ? "?"
-					. $mtime : "") . "\" ?>\n";
+					. "href=\"/stylesheets/" . $file_value . "\" ?" . ">\n";
 			else
-				$out .= "<link href=\"/stylesheets/" . $file
-					. ($mtime ? "?" . $mtime : "") . "\" media=\"screen\" "
-					. "rel=\"stylesheet\" type=\"text/css\"/>\n";
+				$out .= "<link href=\"/stylesheets/" . $file_value . "\" "
+					. "media=\"screen\" rel=\"stylesheet\" "
+					. "type=\"text/css\"/>\n";
 		}
 
 		return $out;
