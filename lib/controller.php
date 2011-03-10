@@ -60,7 +60,7 @@ class ApplicationController {
 		$this->request = $request;
 		$this->params = &$request->params;
 
-		if (array_keys($this->params)) {
+		if (Config::log_level_at_least("full") && array_keys($this->params)) {
 			$params_log = "  Parameters: ";
 
 			/* the closure can't access static vars */
@@ -146,7 +146,8 @@ class ApplicationController {
 		while (@ob_end_clean())
 			;
 
-		Log::info("Redirected to " . $link);
+		if (Config::log_level_at_least("short"))
+			Log::info("Redirected to " . $link);
 
 		/* end session first so it can write the cookie */
 		session_write_close();
@@ -269,7 +270,8 @@ class ApplicationController {
 		/* define $controller where $this can't be used */
 		$controller = $this;
 
-		Log::info("Rendering " . $__file);
+		if (Config::log_level_at_least("full"))
+			Log::info("Rendering " . $__file);
 
 		require($__file);
 	}
@@ -421,7 +423,9 @@ class ApplicationController {
 			/* define $controller where $this can't be used */
 			$controller = $this;
 
-			Log::info("Rendering layout " . $layout);
+			if (Config::log_level_at_least("full"))
+				Log::info("Rendering layout " . $layout);
+
 			require(HALFMOON_ROOT . "/views/layouts/" . $layout . ".phtml");
 		} else
 			print $content_for_layout;
@@ -541,8 +545,9 @@ class ApplicationController {
 					. "\" function does not exist");
 
 			if (!call_user_func_array(array($this, $filter[0]), array())) {
-				Log::info("Filter chain halted as " . $filter[0] . " returned "
-					. "false.");
+				if (Config::log_level_at_least("short"))
+					Log::info("Filter chain halted as " . $filter[0]
+						. " returned false.");
 
 				return false;
 			}

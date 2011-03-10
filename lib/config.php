@@ -6,11 +6,23 @@
 namespace HalfMoon;
 
 class Config extends Singleton {
+	public static $LOG_LEVELS = array(
+		"none" => 0,
+		"short" => 5,
+		"full" => 10,
+	);
+	public static $DEFAULT_LOG_LEVEL = "full";
+
 	public $activerecord;
 	public $db_config;
 
 	public $exception_notification_recipient;
 	public $exception_notification_subject;
+	public $log_level;
+
+	public function __construct() {
+		$this->log_level = static::$LOG_LEVELS[static::$DEFAULT_LOG_LEVEL];
+	}
 
 	public static function load_db_config() {
 		if (Config::instance()->db_config)
@@ -101,6 +113,22 @@ class Config extends Singleton {
 
 	public static function set_exception_notification_subject($subject) {
 		Config::instance()->exception_notification_subject = $subject;
+	}
+
+	public static function set_log_level($level) {
+		if (!isset(static::$LOG_LEVELS[$level]))
+			throw new \HalfMoon\HalfMoonException("unknown log level: "
+				. $level);
+
+		Config::instance()->log_level = static::$LOG_LEVELS[$level];
+	}
+
+	public static function log_level_at_least($level) {
+		if (!isset(static::$LOG_LEVELS[$level]))
+			throw new \HalfMoon\HalfMoonException("unknown log level: "
+				. $level);
+
+		return (Config::instance()->log_level >= static::$LOG_LEVELS[$level]);
 	}
 }
 

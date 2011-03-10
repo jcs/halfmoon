@@ -106,14 +106,15 @@ class Request {
 				$app_time -= $db_time;
 			}
 
-			Log::info("Completed in " . sprintf("%0.5f", $total_time)
-				. (isset($db_time) ? " | DB: " . sprintf("%0.5f", $db_time)
-					. " (" . intval(($db_time / $total_time) * 100) . "%)" : "")
-				. " | App: " . sprintf("%0.5f", $app_time)
-					. " (" . intval(($app_time / $total_time) * 100) . "%)"
-				. " | Framework: " . sprintf("%0.5f", $framework_time)
-					. " (" . intval(($framework_time / $total_time) * 100) . "%)"
-				. " [" . $this->url . "]");
+			if (Config::log_level_at_least("short"))
+				Log::info("Completed in " . sprintf("%0.5f", $total_time)
+					. (isset($db_time) ? " | DB: " . sprintf("%0.5f", $db_time)
+						. " (" . intval(($db_time / $total_time) * 100) . "%)" : "")
+					. " | App: " . sprintf("%0.5f", $app_time)
+						. " (" . intval(($app_time / $total_time) * 100) . "%)"
+					. " | Framework: " . sprintf("%0.5f", $framework_time)
+						. " (" . intval(($framework_time / $total_time) * 100) . "%)"
+					. " [" . $this->url . "]");
 		}
 
 		catch (\Exception $e) {

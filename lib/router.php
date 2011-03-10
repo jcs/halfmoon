@@ -150,9 +150,10 @@ class Router extends Singleton {
 		$c = ucfirst($route["controller"]) . "Controller";
 
 		/* log some basic information */
-		Log::info("Processing " . $c . "::" . $route["action"] . " (for "
-			. $request->remote_ip() . ") [" . $request->request_method()
-			. "]");
+		if (Config::log_level_at_least("full"))
+			Log::info("Processing " . $c . "::" . $route["action"] . " (for "
+				. $request->remote_ip() . ") [" . $request->request_method()
+				. "]");
 
 		$request->start_times["app"] = microtime(true);
 

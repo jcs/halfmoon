@@ -38,6 +38,9 @@ if (HALFMOON_ENV == "development") {
 
 	$GLOBALS['ACTIVERECORD_LOG'] = true;
 	$GLOBALS['ACTIVERECORD_LOGGER'] = new LogLogLog;
+
+	/* and log all halfmoon activity */
+	HalfMoon\Config::set_log_level("full");
 }
 
 elseif (HALFMOON_ENV == "production") {
@@ -46,6 +49,9 @@ elseif (HALFMOON_ENV == "production") {
 	/* don't display actual php error messages to the user, just generic error
 	 * pages (see skel/500.html) */
 	ini_set("display_errors", 0);
+
+	/* only log processing time */
+	HalfMoon\Config::set_log_level("short");
 
 	/* uncomment to send emails of error backtraces and debugging info */
 	# HalfMoon\Config::set_exception_notification_recipient("you@example.com");
