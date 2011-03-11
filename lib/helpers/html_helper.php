@@ -92,15 +92,21 @@ class HtmlHelper extends Helper {
 			$files = array($files);
 
 		foreach ($files as $file) {
-			$file .= ".js";
+			$file_value = $file;
 
-			$mtime = 0;
-			if (file_exists(HALFMOON_ROOT . "/public/javascripts/" . $file))
-				$mtime = filemtime(HALFMOON_ROOT . "/public/javascripts/"
-					. $file);
+			if (!strpos($file_value, "?")) {
+				if (!preg_match("/\.js$/i", $file_value))
+					$file_value .= ".js";
+
+				$mtime = 0;
+				if (file_exists(HALFMOON_ROOT . "/public/javascripts/"
+				. $file_value))
+					$file_value .= "?" . filemtime(HALFMOON_ROOT
+						. "/public/javascripts/" . $file_value);
+			}
 
 			$out .= "<script type=\"text/javascript\" src=\"/javascripts/"
-				. $file . ($mtime ? "?" . $mtime : "") . "\"></script>\n";
+				. $file_value . "\"></script>\n";
 		}
 
 		return $out;
@@ -231,9 +237,10 @@ class HtmlHelper extends Helper {
 					$file_value .= ".css";
 
 				$mtime = 0;
-				if (file_exists(HALFMOON_ROOT . "/public/stylesheets/" . $file))
+				if (file_exists(HALFMOON_ROOT . "/public/stylesheets/"
+				. $file_value))
 					$file_value .= "?" . filemtime(HALFMOON_ROOT
-						. "/public/stylesheets/" . $file);
+						. "/public/stylesheets/" . $file_value);
 			}
 
 			if (isset($options["xml"]))
