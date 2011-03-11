@@ -239,7 +239,7 @@ class ApplicationController {
 			"controller");
 
 		/* export variables set in the controller to the view */
-		foreach ($this->locals as $__k => $__v) {
+		foreach ((array)$this->locals as $__k => $__v) {
 			if (in_array($__k, $__special_vars)) {
 				Log::warn("tried to redefine \$" . $__k . " passed from "
 					. "controller");
@@ -250,7 +250,7 @@ class ApplicationController {
 		}
 
 		/* and any passed as locals to the render() function */
-		foreach ($__vars as $__k => $__v) {
+		foreach ((array)$__vars as $__k => $__v) {
 			if (in_array($__k, $__special_vars)) {
 				Log::warn("tried to redefine \$" . $__k . " passed "
 					. "from render() call");
