@@ -87,16 +87,6 @@ class FormHelperCommon extends Helper {
 		else
 			return $html;
 	}
-
-	/* just a convenience forward to the global button_to() */
-	public function button_to() {
-		return call_user_func_array("button_to", func_get_args());
-	}
-
-	/* just a convenience forward to the global link_to() */
-	public function link_to() {
-		return call_user_func_array("link_to", func_get_args());
-	}
 }
 
 ?>
