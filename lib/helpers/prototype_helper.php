@@ -107,8 +107,6 @@ class PrototypeHelper extends FormHelper {
 	/* the guts of remote_form_for() and form_remote_tag() */
 	protected function output_remote_form_around_closure($url_or_obj,
 	$options = array(), \Closure $form_content) {
-		$options["form"] = true;
-
 		if (!isset($options["html"]))
 			$options["html"] = array();
 

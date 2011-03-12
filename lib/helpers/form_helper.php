@@ -8,8 +8,6 @@ namespace HalfMoon;
 require_once("form_common.php");
 
 class FormHelper extends FormTagHelper {
-	public $form_object = null;
-
 	public function form_for($obj, $url_or_obj, $options = array(),
 	\Closure $form_content) {
 		if (!$obj)
@@ -19,6 +17,20 @@ class FormHelper extends FormTagHelper {
 
 		return $this->output_form_around_closure($url_or_obj, $options,
 			$form_content);
+	}
+
+	public function form_object_for($obj, $url_or_obj, $options = array(),
+	\Closure $form_content) {
+		if (!$obj)
+			throw new HalfMoonException("invalid object passed to form_for()");
+
+		$this->form_object = $obj;
+
+		$html = Utils::to_s($this, $form_content);
+
+		$this->form_object = null;
+
+		return $html;
 	}
 
 	/* the prefix to use for class and id names for fields */
@@ -64,6 +76,10 @@ class FormHelper extends FormTagHelper {
 	 * reverse the order of the checkbox and hidden input field) */
 	public function check_box($field, $options = array(), $checked_value = 1,
 	$unchecked_value = 0) {
+		if (!$this->form_object)
+			throw new HalfMoonException("no form object; you probably wanted "
+				. "check_box_tag");
+
 		$options = $this->set_field_id_and_name($field, $options);
 
 		return "<input"
@@ -79,6 +95,10 @@ class FormHelper extends FormTagHelper {
 
 	/* create an <input> file upload field */
 	public function file_field($field, $options = array()) {
+		if (!$this->form_object)
+			throw new HalfMoonException("no form object; you probably wanted "
+				. "file_field_tag");
+
 		$options = $this->set_field_id_and_name($field, $options);
 
 		return $this->wrap_field_with_errors($field,
@@ -88,6 +108,10 @@ class FormHelper extends FormTagHelper {
 
 	/* create a hidden <input> field */
 	public function hidden_field($field, $options = array()) {
+		if (!$this->form_object)
+			throw new HalfMoonException("no form object; you probably wanted "
+				. "hidden_field_tag");
+
 		$options = $this->set_field_id_and_name($field, $options);
 
 		return $this->hidden_field_tag($field, $this->value_for_field($field),
@@ -96,6 +120,10 @@ class FormHelper extends FormTagHelper {
 
 	/* create a <label> that references a field */
 	public function label($field, $caption = null, $options = array()) {
+		if (!$this->form_object)
+			throw new HalfMoonException("no form object; you probably wanted "
+				. "label_tag");
+
 		if (!isset($options["for"]))
 			$options["for"] = $this->prefixed_field_id($field);
 
@@ -104,6 +132,10 @@ class FormHelper extends FormTagHelper {
 
 	/* create an <input> password field, *not including any value* */
 	public function password_field($field, $options = array()) {
+		if (!$this->form_object)
+			throw new HalfMoonException("no form object; you probably wanted "
+				. "password_field_tag");
+
 		$options = $this->set_field_id_and_name($field, $options);
 
 		return $this->wrap_field_with_errors($field,
@@ -113,6 +145,10 @@ class FormHelper extends FormTagHelper {
 
 	/* create an <input> radio button */
 	public function radio_button($field, $value, $options = array()) {
+		if (!$this->form_object)
+			throw new HalfMoonException("no form object; you probably wanted "
+				. "radio_button_tag");
+
 		$options = $this->set_field_id_and_name($field, $options);
 
 		return $this->wrap_field_with_errors($field,
@@ -123,6 +159,10 @@ class FormHelper extends FormTagHelper {
 
 	/* create a <select> box with options */
 	public function select($field, $choices, $options = array()) {
+		if (!$this->form_object)
+			throw new HalfMoonException("no form object; you probably wanted "
+				. "select_tag");
+
 		$options = $this->set_field_id_and_name($field, $options);
 
 		return $this->wrap_field_with_errors($field,
@@ -142,6 +182,10 @@ class FormHelper extends FormTagHelper {
 
 	/* create a <textarea> field */
 	public function text_area($field, $options = array()) {
+		if (!$this->form_object)
+			throw new HalfMoonException("no form object; you probably wanted "
+				. "text_area_tag");
+
 		$options = $this->set_field_id_and_name($field, $options);
 
 		return $this->wrap_field_with_errors($field,
@@ -152,6 +196,10 @@ class FormHelper extends FormTagHelper {
 
 	/* create an <input> text field */
 	public function text_field($field, $options = array()) {
+		if (!$this->form_object)
+			throw new HalfMoonException("no form object; you probably wanted "
+				. "text_field_tag");
+
 		$options = $this->set_field_id_and_name($field, $options);
 
 		return $this->wrap_field_with_errors($field,

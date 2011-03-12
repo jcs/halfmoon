@@ -7,6 +7,7 @@ namespace HalfMoon;
 
 class FormHelperCommon extends Helper {
 	public $controller = null;
+	public $form_object = null;
 
 	/* the guts of form_for() and form_tag() */
 	protected function output_form_around_closure($url_or_obj,
@@ -36,6 +37,8 @@ class FormHelperCommon extends Helper {
 		print Utils::to_s($this, $form_content);
 
 		print "</form>";
+
+		$this->form_object = null;
 
 		return $this;
 	}
@@ -69,7 +72,8 @@ class FormHelperCommon extends Helper {
 	/* convert an array of options to html element options */
 	protected function options_to_s($options) {
 		if (!is_array($options))
-			throw new HalfMoonException("invalid argument passed");
+			throw new HalfMoonException("invalid argument passed; expected "
+				. "options array");
 
 		$opts_s = "";
 		foreach ($options as $k => $v)
@@ -81,6 +85,10 @@ class FormHelperCommon extends Helper {
 	/* for each attribute in a form_for() object that has errors, output a div
 	 * around it that should be styled to stand out */
 	protected function wrap_field_with_errors($field, $html) {
+		if (!$this->form_object)
+			throw new HalfMoonExceptions("wrap_field_with_errors called when "
+				. "no form object");
+
 		if ($this->form_object->errors &&
 		$this->form_object->errors->on($field))
 			return "<div class=\"fieldWithErrors\">" . $html . "</div>";
