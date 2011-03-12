@@ -51,6 +51,7 @@ class ApplicationController {
 	public $helper = null;
 
 	private $did_render = false;
+	private $did_redirect = false;
 	private $did_layout = false;
 
 	/* track what ob_get_level() was when we started buffering */
@@ -138,7 +139,7 @@ class ApplicationController {
 		array_push($_SESSION["flash_notices"], $string);
 	}
 
-	/* cancel all buffered output, send a location: header, and exit */
+	/* cancel all buffered output, send a location: header and stop processing */
 	public function redirect_to($obj_or_url) {
 		$link = HTMLHelper::link_from_obj_or_string($obj_or_url);
 
@@ -149,13 +150,12 @@ class ApplicationController {
 		if (Config::log_level_at_least("short"))
 			Log::info("Redirected to " . $link);
 
+		$this->did_redirect = true;
+
 		/* end session first so it can write the cookie */
 		session_write_close();
 
 		header("Location: " . $link);
-
-		/* and bail */
-		exit;
 	}
 
 	/* render a partial view, an action template, text, etc. */
@@ -335,6 +335,9 @@ class ApplicationController {
 				. "\" does not have an action \"" . $action . "\"");
 
 		call_user_func_array(array($this, $action), array());
+
+		if ($this->did_redirect)
+			return;
 
 		if (!$this->did_render)
 			$this->render(array("action" => $this->params["controller"] . "/"
