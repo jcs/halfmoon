@@ -1853,6 +1853,8 @@ class Model
 			{
 				if ($did_begin)
 					$connection->rollback();
+
+				return false;
 			}
 			elseif ($did_begin)
 				$connection->commit();
