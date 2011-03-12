@@ -115,6 +115,8 @@ class PrototypeHelper extends FormHelper {
 		else
 			$options["html"]["onsubmit"] = "";
 
+		$options["form"] = true;
+
 		$options["html"]["onsubmit"] .= $this->remote_function($options)
 			. "; return false;";
 

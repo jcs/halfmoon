@@ -92,7 +92,7 @@ class ApplicationController {
 									break;
 								}
 						}
-						
+
 						if ($filter)
 							$params_log .= "[FILTERED]";
 						else
@@ -224,7 +224,7 @@ class ApplicationController {
 			}
 
 			else
-				throw new RenderException("no template file " . $full_file);
+				throw new MissingTemplate("no template file " . $full_file);
 		}
 
 		$this->did_render = true;
@@ -331,7 +331,7 @@ class ApplicationController {
 		 * avoid users getting directly to before_filters and other utility
 		 * functions */
 		if (!in_array($action, Utils::get_public_class_methods($this)))
-			throw new RenderException("controller \"" . get_class($this)
+			throw new UndefinedFunction("controller \"" . get_class($this)
 				. "\" does not have an action \"" . $action . "\"");
 
 		call_user_func_array(array($this, $action), array());
@@ -414,24 +414,24 @@ class ApplicationController {
 
 		$this->did_layout = true;
 
-		if (file_exists(HALFMOON_ROOT . "/views/layouts/" . $layout .
-		".phtml")) {
-			/* make helpers available to the layout */
-			$this->bring_in_helpers();
-			foreach ($this->_helper_refs as $__hn => $__hk) {
-				$$__hn = $__hk;
-				$$__hn->controller = $this;
-			}
+		if (!file_exists(HALFMOON_ROOT . "/views/layouts/" . $layout .
+		".phtml"))
+			 throw new MissingTemplate("no layout file " . $layout .  ".phtml");
 
-			/* define $controller where $this can't be used */
-			$controller = $this;
+		/* make helpers available to the layout */
+		$this->bring_in_helpers();
+		foreach ($this->_helper_refs as $__hn => $__hk) {
+			$$__hn = $__hk;
+			$$__hn->controller = $this;
+		}
 
-			if (Config::log_level_at_least("full"))
-				Log::info("Rendering layout " . $layout);
+		/* define $controller where $this can't be used */
+		$controller = $this;
 
-			require(HALFMOON_ROOT . "/views/layouts/" . $layout . ".phtml");
-		} else
-			print $content_for_layout;
+		if (Config::log_level_at_least("full"))
+			Log::info("Rendering layout " . $layout);
+
+		require(HALFMOON_ROOT . "/views/layouts/" . $layout . ".phtml");
 	}
 
 	/* enable or disable sessions according to $session */
@@ -544,7 +544,7 @@ class ApplicationController {
 				continue;
 
 			if (!method_exists($this, $filter[0]))
-				throw new RenderException("before_filter \"" . $filter[0]
+				throw new UndefinedFunction("before_filter \"" . $filter[0]
 					. "\" function does not exist");
 
 			if (!call_user_func_array(array($this, $filter[0]), array())) {
@@ -576,7 +576,7 @@ class ApplicationController {
 				continue;
 
 			if (!method_exists($this, $filter[0]))
-				throw new RenderException("after_filter \"" . $filter[0]
+				throw new UndefinedFunction("after_filter \"" . $filter[0]
 					. "\" function does not exist");
 
 			/* get all buffered output, then replace it with the filtered
