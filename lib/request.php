@@ -89,7 +89,7 @@ class Request {
 	 * handle it gracefully.  */
 	public function process() {
 		try {
-			Router::instance()->routeRequest($this);
+			Router::instance()->takeRouteForRequest($this);
 
 			/* we now have a list of when each part of the process started, so
 			 * we can build deltas to see how long each part took */

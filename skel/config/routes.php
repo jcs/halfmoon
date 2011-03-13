@@ -7,7 +7,7 @@
 
 	a specific route example to only match ids that are valid numbers:
 
-		HalfMoon\Router::instance()->addRoute(array(
+		HalfMoon\Router::addRoute(array(
 			"url" => "posts/:id",
 			"controller" => "posts",
 			"action" => "show",
@@ -16,7 +16,7 @@
 
 	a root route to match "/":
 
-		HalfMoon\Router::instance()->addRootRoute(array(
+		HalfMoon\Router::addRootRoute(array(
 			"controller" => "posts"
 		));
 
@@ -24,7 +24,7 @@
 	(this would have to be defined before the previous root route, since the
 	previous one has no conditions and would match all root urls):
 
-		HalfMoon\Router::instance()->addRootRoute(array(
+		HalfMoon\Router::addRootRoute(array(
 			"controller" => "posts",
 			"action" => "devindex",
 			"conditions" => array("hostname" => "dev"),
@@ -32,7 +32,7 @@
 */
 
 /* generic catch-all route to match everything else */
-HalfMoon\Router::instance()->addRoute(array(
+HalfMoon\Router::addRoute(array(
 	"url" => ":controller/:action/:id",
 ));
 

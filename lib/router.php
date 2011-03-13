@@ -8,55 +8,58 @@ namespace HalfMoon;
 use Closure;
 
 class Router extends Singleton {
-	public $routes = array();
-	public $rootRoutes = array();
+	private $routes = array();
+	private $rootRoutes = array();
 
-    public static function initialize(Closure $initializer) {
-        $initializer(parent::instance());
+	public static function initialize(Closure $initializer) {
+		$initializer(parent::instance());
 	}
 
-	public function addRoute($route) {
+	public static function addRoute($route) {
 		if (!is_array($route))
 			throw new HalfMoonException("invalid route of "
 				. var_export($route));
 
-		array_push($this->routes, $route);
+		array_push(parent::instance()->routes, $route);
 	}
 
-	public function addRootRoute($route) {
+	public static function addRootRoute($route) {
 		if (!is_array($route))
 			throw new HalfMoonException("invalid root route of "
 				. var_export($route, true));
 
 		/* only one root route can match a particular condition */
-		foreach ($this->rootRoutes as $rr)
+		foreach (parent::instance()->rootRoutes as $rr)
 			if (!array_diff_assoc((array)$rr, (array)$route["conditions"]))
 				throw new HalfMoonException("cannot add second root route "
 					. "with no conditions: " . var_export($route, true));
 
-		array_push($this->rootRoutes, $route);
+		array_push(parent::instance()->rootRoutes, $route);
 	}
 
-	public function routeRequest($request) {
+	public static function routeRequest($request) {
 		$path_pieces = explode("/", $request->path);
+
+		$chosen_route = null;
 
 		/* find and take the first matching route, storing route components in
 		 * $params */
 		if ($request->path == "") {
-			if (empty($this->rootRoutes))
-				throw new HalfMoonException("no root route defined");
+			if (empty(parent::instance()->rootRoutes))
+				throw new RoutingException("no root route defined");
 
-			foreach ($this->rootRoutes as $route) {
+			foreach (parent::instance()->rootRoutes as $route) {
 				/* verify virtual host matches if there's a condition on it */
 				if (isset($route["conditions"]["hostname"]))
 					if (!Utils::strcasecmp_or_preg_match(
 					$route["conditions"]["hostname"], $request->hostname))
 						continue;
 
-				return $this->takeRoute($route, $request);
+				$chosen_route = $route;
+				break;
 			}
 		} else {
-			foreach ($this->routes as $route) {
+			foreach (parent::instance()->routes as $route) {
 				/* verify virtual host matches if there's a condition on it */
 				if (isset($route["conditions"]["hostname"]))
 					if (!Utils::strcasecmp_or_preg_match(
@@ -124,24 +127,33 @@ class Router extends Singleton {
 					 * doesn't exist, that way at least the backtrace will show
 					 * what controller we resolved it to */
 
-					return $this->takeRoute($route, $request);
+					$chosen_route = $route;
+					break;
 				}
 			}
 		}
 
-		/* still here, no routes matched */
-		throw new RoutingException("no route for url \"" . $request->path . "\"");
-	}
+		if (!$chosen_route)
+			throw new RoutingException("no route for url \"" . $request->path
+				. "\"");
 
-	public function takeRoute($route, $request) {
 		/* we need at least a controller */
-		if ($route["controller"] == "")
-			throw new HalfMoonException("no controller specified");
+		if ($chosen_route["controller"] == "")
+			throw new RoutingException("no controller specified");
 
 		/* but we can deal with no action by calling the index action */
-		if (!isset($route["action"]) || $route["action"] == "")
-			$route["action"] = "index";
+		if (!isset($chosen_route["action"]) || $chosen_route["action"] == "")
+			$chosen_route["action"] = "index";
 
+		return $chosen_route;
+	}
+
+	public static function takeRouteForRequest($request) {
+		$route = parent::instance()->routeRequest($request);
+		return static::takeRoute($route, $request);
+	}
+
+	public static function takeRoute($route, $request) {
 		/* store the parameters named in the route with data from the url,
 		 * overriding anything passed by the user as get/post */
 		foreach ($route as $k => $v)
