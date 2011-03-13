@@ -393,14 +393,14 @@ class ApplicationController {
 			return;
 		}
 
-		$layout = null;
-
 		if (!is_array($this::$layout))
 			$this::$layout = array($this::$layout);
 
+		$tlayout = null;
+
 		/* check for an overridden layout and options */
-		do {
-			if (is_array($this::$layout[1])) {
+		while (isset($this::$layout[0])) {
+			if (isset($this::$layout[1]) && is_array($this::$layout[1])) {
 				/* don't override for specific actions */
 				if ($this::$layout[1]["except"] && in_array($params["action"],
 				(array)$this::$layout[1]["except"]))
@@ -413,24 +413,26 @@ class ApplicationController {
 			}
 
 			/* still here, override layout */
-			$layout = $this::$layout[0];
-		} while (0);
+			$tlayout = $this::$layout[0];
+
+			break;
+		}
 
 		/* if no specific layout was set, check for a controller-specific one */
-		if (!$layout && isset($this->params["controller"]) &&
+		if (!$tlayout && isset($this->params["controller"]) &&
 		file_exists(HALFMOON_ROOT . "/views/layouts/" . $this->params["controller"]
 		. ".phtml"))
-			$layout = $this->params["controller"];
+			$tlayout = $this->params["controller"];
 
 		/* otherwise, default to "application" */
-		if (!$layout)
-			$layout = "application";
+		if (!$tlayout)
+			$tlayout = "application";
 
 		$this->did_layout = true;
 
-		if (!file_exists(HALFMOON_ROOT . "/views/layouts/" . $layout .
+		if (!file_exists(HALFMOON_ROOT . "/views/layouts/" . $tlayout .
 		".phtml"))
-			 throw new MissingTemplate("no layout file " . $layout .  ".phtml");
+			 throw new MissingTemplate("no layout file " . $tlayout .  ".phtml");
 
 		/* make helpers available to the layout */
 		$this->bring_in_helpers();
@@ -443,9 +445,9 @@ class ApplicationController {
 		$controller = $this;
 
 		if (Config::log_level_at_least("full"))
-			Log::info("Rendering layout " . $layout);
+			Log::info("Rendering layout " . $tlayout);
 
-		require(HALFMOON_ROOT . "/views/layouts/" . $layout . ".phtml");
+		require(HALFMOON_ROOT . "/views/layouts/" . $tlayout . ".phtml");
 	}
 
 	/* enable or disable sessions according to $session */
@@ -605,7 +607,8 @@ class ApplicationController {
 
 	private function start_session() {
 		try {
-			session_start();
+			if (!session_id())
+				session_start();
 		} catch (\HalfMoon\InvalidCookieData $e) {
 			/* probably a decryption failure.  rather than assume the user is
 			 * an attacker, try to invalidate their session so they get a new

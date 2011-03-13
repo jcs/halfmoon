@@ -53,7 +53,8 @@ class PrototypeHelper extends FormHelper {
 	public function options_for_ajax($options) {
 		$js_options = array();
 
-		$js_options["asynchronous"] = ($options["type"] != "synchronous");
+		$js_options["asynchronous"] = (bool)(isset($options["type"]) &&
+			$options["type"] == "synchronous");
 
 		if (isset($options["method"]))
 			$js_options["method"] = "'" . $options["method"] . "'";

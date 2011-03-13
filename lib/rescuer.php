@@ -77,12 +77,25 @@ class Rescuer {
 		Log::error($title . ":");
 
 		if (!is_null($exception) && is_object($exception))
-			foreach ($exception->getTrace() as $call)
-				Log::error("    "
-					. (isset($call["file"]) ? $call["file"] : $call["class"])
-					. ":"
-					. (isset($call["line"]) ? $call["line"] : "")
-					. " in " . $call["function"] . "()");
+			foreach ($exception->getTrace() as $call) {
+				$out = "    ";
+
+				if (isset($call["file"]))
+					$out .= $call["file"];
+				elseif (isset($call["class"]))
+					$out .= $call["class"];
+				else
+					$out .= "unknown";
+
+				$out .= ":";
+
+				if (isset($call["line"]))
+					$out .= $call["line"];
+
+				$out .= " in " . $call["function"] . "()";
+
+				Log::error($out);
+			}
 
 		return;
 	}
