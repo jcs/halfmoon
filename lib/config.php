@@ -12,6 +12,7 @@ class Config extends Singleton {
 		"full" => 10,
 	);
 	public static $DEFAULT_LOG_LEVEL = "full";
+	public static $DEFAULT_ACTIVERECORD_LOG_LEVEL = "none";
 
 	public $activerecord;
 	public $db_config;
@@ -19,9 +20,16 @@ class Config extends Singleton {
 	public $exception_notification_recipient;
 	public $exception_notification_subject;
 	public $log_level;
+	public $activerecord_log_level;
 
 	public function __construct() {
 		$this->log_level = static::$LOG_LEVELS[static::$DEFAULT_LOG_LEVEL];
+		$this->activerecord_log_level =
+			static::$LOG_LEVELS[static::$DEFAULT_ACTIVERECORD_LOG_LEVEL];
+
+		/* legacy setting was just to log everything */
+		if (isset($GLOBALS['ACTIVERECORD_LOG']) && $GLOBALS['ACTIVERECORD_LOG'])
+			$this->activerecord_log_level = static::$LOG_LEVELS["full"];
 	}
 
 	public static function load_db_config() {
@@ -66,11 +74,20 @@ class Config extends Singleton {
 				. $db["password"] . "@" . $host . "/" . $db["database"]
 		));
 
-		/* support old globals for logging */
-		if ($GLOBALS["ACTIVERECORD_LOG"]) {
+		Config::initialize_activerecord_logger();
+	}
+
+	private static function initialize_activerecord_logger() {
+		if (Config::instance()->activerecord_log_level >
+		static::$LOG_LEVELS["none"]) {
 			Config::instance()->activerecord->set_logging(true);
 			Config::instance()->activerecord->set_logger(
-				$GLOBALS["ACTIVERECORD_LOGGER"]);
+				new \HalfMoon\ActiveRecordLogger(
+				Config::instance()->activerecord_log_level));
+		} else {
+			Config::instance()->activerecord->set_logging(false);
+			Config::instance()->activerecord->set_logger(
+				new \HalfMoon\ActiveRecordLogger);
 		}
 	}
 
@@ -121,6 +138,18 @@ class Config extends Singleton {
 				. $level);
 
 		Config::instance()->log_level = static::$LOG_LEVELS[$level];
+	}
+
+	public static function set_activerecord_log_level($level) {
+		if (!isset(static::$LOG_LEVELS[$level]))
+			throw new \HalfMoon\HalfMoonException("unknown log level: "
+				. $level);
+
+		Config::instance()->activerecord_log_level =
+			static::$LOG_LEVELS[$level];
+
+		if (Config::instance()->activerecord)
+			Config::initialize_activerecord_logger();
 	}
 
 	public static function log_level_at_least($level) {

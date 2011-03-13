@@ -300,7 +300,7 @@ abstract class Connection
 		$start_time = microtime(true);
 
 		if ($this->logging)
-			$this->logger->log($sql);
+			$this->logger->log($sql, $values);
 
 		$this->last_query = $sql;
 

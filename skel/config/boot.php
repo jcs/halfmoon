@@ -28,18 +28,10 @@ if (HALFMOON_ENV == "development") {
 	/* show errors in the browser */
 	ini_set("display_errors", 1);
 
-	/* setup a simple logging mechanism for activerecord, logging all sql
-	 * queries to apache's error log */
-	class LogLogLog {
-		public function log($sql) {
-			error_log("  " . $sql);
-		}
-	}
+	/* log all activerecord queries and values */
+	HalfMoon\Config::set_activerecord_log_level("full");
 
-	$GLOBALS['ACTIVERECORD_LOG'] = true;
-	$GLOBALS['ACTIVERECORD_LOGGER'] = new LogLogLog;
-
-	/* and log all halfmoon activity */
+	/* log all halfmoon activity */
 	HalfMoon\Config::set_log_level("full");
 }
 
@@ -50,7 +42,10 @@ elseif (HALFMOON_ENV == "production") {
 	 * pages (see skel/500.html) */
 	ini_set("display_errors", 0);
 
-	/* only log processing time */
+	/* do not log any activerecord queries */
+	HalfMoon\Config::set_activerecord_log_level("none");
+
+	/* only log halfmoon processing times with urls */
 	HalfMoon\Config::set_log_level("short");
 
 	/* uncomment to send emails of error backtraces and debugging info */

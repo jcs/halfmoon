@@ -230,6 +230,20 @@ class ApplicationController {
 		$this->did_render = true;
 	}
 
+	/* do render() but capture all the output and return it */
+	public function render_to_string($template, $vars = array()) {
+		$old_did_render = $this->did_render;
+
+		ob_start();
+		$this->render($template, $vars);
+		$output = ob_get_contents();
+		ob_clean();
+
+		$this->did_render = $old_did_render;
+
+		return $output;
+	}
+
 	/* a private function to avoid taining the variable space after the
 	 * require() */
 	private function _really_render_file($__file, $__vars) {
