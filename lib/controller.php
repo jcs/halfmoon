@@ -123,7 +123,7 @@ class ApplicationController {
 	 * flash_errors() helper */
 	public function add_flash_error($string) {
 		if (!isset($_SESSION["flash_errors"]) ||
-		!is_array($SESSION["flash_errors"]))
+		!is_array($_SESSION["flash_errors"]))
 			$_SESSION["flash_errors"] = array();
 
 		array_push($_SESSION["flash_errors"], $string);
@@ -133,7 +133,7 @@ class ApplicationController {
 	 * flash_notices() helper */
 	public function add_flash_notice($string) {
 		if (!isset($_SESSION["flash_notices"]) ||
-		!is_array($SESSION["flash_notices"]))
+		!is_array($_SESSION["flash_notices"]))
 			$_SESSION["flash_notices"] = array();
 
 		array_push($_SESSION["flash_notices"], $string);
