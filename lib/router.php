@@ -37,6 +37,19 @@ class Router extends Singleton {
 		array_push(parent::instance()->rootRoutes, $route);
 	}
 
+	public static function clearRoutes() {
+		parent::instance()->routes = array();
+		parent::instance()->rootRoutes = array();
+	}
+
+	public static function getRoutes() {
+		return parent::instance()->routes;
+	}
+
+	public static function getRootRoutes() {
+		return parent::instance()->rootRoutes;
+	}
+
 	public static function routeRequest($request) {
 		$path_pieces = explode("/", $request->path);
 
@@ -52,7 +65,7 @@ class Router extends Singleton {
 				/* verify virtual host matches if there's a condition on it */
 				if (isset($route["conditions"]["hostname"]))
 					if (!Utils::strcasecmp_or_preg_match(
-					$route["conditions"]["hostname"], $request->hostname))
+					$route["conditions"]["hostname"], $request->host))
 						continue;
 
 				$chosen_route = $route;
@@ -63,7 +76,7 @@ class Router extends Singleton {
 				/* verify virtual host matches if there's a condition on it */
 				if (isset($route["conditions"]["hostname"]))
 					if (!Utils::strcasecmp_or_preg_match(
-					$route["conditions"]["hostname"], $request->hostname))
+					$route["conditions"]["hostname"], $request->host))
 						continue;
 
 				/* trim slashes from route definition and bust it up into
