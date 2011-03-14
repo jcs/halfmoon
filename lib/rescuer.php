@@ -9,7 +9,8 @@ class Rescuer {
 	/* exceptions that won't trigger an email in notify_of_exception() */
 	static $exceptions_to_ignore = array(
 		'\HalfMoon\RoutingException',
-		'\HalfMoon\InvalidAuthenticityToken'
+		'\HalfMoon\InvalidAuthenticityToken',
+		'\HalfMoon\UndefinedFunction',
 	);
 
 	static function error_handler($errno, $errstr, $errfile, $errline) {
@@ -140,7 +141,8 @@ class Rescuer {
 		else {
 			/* production mode, try to handle gracefully */
 
-			if ($exception instanceof \HalfMoon\RoutingException) {
+			if ($exception instanceof \HalfMoon\RoutingException ||
+			$exception instanceof \HalfMoon\UndefinedFunction) {
 				header($_SERVER["SERVER_PROTOCOL"] . " 404 File Not Found");
 
 				if (file_exists($f = HALFMOON_ROOT . "/public/404.html")) {
