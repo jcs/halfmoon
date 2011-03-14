@@ -18,26 +18,28 @@ class HtmlHelper extends Helper {
 	}
 
 	/* summarize errors for an activerecord object */
-	public function error_messages_for($obj, $obj_name = "") {
+	public function error_messages_for($obj, $obj_name = "", $obj_prefix = "") {
 		if ($obj->errors && $obj->errors->size()) {
 			if ($obj_name == "")
 				$obj_name = \ActiveRecord\Utils::singularize(strtolower(
 					get_class($obj)));
 
-			if (\ActiveRecord\Utils::pluralize_if(2, $obj_name) == "2 "
-			. $obj_name)
-			  $obj_name = "these " . $obj_name;
-			else
-			  $obj_name = "this " . $obj_name;
+			if ($obj_prefix == "") {
+				if (\ActiveRecord\Utils::pluralize_if(2, $obj_name) == "2 "
+				. $obj_name)
+					$obj_prefix = "these";
+				else
+					$obj_prefix = "this";
+			}
 
 			$html = "<p>"
 				. "<div class=\"flash-error\">"
 				. "<strong>" . $obj->errors->size() . " "
 				. \ActiveRecord\Utils::pluralize_if($obj->errors->size(),
 					"error")
-				. " prohibited " . $obj_name . " from being "
-				. ($obj->is_new_record() ? "created" : "saved") . ":</strong>"
-				. "<br />\n";
+				. " prohibited " . $obj_prefix . " " . $obj_name . " from "
+				. "being " . ($obj->is_new_record() ? "created" : "saved")
+				. ":</strong><br />\n";
 
 			foreach ($obj->errors as $err)
 				$html .= $err . "<br />";
