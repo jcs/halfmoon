@@ -240,7 +240,7 @@ by the controller.  There are other helpers available like `$time`,
 4.	(Optional) Configure a root route to specify which controller/action
 	should be used for viewing the root (`/`) URL via `config/routes.php`:
 
-		HalfMoon\Router::instance()->addRootRoute(array(
+		HalfMoon\Router::addRootRoute(array(
 			"controller" => "posts",
 			"action" => "homepage"
 		));
@@ -277,6 +277,22 @@ by the controller.  There are other helpers available like `$time`,
 	`config/boot.php` that are environment-specific (such as disabling
 	logging).
 
+2.	Verify that your static 404 and 500 pages (in `public/`) have useful
+	content.
+
+	You may wish to turn HalfMoon's logging off completely, instead of
+	the "short" style used by default in production which will only log
+	one line logging the processing time for each request.  This can be
+	adjusted in `config/boot.php`:
+
+		HalfMoon\Config::set_activerecord_log_level("none");
+
+	It is also recommended that you enable exception notification
+	e-mails, which will e-mail you a backtrace and some helpful
+	debugging information any time an error happens in your application:
+
+		HalfMoon\Config::set_exception_notification_recipient("you@example.com");
+		HalfMoon\Config::set_exception_notification_subject("[your app]");
 
 ## Caveats ##
 
@@ -299,8 +315,7 @@ design changes.
 
 	This is due to the [design of closures in php](http://wiki.php.net/rfc/closures/removal-of-this).
 
-	Due to this, it is recommended to just always use `$controller` in
-	views.
+	It is recommended to just always use `$controller` in views.
 
 2.	`list` and `new` are reserved keywords in PHP, so these cannot be
 	used as the controller actions like Rails sets up by default.
@@ -310,7 +325,7 @@ design changes.
 	by adding a specific route to map them to different controller
 	actions:
 
-		HalfMoon\Router::instance()->addRoute(array(
+		HalfMoon\Router::addRoute(array(
 			"url" => ":controller/list",
 			"action" => "index",
 		));
