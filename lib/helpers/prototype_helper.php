@@ -96,7 +96,16 @@ class PrototypeHelper extends FormHelper {
 			return "{}";
 		else {
 			$t = array_map(function($k) use ($options) {
-				return $k . ":" . $options[$k];
+				$o = $k . ":";
+
+				if ($options[$k] === true)
+					$o .= "true";
+				elseif ($options[$k] === false)
+					$o .= "false";
+				else
+					$o .= $options[$k];
+
+				return $o;
 			}, array_keys($options));
 
 			sort($t);
