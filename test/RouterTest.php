@@ -91,6 +91,13 @@ class RouterTest extends PHPUnit_Framework_TestCase {
 		$this->assertEquals("something", $route["controller"]);
 		$this->assertEquals("stub_blah", $route["action"]);
 		$this->assertEmpty($route["id"]);
+
+		$route = HalfMoon\Router::routeRequest(
+			$this->request_for("/stub/something"));
+
+		$this->assertEquals("something", $route["controller"]);
+		$this->assertEquals("stub_index", $route["action"]);
+		$this->assertEmpty($route["id"]);
     }
 
 	/**

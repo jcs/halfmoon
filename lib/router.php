@@ -11,6 +11,8 @@ class Router extends Singleton {
 	private $routes = array();
 	private $rootRoutes = array();
 
+	static $DEFAULT_ACTION = "index";
+
 	public static function initialize(Closure $initializer) {
 		$initializer(parent::instance());
 	}
@@ -102,17 +104,19 @@ class Router extends Singleton {
 						Utils::strcasecmp_or_preg_match($regex_or_string,
 						$path_pieces[$x])) {
 							if (isset($route[$m[1]]) &&
-							preg_match("/^(.*):(.+)$/", $route[$m[1]], $n)) {
+							preg_match("/^(.*):(.+)$/", $route[$m[1]], $n))
 								/* route has a set parameter, but it wants to
 								 * include the matching piece from the path in
 								 * its parameter */
-								$route[$m[1]] = $n[1] . $path_pieces[$x];
-							} else {
+								$route[$m[1]] = $n[1] .
+									(isset($path_pieces[$x]) ?
+									$path_pieces[$x] :
+									static::$DEFAULT_ACTION);
+							else
 								/* store this named parameter (e.g. "/:blah"
 								 * route on a path of "/hi" defines
 								 * $route["blah"] to be "hi") */
 								$route[$m[1]] = @$path_pieces[$x];
-							}
 						} else
 							$match = false;
 					}
@@ -163,7 +167,7 @@ class Router extends Singleton {
 
 		/* but we can deal with no action by calling the index action */
 		if (!isset($chosen_route["action"]) || $chosen_route["action"] == "")
-			$chosen_route["action"] = "index";
+			$chosen_route["action"] = static::$DEFAULT_ACTION;
 
 		return $chosen_route;
 	}
