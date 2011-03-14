@@ -400,20 +400,36 @@ class ApplicationController {
 
 		/* check for an overridden layout and options */
 		while (isset($this::$layout[0])) {
+			$do_override = true;
+
 			if (isset($this::$layout[1]) && is_array($this::$layout[1])) {
-				/* don't override for specific actions */
-				if ($this::$layout[1]["except"] && in_array($params["action"],
-				(array)$this::$layout[1]["except"]))
-					break;
+				/* don't override for matching actions */
+				if ($this::$layout[1]["except"]) {
+					$do_override = true;
+
+					foreach ((array)$this::$layout[1]["except"] as $e)
+						if (Utils::strcasecmp_or_preg_match($e,
+						$params["action"])) {
+							$do_override = false;
+							break;
+						}
+				}
 
 				/* only override for certain actions */
-				if ($this::$layout[1]["only"] && !in_array($params["action"],
-				(array)$this::$layout[1]["only"]))
-					break;
+				elseif ($this::$layout[1]["only"]) {
+					$do_override = false;
+
+					foreach ((array)$this::$layout[1]["only"] as $e)
+						if (Utils::strcasecmp_or_preg_match($e,
+						$params["action"])) {
+							$do_override = true;
+							break;
+						}
+				}
 			}
 
-			/* still here, override layout */
-			$tlayout = $this::$layout[0];
+			if ($do_override)
+				$tlayout = $this::$layout[0];
 
 			break;
 		}
