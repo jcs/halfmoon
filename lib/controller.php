@@ -109,7 +109,7 @@ class ApplicationController {
 
 	/* turn local class variables into $variables when rendering views */
 	public function __set($name, $value) {
-		$this->locals[$name] = $value;
+		$this->locals[$name] =& $value;
 	}
 
 	public function __get($name) {
@@ -117,6 +117,14 @@ class ApplicationController {
 			return $this->locals[$name];
 		else
 			return null;
+	}
+
+	public function __isset($name) {
+		return isset($this->locals[$name]);
+	}
+
+	public function __unset($name) {
+		unset($this->locals[$name]);
 	}
 
 	/* store an error in the session to be printed on the next view with the
