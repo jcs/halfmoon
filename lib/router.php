@@ -100,15 +100,23 @@ class Router extends Singleton {
 
 						if ($regex_or_string == NULL ||
 						Utils::strcasecmp_or_preg_match($regex_or_string,
-						$path_pieces[$x]))
-							/* store this named parameter (e.g. "/:blah" route
-							 * on a path of "/hi" defines $route["blah"] to be
-							 * "hi") */
-							$route[$m[1]] = @$path_pieces[$x];
-						else
+						$path_pieces[$x])) {
+							if (isset($route[$m[1]]) &&
+							preg_match("/^(.*):(.+)$/", $route[$m[1]], $n)) {
+								/* route has a set parameter, but it wants to
+								 * include the matching piece from the path in
+								 * its parameter */
+								$route[$m[1]] = $n[1] . $path_pieces[$x];
+							} else {
+								/* store this named parameter (e.g. "/:blah"
+								 * route on a path of "/hi" defines
+								 * $route["blah"] to be "hi") */
+								$route[$m[1]] = @$path_pieces[$x];
+							}
+						} else
 							$match = false;
 					}
-					
+
 					/* look for a glob condition */
 					elseif (preg_match("/^\*(.+)$/", $route_pieces[$x], $m)) {
 						/* concatenate the rest of the path as this one param */
@@ -132,8 +140,7 @@ class Router extends Singleton {
 
 				if ($match) {
 					/* we need at least a valid controller */
-					if ($route["controller"] == "" ||
-					!class_exists(ucfirst($route["controller"]) . "Controller"))
+					if ($route["controller"] == "")
 						continue;
 
 					/* note that we pass the action to the controller even if it
