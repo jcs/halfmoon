@@ -71,15 +71,16 @@ class TimeHelper extends Helper {
 
 	/* like distance_of_time_in_words, but where to_time is fixed to now */
 	public function time_ago_in_words($from_time, $include_seconds = false) {
-		$now = new \DateTime("now");
+		$now_gmt = new \DateTime("now", new \DateTimeZone("UTC"));
 
-		if (in_array(get_class($from_time), array("DateTime",
-		"ActiveRecord\\DateTime")))
-			@$now->setTimezone($from_time->getTimezone());
-		elseif (is_int($from_time))
-			$from_time = new \DateTime($from_time);
+		if (in_array(get_class($from_time),
+		array("DateTime", "ActiveRecord\\DateTime"))) {
+			$from_gmt = clone($from_time);
+			$from_gmt->setTimezone(new \DateTimeZone("UTC"));
+		} elseif (is_int($from_time))
+			$from_gmt = new \DateTime("@" . $from_time, new \DateTimeZone("UTC"));
 
-		return TimeHelper::distance_of_time_in_words($from_time, $now,
+		return TimeHelper::distance_of_time_in_words($from_gmt, $now_gmt,
 			$include_seconds);
 	}
 }
