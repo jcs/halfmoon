@@ -8,6 +8,11 @@ namespace HalfMoon;
 class FormHelperCommon extends Helper {
 	public $controller = null;
 	public $form_object = null;
+	public $html_helper = null;
+
+	public function __construct() {
+		$this->html_helper = new HtmlHelper;
+	}
 
 	/* the guts of form_for() and form_tag() */
 	protected function output_form_around_closure($url_or_obj,
@@ -22,8 +27,8 @@ class FormHelperCommon extends Helper {
 
 		print "<form"
 			. $this->options_to_s($options)
-			. " action=\"" . HtmlHelper::link_from_obj_or_string($url_or_obj)
-				. "\""
+			. " action=\""
+				. $this->html_helper->link_from_obj_or_string($url_or_obj) . "\""
 			. ">";
 
 		if (strtolower($options["method"]) != "get")

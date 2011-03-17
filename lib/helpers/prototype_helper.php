@@ -19,7 +19,7 @@ class PrototypeHelper extends FormHelper {
 		return "<input"
 			. " value=\"" . $label . "\""
 			. " onclick=\"" . $options["onclick"] . "\""
-			. HtmlHelper::options_for_link($options["html_options"])
+			. $this->html_helper->options_for_link($options["html_options"])
 			. " />";
 	}
 
@@ -47,7 +47,8 @@ class PrototypeHelper extends FormHelper {
 			$options["href"] = "#";
 
 		return "<a href=\"" . $options["href"] . "\""
-			. HtmlHelper::options_for_link($options) . ">" . $text . "</a>";
+			. $this->html_helper->options_for_link($options) . ">" . $text
+			. "</a>";
 	}
 
 	public function options_for_ajax($options) {
@@ -167,8 +168,8 @@ class PrototypeHelper extends FormHelper {
 		$function = "new Ajax." . ($update == "" ? "Request("
 			: "Updater(" . $update . ", ");
 
-		$function .= "'" . HtmlHelper::link_from_obj_or_string($options["url"])
-			. "', " . $javascript_options . ")";
+		$function .= "'" . $this->html_helper->link_from_obj_or_string(
+			$options["url"]) . "', " . $javascript_options . ")";
 
 		if (isset($options["before"]))
 			$function = $options["before"] . "; " . $function;
