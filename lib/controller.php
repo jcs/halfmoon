@@ -7,25 +7,16 @@ class ApplicationController {
 	 * return false
 	 * e.g. static $before_filter = array(
 	 *			"validate_logged_in_user",
-	 *			array("validate_admin", "only" => array("create")),
+	 *			"validate_admin" => array("only" => array("create")),
 	 *			...
 	 */
 	static $before_filter = array();
 
 	/* array of methods to call after processing actions, which will be passed
-	 * all buffered output and must return new output
-	 */
+	 * all buffered output and must return new output */
 	static $after_filter = array();
 
-	/* array of arrays to verify before processing any actions
-	 * e.g. static $verify = array(
-	 *          array("method" => "post",
-	 *              "only" => array("login"),
-	 *              "redirect_to" => "/",
-	 *          ),
-	 *          array("method" => "get",
-	 *          ...
-	 */
+	/* things to verify (like the method used) before processing any actions */
 	static $verify = array();
 
 	/* if non-empty, recurse through GET/POST params and filter out the values
@@ -33,7 +24,7 @@ class ApplicationController {
 	static $filter_parameter_logging = array();
 
 	/* per-controller session options, can be "off", "on", or a per-action
-	 * setting like: array("on", "only" => array("foo", "bar")) */
+	 * setting like: array("on" => array("only" => array("foo", "bar"))) */
 	static $session = "";
 
 	/* specify a different layout than controller name or application */
@@ -366,7 +357,7 @@ class ApplicationController {
 				. $action), $this->locals);
 
 		if (!$this->did_layout)
-			$this->render_layout();
+			$this->render_layout($action);
 
 		$this->process_after_filters($action);
 
@@ -378,7 +369,7 @@ class ApplicationController {
 	}
 
 	/* capture the output of everything rendered and put it within the layout */
-	public function render_layout() {
+	public function render_layout($action) {
 		/* get all buffered output and turn them off, except for our one last
 		 * buffer needed for after_filters */
 		$content_for_layout = "";
@@ -401,46 +392,11 @@ class ApplicationController {
 			return;
 		}
 
-		if (!is_array($this::$layout))
-			$this::$layout = array($this::$layout);
-
 		$tlayout = null;
-
-		/* check for an overridden layout and options */
-		while (isset($this::$layout[0])) {
-			$do_override = true;
-
-			if (isset($this::$layout[1]) && is_array($this::$layout[1])) {
-				/* don't override for matching actions */
-				if ($this::$layout[1]["except"]) {
-					$do_override = true;
-
-					foreach ((array)$this::$layout[1]["except"] as $e)
-						if (Utils::strcasecmp_or_preg_match($e,
-						$params["action"])) {
-							$do_override = false;
-							break;
-						}
-				}
-
-				/* only override for certain actions */
-				elseif ($this::$layout[1]["only"]) {
-					$do_override = false;
-
-					foreach ((array)$this::$layout[1]["only"] as $e)
-						if (Utils::strcasecmp_or_preg_match($e,
-						$params["action"])) {
-							$do_override = true;
-							break;
-						}
-				}
-			}
-
-			if ($do_override)
-				$tlayout = $this::$layout[0];
-
-			break;
-		}
+		$opts = Utils::options_for_key_from_options_hash($action,
+			$this::$layout);
+		if (!empty($opts[0]))
+			$tlayout = $opts[0];
 
 		/* if no specific layout was set, check for a controller-specific one */
 		if (!$tlayout && isset($this->params["controller"]) &&
@@ -476,67 +432,43 @@ class ApplicationController {
 
 	/* enable or disable sessions according to $session */
 	private function enable_or_disable_sessions($action) {
-		if (is_array($this::$session)) {
-			if ($this::$session[0] == "on") {
-				/* $session = array("on", "only" => array(...)) */
-				if (!in_array($action, (array)$this::$session["only"]))
-					return;
+		if (empty($this::$session))
+			return;
+		elseif (!is_array($this::$session) && $this::$session == "off")
+			return;
+		elseif (is_array($this::$session)) {
+			$opts = Utils::options_for_key_from_options_hash($action,
+				$this::$session);
 
-				/* $session = array("on", "except" => array(...)) */
-				elseif (in_array($action, (array)$this::$session["except"]))
-					return;
-			}
-
-			elseif ($this::$session[0] == "off") {
-				/* $session = array("off", "only" => array(...)) */
-				if (in_array($action, (array)$this::$session["only"]))
-					return;
-
-				/* $session = array("off", "except" => array(...)) */
-				elseif (!in_array($action, (array)$this::$session["except"]))
-					return;
-			}
-
-			else
-				 throw new HalfMoonException("invalid option for \$session: "
-				 	. var_export($this::$session, true));
-		}
-
-		/* just a string of "on" or "off" */
-		else {
-			if ($this::$session == "off" || $this::$session == "")
+			if ($opts !== array("on"))
 				return;
-			elseif ($this::$session != "on")
-				 throw new HalfMoonException("invalid option for \$session: "
-				 	. var_export($this::$session, true));
 		}
 
-		/* still here, we want a session */
 		$this->start_session();
 	}
 
 	/* verify any options requiring verification */
 	private function verify_method($action) {
-		foreach ((array)$this::$verify as $verification) {
-			/* if this action isn't in the include list, skip */
-			if (isset($verification["only"]) &&
-			!in_array($action, (array)$verification["only"]))
-				continue;
+		$to_verify = Utils::options_for_key_from_options_hash($action,
+			$this::$verify);
 
-			/* if this action is exempted, skip */
-			if (isset($verification["except"]) &&
-			in_array($action, (array)$verification["except"]))
-				continue;
+		if (empty($to_verify))
+			return;
 
-			/* if the method passed from the server matches, skip */
-			if (isset($verification["method"]) &&
-			(strtolower($_SERVER["REQUEST_METHOD"]) ==
-			strtolower($verification["method"])))
-				continue;
+		foreach ($to_verify as $v) {
+			if (isset($v["method"])) {
+				if (strtolower($this->request->request_method()) !=
+				strtolower($v["method"])) {
+					if (isset($v["redirect_to"]))
+						return $this->redirect_to($v["redirect_to"]);
+					else
+						throw new BadRequest();
+				}
+			}
 
-			/* still here, do any actions */
-			if (isset($verification["redirect_to"]))
-				return $this->redirect_to($verification["redirect_to"]);
+			/* TODO: support other verify options from rails
+			 * http://railsapi.com/doc/v2.3.2/classes/ActionController/Verification/ClassMethods.html#M000331
+			 */
 		}
 	}
 
@@ -546,50 +478,30 @@ class ApplicationController {
 		if (!$this::$protect_from_forgery)
 			return;
 
-		if ($this->request->request_method() == "GET")
+		if (strtoupper($this->request->request_method()) == "GET")
 			return;
 
-		if (is_array($this::$protect_from_forgery)) {
-			/* don't protect for specific actions */
-			if (isset($this::$protect_from_forgery["except"]) &&
-			in_array($action, (array)$this::$protect_from_forgery["except"]))
-				return;
-
-			/* only verify for certain actions */
-			if (isset($this::$protect_from_forgery["only"]) &&
-			!in_array($action, (array)$this::$protect_from_forgery["only"]))
-				return;
-		}
-
-		if (@$this->params["authenticity_token"] !=
-		$this->form_authenticity_token()) {
-			 throw new InvalidAuthenticityToken();
+		if (Utils::option_applies_for_key($action,
+		$this::$protect_from_forgery)) {
+			if (@$this->params["authenticity_token"] !=
+			$this->form_authenticity_token())
+				 throw new InvalidAuthenticityToken();
 		}
 	}
 
 	/* return false if any before_filters return false */
 	private function process_before_filters($action) {
-		foreach ((array)$this::$before_filter as $filter) {
-			if (!is_array($filter))
-				$filter = array($filter);
+		$filters = Utils::options_for_key_from_options_hash($action,
+			$this::$before_filter);
 
-			/* don't filter for specific actions */
-			if (isset($filter["except"]) && in_array($action,
-			(array)$filter["except"]))
-				continue;
-
-			/* only filter for certain actions */
-			if (isset($filter["only"]) &&
-			!in_array($action, (array)$filter["only"]))
-				continue;
-
-			if (!method_exists($this, $filter[0]))
-				throw new UndefinedFunction("before_filter \"" . $filter[0]
+		foreach ($filters as $filter) {
+			if (!method_exists($this, $filter))
+				throw new UndefinedFunction("before_filter \"" . $filter
 					. "\" function does not exist");
 
-			if (!call_user_func_array(array($this, $filter[0]), array())) {
+			if (!call_user_func_array(array($this, $filter), array())) {
 				if (Config::log_level_at_least("short"))
-					Log::info("Filter chain halted as " . $filter[0]
+					Log::info("Filter chain halted as " . $filter
 						. " returned false.");
 
 				return false;
@@ -601,28 +513,18 @@ class ApplicationController {
 
 	/* pass all buffered output through after filters */
 	private function process_after_filters($action) {
-		foreach ((array)$this::$after_filter as $filter) {
-			if (!is_array($filter))
-				$filter = array($filter);
+		$filters = Utils::options_for_key_from_options_hash($action,
+			$this::$after_filter);
 
-			/* don't filter for specific actions */
-			if (isset($filter["except"]) && in_array($action,
-			(array)$filter["except"]))
-				continue;
-
-			/* only filter for certain actions */
-			if (isset($filter["only"]) &&
-			!in_array($action, (array)$filter["only"]))
-				continue;
-
-			if (!method_exists($this, $filter[0]))
-				throw new UndefinedFunction("after_filter \"" . $filter[0]
+		foreach ($filters as $filter) {
+			if (!method_exists($this, $filter))
+				throw new UndefinedFunction("after_filter \"" . $filter
 					. "\" function does not exist");
 
 			/* get all buffered output, then replace it with the filtered
 			 * output */
 			$output = ob_get_contents();
-			$output = call_user_func_array(array($this, $filter[0]),
+			$output = call_user_func_array(array($this, $filter),
 				array($output));
 			ob_clean();
 			print $output;

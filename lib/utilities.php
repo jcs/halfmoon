@@ -11,6 +11,73 @@ class Utils {
 		return $data[$index];
 	}
 
+	/* get result options for only/except option hashes */
+	static function options_for_key_from_options_hash($key, $options) {
+		if (empty($options))
+			return array();
+		elseif (!is_array($options))
+			return array($options);
+
+		/* if options is a hash, then the result should just be the keys that
+		 * match.  otherwise, it should contain all of the values that match.
+		 */
+		$is_assoc = Utils::is_assoc($options);
+
+		$result = array();
+
+		foreach ($options as $k => $opthash) {
+			if (Utils::is_assoc($opthash)) {
+				$apply = false;
+
+				if (isset($opthash["only"])) {
+					if (!is_array($opthash["only"]))
+						$opthash["only"] = array($opthash["only"]);
+
+					foreach ($opthash["only"] as $pkey)
+						if (Utils::strcasecmp_or_preg_match($pkey, $key)) {
+							$apply = true;
+							break;
+						}
+				} elseif (isset($opthash["except"])) {
+					$apply = true;
+
+					if (!is_array($opthash["except"]))
+						$opthash["except"] = array($opthash["except"]);
+
+					foreach ($opthash["except"] as $pkey)
+						if (Utils::strcasecmp_or_preg_match($pkey, $key)) {
+							$apply = false;
+							break;
+						}
+				}
+
+				if ($apply) {
+					if ($is_assoc)
+						array_push($result, $k);
+					else {
+						unset($opthash["only"]);
+						unset($opthash["except"]);
+						array_push($result, $opthash);
+					}
+				}
+			} else
+				array_push($result, $opthash);
+		}
+
+		return $result;
+	}
+
+	/* get a true or false for only/except option hashes */
+	static function option_applies_for_key($key, $options) {
+		$noptions = array(
+			true => $options
+		);
+
+		$ret = Utils::options_for_key_from_options_hash($key, $noptions);
+
+		return !empty($ret);
+	}
+
 	/* determine the current controller class by looking at a backtrace */
 	static function current_controller() {
 		$controller = null;
