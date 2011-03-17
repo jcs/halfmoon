@@ -15,7 +15,7 @@ class Log {
 	}
 
 	static function warn($string) {
-		$this->error($string);
+		error_log($string);
 	}
 
 	/* print_r() to the error log */
