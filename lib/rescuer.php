@@ -7,10 +7,11 @@ namespace HalfMoon;
 
 class Rescuer {
 	/* exceptions that won't trigger an email in notify_of_exception() */
-	static $exceptions_to_ignore = array(
+	static $exceptions_to_suppress = array(
 		'\HalfMoon\RoutingException',
 		'\HalfMoon\InvalidAuthenticityToken',
 		'\HalfMoon\UndefinedFunction',
+		'\HalfMoon\BadRequest',
 	);
 
 	static function error_handler($errno, $errstr, $errfile, $errline) {
@@ -106,7 +107,7 @@ class Rescuer {
 		if (HALFMOON_ENV != "production")
 			return;
 
-		foreach (static::$exceptions_to_ignore as $e)
+		foreach (static::$exceptions_to_suppress as $e)
 			if ($exception instanceof $e)
 				return;
 
@@ -162,6 +163,15 @@ class Rescuer {
 					</body>
 					</html>
 					<?php
+				}
+			}
+
+			elseif ($exception instanceof \HalfMoon\BadRequest) {
+				header($_SERVER["SERVER_PROTOCOL"] . " 400 Bad Request");
+
+				if (file_exists($f = HALFMOON_ROOT . "/public/400.html")) {
+					Log::error("Rendering " . $f);
+					require_once($f);
 				}
 			}
 			

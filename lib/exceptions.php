@@ -10,5 +10,6 @@ class RoutingException extends HalfMoonException {};
 class RenderException extends HalfMoonException {};
 class InvalidAuthenticityToken extends HalfMoonException {};
 class InvalidCookieData extends HalfMoonException {};
+class BadRequest extends HalfMoonException {};
 
 ?>
