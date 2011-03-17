@@ -19,7 +19,7 @@ class FormHelper extends FormTagHelper {
 			$form_content);
 	}
 
-	public function form_object_for($obj, $url_or_obj, $options = array(),
+	public function form_content_for($obj, $url_or_obj, $options = array(),
 	\Closure $form_content) {
 		if (!$obj)
 			throw new HalfMoonException("invalid object passed to form_for()");
