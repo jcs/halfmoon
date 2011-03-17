@@ -338,7 +338,11 @@ design changes.
 
 	or just on for specific actions with `except` or `only` arrays:
 
-		static $session = array("on", "only" => array("login"));
+		static $session = array(
+			"on" => array(
+				"only" => array("login", "index")
+			)
+		);
 
 	To reverse the settings (enable it for the entire application but
 	disable it for specific actions), define it to "`on`" in your
