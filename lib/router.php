@@ -102,7 +102,7 @@ class Router extends Singleton {
 
 						if ($regex_or_string == NULL ||
 						Utils::strcasecmp_or_preg_match($regex_or_string,
-						$path_pieces[$x])) {
+						empty($path_pieces[$x]) ? "" : $path_pieces[$x])) {
 							if (isset($route[$m[1]]) &&
 							preg_match("/^(.*):(.+)$/", $route[$m[1]], $n))
 								/* route has a set parameter, but it wants to
@@ -123,12 +123,20 @@ class Router extends Singleton {
 
 					/* look for a glob condition */
 					elseif (preg_match("/^\*(.+)$/", $route_pieces[$x], $m)) {
+						$regex_or_string = isset($route["conditions"]) ?
+							@Utils::A((array)$route["conditions"], $m[1]) :
+							NULL;
+
 						/* concatenate the rest of the path as this one param */
 						$u = "";
 						for ($j = $x; $j < count($path_pieces); $j++)
 							$u .= ($u == "" ? "" : "/") . $path_pieces[$j];
 
-						$route[$m[1]] = $u;
+						if ($regex_or_string == NULL ||
+						Utils::strcasecmp_or_preg_match($regex_or_string, $u))
+							$route[$m[1]] = $u;
+						else
+							$match = false;
 
 						break;
 					}

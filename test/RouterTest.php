@@ -29,6 +29,16 @@ class RouterTest extends PHPUnit_Framework_TestCase {
 		$added_routes++;
 
 		HalfMoon\Router::addRoute(array(
+			"url" => "*globby",
+			"controller" => "login",
+			"action" => "globtest",
+			"conditions" => array(
+				"globby" => "/^globte.t$/"
+			),
+		));
+		$added_routes++;
+
+		HalfMoon\Router::addRoute(array(
 			"url" => "stub/:controller/:action/:id",
 			"action" => "stub_:action",
 		));
@@ -131,6 +141,13 @@ class RouterTest extends PHPUnit_Framework_TestCase {
 		$this->assertEquals("someglob", $route["controller"]);
 		$this->assertEquals("blah", $route["action"]);
 		$this->assertEquals("this/is/a/test", $route["globbed"]);
+
+		$route = HalfMoon\Router::routeRequest(
+			$this->request_for("/globtest/"));
+
+		$this->assertEquals("globtest", $route["globby"]);
+		$this->assertEquals("login", $route["controller"]);
+		$this->assertEquals("globtest", $route["action"]);
 	}
 
 	/**
