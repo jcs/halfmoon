@@ -45,6 +45,9 @@ class ApplicationController {
 	private $did_redirect = false;
 	private $did_layout = false;
 
+	/* set while we're processing a view so render() behaves differently */
+	private $in_view = false;
+
 	/* track what ob_get_level() was when we started buffering */
 	private $start_ob_level = 0;
 
@@ -161,12 +164,15 @@ class ApplicationController {
 	public function render($template, $vars = array()) {
 		/* render(array("partial" => "somedir/file"), array("v" => $v)) */
 
+		if (!is_array($template))
+			$template = array("action" => $template);
+
 		if (isset($template["status"]))
 			header($_SERVER["SERVER_PROTOCOL"] . " " . $template["status"]);
 
-		/* if we want to override the layout, do it now */
-		if (is_array($template) && array_key_exists("layout", $template))
-			$this::$layout = $template["layout"];
+		if (!$this->in_view)
+			if (is_array($template) && array_key_exists("layout", $template))
+				$this::$layout = $template["layout"];
 
 		/* just render text */
 		if (is_array($template) && array_key_exists("text", $template))
@@ -202,10 +208,14 @@ class ApplicationController {
 			if (is_array($template) && isset($template["partial"]))
 				$tf = dirname($tf) . "/_" . basename($tf);
 
+			/* do the actual renders */
+
+			/* regular php/html */
 			if (file_exists($full_file = HALFMOON_ROOT . "/views/"
 			. $tf . ".phtml"))
 				$this->_really_render_file($full_file, $vars);
 
+			/* xml */
 			elseif (file_exists($xml_file = HALFMOON_ROOT . "/views/"
 			. $tf . ".pxml")) {
 				/* TODO: check for an existing content-type already set by the
@@ -214,6 +224,7 @@ class ApplicationController {
 				$this->_really_render_file($xml_file, $vars);
 			}
 
+			/* php-javascript */
 			elseif (file_exists($js_file = HALFMOON_ROOT . "/views/"
 			. $tf . ".pjs")) {
 				/* TODO: check for an existing content-type already set by the
@@ -286,7 +297,9 @@ class ApplicationController {
 		if (Config::log_level_at_least("full"))
 			Log::info("Rendering " . $__file);
 
+		$this->in_view = true;
 		require($__file);
+		$this->in_view = false;
 	}
 
 	/* setup each built-in helper to be $var = VarHelper, and the
