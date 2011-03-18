@@ -19,8 +19,7 @@ class Utils {
 			return array($options);
 
 		/* if options is a hash, then the result should just be the keys that
-		 * match.  otherwise, it should contain all of the values that match.
-		 */
+		 * match.  otherwise, it should contain all of the values that match. */
 		$is_assoc = Utils::is_assoc($options);
 
 		$result = array();
@@ -117,7 +116,7 @@ class Utils {
 	}
 
 	/* like is_array() but tells whether it's an associative array */
-	function is_assoc($a) {
+	static function is_assoc($a) {
 		return is_array($a) && array_diff_key($a, array_keys(array_keys($a)));
 	}
 
