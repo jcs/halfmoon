@@ -20,6 +20,53 @@ class Request {
 
 	public $headers = array();
 
+	public $redirected_to = null;
+
+	public static function log_runtime($req) {
+		$end_time = microtime(true);
+
+		$framework_time = (float)($req->start_times["request"] -
+			$req->start_times["init"]);
+		$app_time = (float)($end_time - $req->start_times["app"]);
+		$total_time = (float)($end_time - $req->start_times["init"]);
+
+		if (\ActiveRecord\ConnectionManager::connection_count()) {
+			$db_time = (float)\ActiveRecord\ConnectionManager::
+				get_connection()->reset_database_time();
+			$app_time -= $db_time;
+		}
+
+		$status = "200";
+		foreach (headers_list() as $header)
+			if (preg_match("/^Status: (\d+)/", $header, $m))
+				$status = $m[1];
+
+		$log = "Completed in " . sprintf("%0.5f", $total_time);
+
+		if (isset($db_time))
+			$log .= " | DB: " . sprintf("%0.5f", $db_time) . " ("
+				. intval(($db_time / $total_time) * 100) . "%)";
+
+		$log .= " | App: " . sprintf("%0.5f", $app_time) . " ("
+			. intval(($app_time / $total_time) * 100) . "%)";
+
+		$log .= " | Framework: " . sprintf("%0.5f", $framework_time)
+			. " (" . intval(($framework_time / $total_time) * 100)
+			. "%)";
+
+		$log .= " | " . $status . " [" . $req->url . "]";
+		
+		if (isset($req->redirected_to))
+			$log .= " -> [" . $req->redirected_to . "]";
+	
+		Log::info($log);
+	}
+
+	public static function send_status_header($status) {
+		header($_SERVER["SERVER_PROTOCOL"] . " " . $status, true, $status);
+		header("Status: " . $status, true, $status);
+	}
+
 	public function __construct($url, $get_vars, $post_vars, $headers,
 	$start_time = null) {
 		$this->start_times["init"] = ($start_time ? $start_time
@@ -88,36 +135,13 @@ class Request {
 	/* pass ourself to the router and handle the url.  if it fails, try to
 	 * handle it gracefully.  */
 	public function process() {
+		if (Config::log_level_at_least("short"))
+			register_shutdown_function(array("\\HalfMoon\\Request",
+				"log_runtime"), $this);
+
 		try {
 			Router::instance()->takeRouteForRequest($this);
-
-			/* we now have a list of when each part of the process started, so
-			 * we can build deltas to see how long each part took */
-			$end_time = microtime(true);
-
-			$framework_time = (float)($this->start_times["request"] -
-				$this->start_times["init"]);
-			$app_time = (float)($end_time - $this->start_times["app"]);
-			$total_time = (float)($end_time - $this->start_times["init"]);
-
-			if (\ActiveRecord\ConnectionManager::connection_count()) {
-				$db_time = (float)\ActiveRecord\ConnectionManager::
-					get_connection()->reset_database_time();
-				$app_time -= $db_time;
-			}
-
-			if (Config::log_level_at_least("short"))
-				Log::info("Completed in " . sprintf("%0.5f", $total_time)
-					. (isset($db_time) ? " | DB: " . sprintf("%0.5f", $db_time)
-						. " (" . intval(($db_time / $total_time) * 100) . "%)" : "")
-					. " | App: " . sprintf("%0.5f", $app_time)
-						. " (" . intval(($app_time / $total_time) * 100) . "%)"
-					. " | Framework: " . sprintf("%0.5f", $framework_time)
-						. " (" . intval(($framework_time / $total_time) * 100) . "%)"
-					. " [" . $this->url . "]");
-		}
-
-		catch (\Exception $e) {
+		} catch (\Exception $e) {
 			/* rescue, log, notify (if necessary), exit */
 			if (class_exists("\\HalfMoon\\Rescuer"))
 				Rescuer::rescue_exception($e, $this);

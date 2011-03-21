@@ -144,7 +144,7 @@ class Rescuer {
 
 			if ($exception instanceof \HalfMoon\RoutingException ||
 			$exception instanceof \HalfMoon\UndefinedFunction) {
-				header($_SERVER["SERVER_PROTOCOL"] . " 404 File Not Found");
+				Request::send_status_header(404);
 
 				if (file_exists($f = HALFMOON_ROOT . "/public/404.html")) {
 					Log::error("Rendering " . $f);
@@ -167,7 +167,7 @@ class Rescuer {
 			}
 
 			elseif ($exception instanceof \HalfMoon\BadRequest) {
-				header($_SERVER["SERVER_PROTOCOL"] . " 400 Bad Request");
+				Request::send_status_header(400);
 
 				if (file_exists($f = HALFMOON_ROOT . "/public/400.html")) {
 					Log::error("Rendering " . $f);
@@ -177,7 +177,7 @@ class Rescuer {
 			
 			elseif ($exception instanceof \HalfMoon\InvalidAuthenticityToken) {
 				/* be like rails and give the odd 422 status */
-				header($_SERVER["SERVER_PROTOCOL"] . " 422 Unprocessable Entity");
+				Request::send_status_header(422);
 
 				if (file_exists($f = HALFMOON_ROOT . "/public/422.html")) {
 					Log::error("Rendering " . $f);
@@ -201,7 +201,7 @@ class Rescuer {
 			}
 			
 			else {
-				header($_SERVER["SERVER_PROTOCOL"] . " 500 Server Error");
+				Request::send_status_header(500);
 
 				if (file_exists($f = HALFMOON_ROOT . "/public/500.html")) {
 					Log::error("Rendering " . $f);

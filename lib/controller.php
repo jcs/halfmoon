@@ -42,7 +42,7 @@ class ApplicationController {
 	public $helper = null;
 
 	private $did_render = false;
-	private $did_redirect = false;
+	private $redirected_to = null;
 	private $did_layout = false;
 
 	/* set while we're processing a view so render() behaves differently */
@@ -149,14 +149,15 @@ class ApplicationController {
 		while (@ob_end_clean())
 			;
 
-		if (Config::log_level_at_least("short"))
+		if (Config::log_level_at_least("full"))
 			Log::info("Redirected to " . $link);
 
-		$this->did_redirect = true;
+		$this->redirected_to = $link;
 
 		/* end session first so it can write the cookie */
 		session_write_close();
 
+		Request::send_status_header(302);
 		header("Location: " . $link);
 	}
 
@@ -168,7 +169,7 @@ class ApplicationController {
 			$template = array("action" => $template);
 
 		if (isset($template["status"]))
-			header($_SERVER["SERVER_PROTOCOL"] . " " . $template["status"]);
+			Request::send_status_header($template["status"]);
 
 		if (!$this->in_view)
 			if (is_array($template) && array_key_exists("layout", $template))
@@ -362,8 +363,10 @@ class ApplicationController {
 
 		call_user_func_array(array($this, $action), array());
 
-		if ($this->did_redirect)
+		if (isset($this->redirected_to)) {
+			$this->request->redirected_to = $this->redirected_to;
 			return;
+		}
 
 		if (!$this->did_render)
 			$this->render(array("action" => $this->params["controller"] . "/"
