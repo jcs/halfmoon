@@ -20,8 +20,11 @@ class Request {
 
 	public $headers = array();
 
+	public $etag = null;
 	public $redirected_to = null;
 
+	/* a register_shutdown function that will log some stats about the time it
+	 * took to process and the url */
 	public static function log_runtime($req) {
 		$end_time = microtime(true);
 
@@ -62,11 +65,14 @@ class Request {
 		Log::info($log);
 	}
 
+	/* send both style status headers; the first for mod_php to actually see
+	 * it, and the second so it shows up in headers_list() and for fastcgi */
 	public static function send_status_header($status) {
 		header($_SERVER["SERVER_PROTOCOL"] . " " . $status, true, $status);
 		header("Status: " . $status, true, $status);
 	}
 
+	/* build a request from the web server interface */
 	public function __construct($url, $get_vars, $post_vars, $headers,
 	$start_time = null) {
 		$this->start_times["init"] = ($start_time ? $start_time
@@ -140,8 +146,29 @@ class Request {
 				"log_runtime"), $this);
 
 		try {
+			ob_start();
+
 			Router::instance()->takeRouteForRequest($this);
-		} catch (\Exception $e) {
+
+			/* if we received an If-None-Match header from the client and our
+			 * generated etag matches it, send a not-modified header and no
+			 * data */
+			if ($this->etag_matches_inm()) {
+				$headers = (array)headers_sent();
+				ob_end_clean();
+				foreach ($headers as $header)
+					header($header);
+
+				Request::send_status_header(304);
+			}
+
+			else {
+				$this->send_etag_header();
+				ob_end_flush();
+			}
+		}
+
+		catch (\Exception $e) {
 			/* rescue, log, notify (if necessary), exit */
 			if (class_exists("\\HalfMoon\\Rescuer"))
 				Rescuer::rescue_exception($e, $this);
@@ -205,6 +232,26 @@ class Request {
 	/* the user's browser as reported by the server */
 	public function user_agent() {
 		return $_SERVER["HTTP_USER_AGENT"];
+	}
+
+	private function etag_matches_inm() {
+		if (isset($this->headers["HTTP_IF_NONE_MATCH"])) {
+			$this->calculate_etag();
+			if ($this->etag === $this->headers["HTTP_IF_NONE_MATCH"])
+				return true;
+		}
+
+		return false;
+	}
+
+	private function send_etag_header() {
+		$this->calculate_etag();
+		header("ETag: " . $this->etag);
+    }
+
+	private function calculate_etag() {
+		if (empty($this->etag))
+			$this->etag = md5(ob_get_contents());
 	}
 }
 

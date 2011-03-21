@@ -51,6 +51,8 @@ class ApplicationController {
 	/* track what ob_get_level() was when we started buffering */
 	private $start_ob_level = 0;
 
+	private $etag;
+
 	public function __construct($request) {
 		$this->request = $request;
 		$this->params = &$request->params;
@@ -61,6 +63,8 @@ class ApplicationController {
 			/* the closure can't access static vars */
 			$filters = static::$filter_parameter_logging;
 
+			/* build a string of parameters, less the ones matching
+			 * $filter_parameter_logging */
 			$recursor = function($params) use (&$recursor, &$params_log,
 			$filters) {
 				$params_log .= "{";
@@ -105,18 +109,15 @@ class ApplicationController {
 	public function __set($name, $value) {
 		$this->locals[$name] =& $value;
 	}
-
 	public function __get($name) {
 		if (isset($this->locals[$name]))
 			return $this->locals[$name];
 		else
 			return null;
 	}
-
 	public function __isset($name) {
 		return isset($this->locals[$name]);
 	}
-
 	public function __unset($name) {
 		unset($this->locals[$name]);
 	}
@@ -146,8 +147,8 @@ class ApplicationController {
 		$link = HTMLHelper::link_from_obj_or_string($obj_or_url);
 
 		/* prevent any content from getting to the user */
-		while (@ob_end_clean())
-			;
+		while (ob_get_level() >= $this->start_ob_level)
+			ob_end_clean();
 
 		if (Config::log_level_at_least("full"))
 			Log::info("Redirected to " . $link);
@@ -446,21 +447,36 @@ class ApplicationController {
 		require(HALFMOON_ROOT . "/views/layouts/" . $tlayout . ".phtml");
 	}
 
+	public function form_authenticity_token() {
+		/* explicitly enable sessions so we can store/retrieve the token */
+		$this->start_session();
+
+		if (@!$_SESSION["_csrf_token"])
+			$_SESSION["_csrf_token"] = Utils::random_hash();
+
+		return $_SESSION["_csrf_token"];
+	}
+
 	/* enable or disable sessions according to $session */
 	private function enable_or_disable_sessions($action) {
-		if (empty($this::$session))
-			return;
-		elseif (!is_array($this::$session) && $this::$session == "off")
-			return;
+		if (empty($this::$session) ||
+		(!is_array($this::$session) && $this::$session == "off"))
+			$sessions = false;
 		elseif (is_array($this::$session)) {
 			$opts = Utils::options_for_key_from_options_hash($action,
 				$this::$session);
 
-			if ($opts !== array("on"))
-				return;
-		}
+			if ($opts == array("on"))
+				$sessions = true;
+		} else
+			$sessions = true;
 
-		$this->start_session();
+		if ($sessions) {
+			session_cache_expire(0);
+			session_cache_limiter("private_no_expire");
+			$this->start_session();
+		} else
+			session_cache_limiter("public");
 	}
 
 	/* verify any options requiring verification */
@@ -563,16 +579,6 @@ class ApplicationController {
 			 * the reload. */
 			throw $e;
 		}
-	}
-
-	public function form_authenticity_token() {
-		/* explicitly enable sessions so we can store/retrieve the token */
-		$this->start_session();
-
-		if (@!$_SESSION["_csrf_token"])
-			$_SESSION["_csrf_token"] = Utils::random_hash();
-
-		return $_SESSION["_csrf_token"];
 	}
 }
 
