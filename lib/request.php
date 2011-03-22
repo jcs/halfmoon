@@ -30,13 +30,16 @@ class Request {
 
 		$framework_time = (float)($req->start_times["request"] -
 			$req->start_times["init"]);
-		$app_time = (float)($end_time - $req->start_times["app"]);
+		if (isset($req->start_times["app"]))
+			$app_time = (float)($end_time - $req->start_times["app"]);
 		$total_time = (float)($end_time - $req->start_times["init"]);
 
 		if (\ActiveRecord\ConnectionManager::connection_count()) {
 			$db_time = (float)\ActiveRecord\ConnectionManager::
 				get_connection()->reset_database_time();
-			$app_time -= $db_time;
+
+			if (isset($app_time))
+				$app_time -= $db_time;
 		}
 
 		$status = "200";
@@ -50,8 +53,9 @@ class Request {
 			$log .= " | DB: " . sprintf("%0.5f", $db_time) . " ("
 				. intval(($db_time / $total_time) * 100) . "%)";
 
-		$log .= " | App: " . sprintf("%0.5f", $app_time) . " ("
-			. intval(($app_time / $total_time) * 100) . "%)";
+		if (isset($app_time))
+			$log .= " | App: " . sprintf("%0.5f", $app_time) . " ("
+				. intval(($app_time / $total_time) * 100) . "%)";
 
 		$log .= " | Framework: " . sprintf("%0.5f", $framework_time)
 			. " (" . intval(($framework_time / $total_time) * 100)
