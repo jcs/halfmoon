@@ -3,6 +3,8 @@
 namespace HalfMoon;
 
 class ApplicationController {
+	static $DEFAULT_CONTENT_TYPE = "text/html";
+
 	/* array of methods to call before processing any actions, bailing if any
 	 * return false
 	 * e.g. static $before_filter = array(
@@ -40,6 +42,9 @@ class ApplicationController {
 
 	/* this will be set to a helper object before rendering a template */
 	public $helper = null;
+
+	/* keep track of the content-type being sent */
+	public $content_type = null;
 
 	private $did_render = false;
 	private $redirected_to = null;
@@ -220,18 +225,18 @@ class ApplicationController {
 			/* xml */
 			elseif (file_exists($xml_file = HALFMOON_ROOT . "/views/"
 			. $tf . ".pxml")) {
-				/* TODO: check for an existing content-type already set by the
-				 * user */
-				header("Content-type: application/xml");
+				if (!$this->content_type_set())
+					$this->content_type = "application/xml";
+
 				$this->_really_render_file($xml_file, $vars);
 			}
 
 			/* php-javascript */
 			elseif (file_exists($js_file = HALFMOON_ROOT . "/views/"
 			. $tf . ".pjs")) {
-				/* TODO: check for an existing content-type already set by the
-				 * user */
-				header("Content-type: text/javascript");
+				if (!$this->content_type_set())
+					$this->content_type = "text/javascript";
+
 				$this->_really_render_file($js_file, $vars);
 			}
 
@@ -380,6 +385,11 @@ class ApplicationController {
 
 		/* end session first so it can write the cookie */
 		session_write_close();
+
+		if (empty($this->content_type))
+			$this->content_type = static::$DEFAULT_CONTENT_TYPE;
+
+		header("Content-type: " . $this->content_type);
 
 		/* flush out everything, we're done playing with buffers */
 		ob_end_flush();
@@ -579,6 +589,15 @@ class ApplicationController {
 			 * the reload. */
 			throw $e;
 		}
+	}
+
+	private function content_type_set() {
+		if (empty($this->content_type))
+			foreach ((array)headers_list() as $header)
+				if (preg_match("/^Content-type: (.+)/i", $header, $m))
+					$this->content_type = $m[1];
+
+		return !empty($this->content_type);
 	}
 }
 
