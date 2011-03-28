@@ -193,6 +193,9 @@ class Router extends Singleton {
 
 		$c = ucfirst($route["controller"]) . "Controller";
 
+		if (!class_exists($c))
+			throw new RoutingException("controller " . $c . " does not exist");
+
 		/* log some basic information */
 		if (Config::log_level_at_least("full"))
 			Log::info("Processing " . $c . "::" . $route["action"] . " (for "
