@@ -152,7 +152,7 @@ class ApplicationController {
 		$link = HTMLHelper::link_from_obj_or_string($obj_or_url);
 
 		/* prevent any content from getting to the user */
-		while (ob_get_level() >= $this->start_ob_level)
+		while (($l = ob_get_level()) && $l && ($l >= $this->start_ob_level))
 			ob_end_clean();
 
 		if (Config::log_level_at_least("full"))
