@@ -1186,7 +1186,7 @@ class Model
 				try {
 					$this->$name = $value;
 				} catch (UndefinedPropertyException $e) {
-					// ignore attributes that don't exist
+					$exceptions[] = $e->getMessage();
 				}
 			}
 			else
