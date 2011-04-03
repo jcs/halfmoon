@@ -10,11 +10,12 @@
  */
 
 @include_once 'Log.php';
+@include_once 'Log/file.php';
 require_once 'PHPUnit/Framework/TestCase.php';
 require_once 'SnakeCase_PHPUnit_Framework_TestCase.php';
 require_once 'DatabaseTest.php';
 require_once 'AdapterTest.php';
-require_once dirname(__FILE__) . '/../../ActiveRecord.php';
+require_once __DIR__ . '/../../ActiveRecord.php';
 
 // whether or not to run the slow non-crucial tests
 $GLOBALS['slow_tests'] = false;
@@ -28,12 +29,12 @@ if (getenv('LOG') !== 'false')
 
 ActiveRecord\Config::initialize(function($cfg)
 {
-	$cfg->set_model_directory(realpath(dirname(__FILE__) . '/../models'));
+	$cfg->set_model_directory(realpath(__DIR__ . '/../models'));
 	$cfg->set_connections(array(
-		'mysql'  => getenv('PHPAR_MYSQL')  ? getenv('PHPAR_MYSQL')  : 'mysql://test:test@127.0.0.1/test',
-		'pgsql'  => getenv('PHPAR_PGSQL')  ? getenv('PHPAR_PGSQL')  : 'pgsql://test:test@127.0.0.1/test',
-		'oci'    => getenv('PHPAR_OCI')    ? getenv('PHPAR_OCI')    : 'oci://test:test@127.0.0.1/dev',
-		'sqlite' => getenv('PHPAR_SQLITE') ? getenv('PHPAR_SQLITE') : 'sqlite://test.db'));
+		'mysql'  => getenv('PHPAR_MYSQL')  ?: 'mysql://test:test@127.0.0.1/test',
+		'pgsql'  => getenv('PHPAR_PGSQL')  ?: 'pgsql://test:test@127.0.0.1/test',
+		'oci'    => getenv('PHPAR_OCI')    ?: 'oci://test:test@127.0.0.1/dev',
+		'sqlite' => getenv('PHPAR_SQLITE') ?: 'sqlite://test.db'));
 
 	$cfg->set_default_connection('mysql');
 
@@ -45,9 +46,9 @@ ActiveRecord\Config::initialize(function($cfg)
 			$GLOBALS['slow_tests'] = true;
 	}
 
-	if (is_callable('Log::singleton')) // PEAR Log installed
+	if (class_exists('Log_file')) // PEAR Log installed
 	{
-		$logger = Log::singleton('file', dirname(__FILE__) . '/../log/query.log','ident',array('mode' => 0664, 'timeFormat' =>  '%Y-%m-%d %H:%M:%S'));
+		$logger = new Log_file(dirname(__FILE__) . '/../log/query.log','ident',array('mode' => 0664, 'timeFormat' =>  '%Y-%m-%d %H:%M:%S'));
 	
 		$cfg->set_logging(true);
 		$cfg->set_logger($logger);
@@ -65,7 +66,9 @@ ActiveRecord\Config::initialize(function($cfg)
 		if (!extension_loaded('memcache'))
 			echo "(Cache Tests will be skipped, Memcache not found.)\n";
 	}
-	
+
+	date_default_timezone_set('UTC');
+
 	$GLOBALS['show_warnings_done'] = true;
 });
 
