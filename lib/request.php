@@ -157,7 +157,7 @@ class Request {
 			/* if we received an If-None-Match header from the client and our
 			 * generated etag matches it, send a not-modified header and no
 			 * data */
-			if ($this->etag_matches_inm()) {
+			if (empty($this->redirected_to) && $this->etag_matches_inm()) {
 				$headers = (array)headers_sent();
 				ob_end_clean();
 				foreach ($headers as $header)
@@ -167,7 +167,9 @@ class Request {
 			}
 
 			else {
-				$this->send_etag_header();
+				if (empty($this->redirected_to))
+					$this->send_etag_header();
+
 				ob_end_flush();
 			}
 		}
