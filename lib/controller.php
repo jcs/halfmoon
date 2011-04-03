@@ -386,10 +386,10 @@ class ApplicationController {
 		/* end session first so it can write the cookie */
 		session_write_close();
 
-		if (empty($this->content_type))
+		if (!$this->content_type_set()) {
 			$this->content_type = static::$DEFAULT_CONTENT_TYPE;
-
-		header("Content-type: " . $this->content_type);
+			header("Content-type: " . $this->content_type);
+		}
 
 		/* flush out everything, we're done playing with buffers */
 		ob_end_flush();
