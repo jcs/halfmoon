@@ -35,13 +35,11 @@ abstract class Connection
 	 * @var float
 	 */
 	public $database_time = 0;
-
 	/**
 	 * Whether we're inside a transaction.
 	 * @var boolean
 	 */
 	public $in_transaction = false;
-
 	/**
 	 * Switch for logging.
 	 *
@@ -386,7 +384,8 @@ abstract class Connection
 	 */
 	public function transaction()
 	{
-		if (!$this->in_transaction) {
+		if (!$this->in_transaction)
+		{
 			if ($this->connection->beginTransaction())
 				$this->in_transaction = true;
 			else
@@ -399,9 +398,11 @@ abstract class Connection
 	 */
 	public function commit()
 	{
-		if ($this->connection->commit())
-			$this->in_transaction = false;
-		else
+		$throw = !$this->connection->commit();
+
+		$this->in_transaction = false;
+
+		if ($throw)
 			throw new DatabaseException($this);
 	}
 
@@ -447,28 +448,6 @@ abstract class Connection
 	public function next_sequence_value($sequence_name)
 	{
 		return null;
-	}
-
-	/**
-	 * Adds time spent in the database to the tally.
-	 *
-	 * @return void
-	 */
-	public function record_database_time($seconds)
-	{
-		$this->database_time += $seconds;
-	}
-
-	/**
-	 * Return the time spent in the database and reset the tally.
-	 *
-	 * @return float
-	 */
-	public function reset_database_time()
-	{
-		$t = $this->database_time;
-		$this->database_time = 0;
-		return $t;
 	}
 
 	/**
@@ -570,6 +549,27 @@ abstract class Connection
 		return false;
 	}
 
+	/**
+	 * Adds time spent in the database to the tally.
+	 *
+	 * @return void
+	 */
+	public function record_database_time($seconds)
+	{
+		$this->database_time += $seconds;
+	}
+
+	/**
+	 * Return the time spent in the database and reset the tally.
+	 *
+	 * @return float
+	 */
+	public function reset_database_time()
+	{
+		$t = $this->database_time;
+		$this->database_time = 0;
+		return $t;
+	}
 }
 
 ;

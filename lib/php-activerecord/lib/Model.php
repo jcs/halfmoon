@@ -74,7 +74,7 @@ namespace ActiveRecord;
 class Model
 {
 	/**
-	 * An instance of {@link Errors} and will be instantiated once the object is initialized.
+	 * An instance of {@link Errors} and will be instantiated once a write method is called.
 	 *
 	 * @var Errors
 	 */
@@ -781,13 +781,13 @@ class Model
 	{
 		$this->verify_not_readonly('insert');
 
-		if (($validate && !$this->_validate() || !$this->invoke_callback('before_create',false)))
-			return false;
-
 		$table = static::table();
 		$obj = &$this;
 
-		self::transaction(function() use ($obj, $table) {
+		$ret = self::transaction(function() use ($obj, $table, $validate) {
+			if (($validate && !$obj->_validate() || !$obj->invoke_callback('before_create',false)))
+				return false;
+
 			$obj->invoke_callback('before_create',false);
 
 			if (!($attributes = $obj->dirty_attributes()))
@@ -828,8 +828,14 @@ class Model
 					$obj->attributes[$pk] = $table->conn->insert_id($table->sequence);
 			}
 
-			$obj->invoke_callback('after_create',false);
+			if (!$obj->invoke_callback('after_create',false))
+				return false;
+
+			return true;
 		});
+
+		if (!$ret)
+			return false;
 
 		$this->__new_record = false;
 		return true;
@@ -857,13 +863,22 @@ class Model
 				throw new ActiveRecordException("Cannot update, no primary key defined for: " . get_called_class());
 
 			$table = static::table();
-			$obj = $this;
+			$obj = &$this;
 
-			self::transaction(function() use ($obj, $table, $pk) {
-				$obj->invoke_callback('before_update',false);
+			$ret = self::transaction(function() use ($obj, $table, $pk) {
+				if (!$obj->invoke_callback('before_update',false))
+					return false;
+
 				$table->update($obj->dirty_attributes(),$pk);
-				$obj->invoke_callback('after_update',false);
+
+				if (!$obj->invoke_callback('after_update',false))
+					return false;
+
+				return true;
 			});
+
+			if (!$ret)
+				return false;
 		}
 
 		return true;
@@ -998,11 +1013,23 @@ class Model
 		if (empty($pk))
 			throw new ActiveRecordException("Cannot delete, no primary key defined for: " . get_called_class());
 
-		if (!$this->invoke_callback('before_destroy',false))
-			return false;
+		$table = static::table();
+		$obj = &$this;
 
-		static::table()->delete($pk);
-		$this->invoke_callback('after_destroy',false);
+		$ret = self::transaction(function() use ($obj, $table, $pk) {
+			if (!$obj->invoke_callback('before_destroy',false))
+				return false;
+
+			$table->delete($pk);
+
+			if (!$obj->invoke_callback('after_destroy',false))
+				return false;
+
+			return true;
+		});
+
+		if (!$ret)
+			return false;
 
 		return true;
 	}
@@ -1380,8 +1407,7 @@ class Model
 				$this->$association_name;
 				return $association->$method($this, $args);
 			}
-		} elseif (preg_match('/^find/', $method))
-			return self::__callStatic($method, $args);
+		}
 
 		throw new ActiveRecordException("Call to undefined method: $method");
 	}
@@ -1840,11 +1866,10 @@ class Model
 	{
 		$connection = static::connection();
 
-		$did_begin = false;
-
 		try
 		{
-			if (!$connection->in_transaction) {
+			if (!$connection->in_transaction)
+			{
 				$connection->transaction();
 				$did_begin = true;
 			}
