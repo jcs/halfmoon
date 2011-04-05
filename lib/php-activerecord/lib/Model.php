@@ -1065,7 +1065,7 @@ class Model
 	 *
 	 * @return boolean True if passed validators otherwise false
 	 */
-	private function _validate()
+	public function _validate()
 	{
 		require_once 'Validations.php';
 
@@ -1865,6 +1865,8 @@ class Model
 	public static function transaction($closure)
 	{
 		$connection = static::connection();
+
+		$did_begin = false;
 
 		try
 		{
