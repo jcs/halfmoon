@@ -1408,6 +1408,10 @@ class Model
 				return $association->$method($this, $args);
 			}
 		}
+		
+		/* XXX: this is a php bug */
+		elseif (preg_match('/^find/', $method))
+			return self::__callStatic($method, $args);
 
 		throw new ActiveRecordException("Call to undefined method: $method");
 	}
