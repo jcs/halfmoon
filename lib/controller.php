@@ -414,7 +414,8 @@ class ApplicationController {
 		ob_clean();
 
 		/* if we don't want a layout at all, just print the content */
-		if (isset($this::$layout) && $this::$layout === false) {
+		if (isset($this::$layout) && ($this::$layout === false ||
+		$this::$layout === "false")) {
 			print $content_for_layout;
 			return;
 		}

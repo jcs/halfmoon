@@ -57,6 +57,19 @@ class OptionsHashTest extends PHPUnit_Framework_TestCase {
 		$ret = \HalfMoon\Utils::options_for_key_from_options_hash(
 			"index", $options);
 		$this->assertEquals(array("normal"), $ret);
+
+
+		$options = array(
+			"false" => array("only" => array("stub", "blah")),
+		);
+
+		$ret = \HalfMoon\Utils::options_for_key_from_options_hash(
+			"stub", $options);
+		$this->assertEquals(array("false"), $ret);
+
+		$ret = \HalfMoon\Utils::options_for_key_from_options_hash(
+			"stub2", $options);
+		$this->assertEquals(array(), $ret);
 	}
 
 	public function testSingle() {
