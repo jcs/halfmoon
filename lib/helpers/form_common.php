@@ -9,6 +9,7 @@ class FormHelperCommon extends Helper {
 	public $controller = null;
 	public $form_object = null;
 	public $html_helper = null;
+	public $form_prefix = null;
 
 	public function __construct() {
 		$this->html_helper = new HtmlHelper;
@@ -20,9 +21,14 @@ class FormHelperCommon extends Helper {
 		if (!isset($options["method"]))
 			$options["method"] = "post";
 
-		if (isset($options["multipart"]) && $options["multipart"]) {
+		if (!empty($options["multipart"])) {
 			unset($options["multipart"]);
 			$options["enctype"] = "multipart/form-data";
+		}
+
+		if (!empty($options["form_prefix"])) {
+			$this->form_prefix = $options["form_prefix"];
+			unset($options["form_prefix"]);
 		}
 
 		print "<form"

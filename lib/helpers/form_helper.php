@@ -35,7 +35,10 @@ class FormHelper extends FormTagHelper {
 
 	/* the prefix to use for class and id names for fields */
 	protected function form_prefix() {
-		return strtolower(get_class($this->form_object));
+		if (empty($this->form_prefix))
+			return strtolower(get_class($this->form_object));
+		else
+			return $this->form_prefix;
 	}
 
 	/* provide an html object id to use for a given field name */
