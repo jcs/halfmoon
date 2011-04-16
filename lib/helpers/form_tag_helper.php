@@ -80,8 +80,12 @@ class FormTagHelper extends FormHelperCommon {
 		if (!isset($options["for"]))
 			$options["for"] = $this->field_id($field);
 
-		if (is_null($caption))
-			$caption = $column;
+		if (is_null($caption)) {
+			/* author_id -> "Author", selected_text -> "Selected text" */
+			$caption = preg_replace("/_id$/", "", str_replace("_", " ",
+				$field));
+			$caption = strtoupper(substr($caption, 0, 1)) . substr($caption, 1);
+		}
 
 		return "<label" . $this->options_to_s($options) . ">"
 			. $caption
