@@ -413,18 +413,17 @@ class ApplicationController {
 		 * we're going to print the layout (and content inside) into it */
 		ob_clean();
 
-		/* if we don't want a layout at all, just print the content */
-		if (isset($this::$layout) && ($this::$layout === false ||
-		$this::$layout === "false")) {
-			print $content_for_layout;
-			return;
-		}
-
 		$tlayout = null;
 		$opts = Utils::options_for_key_from_options_hash($action,
 			$this::$layout);
 		if (!empty($opts[0]))
 			$tlayout = $opts[0];
+
+		/* if we don't want a layout at all, just print the content */
+		if ($tlayout === false || $tlayout === "false") {
+			print $content_for_layout;
+			return;
+		}
 
 		/* if no specific layout was set, check for a controller-specific one */
 		if (!$tlayout && isset($this->params["controller"]) &&
