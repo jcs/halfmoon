@@ -49,7 +49,8 @@ require_once(HALFMOON_ROOT . "/halfmoon/lib/router.php");
 
 require_once(HALFMOON_ROOT . "/halfmoon/lib/config.php");
 
-require_once(HALFMOON_ROOT . "/halfmoon/lib/php-activerecord/ActiveRecord.php");
+if (file_exists(HALFMOON_ROOT . "/config/db.ini"))
+	require_once(HALFMOON_ROOT . "/halfmoon/lib/php-activerecord/ActiveRecord.php");
 
 /* append our root to the include path to pick up user-installed code */
 set_include_path(get_include_path() . PATH_SEPARATOR . HALFMOON_ROOT);
@@ -71,11 +72,13 @@ function halfmoon_autoload($class_name) {
 
 spl_autoload_register("halfmoon_autoload", false, false);
 
-HalfMoon\Config::initialize_activerecord();
+if (defined("PHP_ACTIVERECORD_ROOT"))
+	HalfMoon\Config::initialize_activerecord();
 
 /* bring in the route table and route our request */
-HalfMoon\Router::initialize(function($router) {
-	require_once(HALFMOON_ROOT . "/config/routes.php");
+if (file_exists(HALFMOON_ROOT . "/config/routes.php"))
+	HalfMoon\Router::initialize(function($router) {
+		require_once(HALFMOON_ROOT . "/config/routes.php");
 });
 
 ?>
