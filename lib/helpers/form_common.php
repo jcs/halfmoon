@@ -72,8 +72,17 @@ class FormHelperCommon extends Helper {
 			} elseif (!$is_assoc)
 				$key = $val;
 
+			if ($selected === $key)
+				$is_selected = true;
+			elseif (is_numeric($selected) && is_numeric($key) &&
+			($selected == $key))
+				$is_selected = true;
+			/* TODO: handle 0=false, 1=true, true="true", etc. */
+			else
+				$is_selected = false;
+
 			$str .= "<option value=\"" . h($key) . "\""
-				. ($selected === $key ? " selected" : "")
+				. ($is_selected ? " selected" : "")
 				. ">" . h($val) . "</option>";
 		}
 
