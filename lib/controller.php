@@ -177,13 +177,24 @@ class ApplicationController {
 		if (isset($template["status"]))
 			Request::send_status_header($template["status"]);
 
-		if (!$this->in_view)
-			if (is_array($template) && array_key_exists("layout", $template))
-				$this::$layout = $template["layout"];
+		/* just render text with no layout */
+		if (is_array($template) && array_key_exists("text", $template)) {
+			if (!$this->content_type_set())
+				$this->content_type = "text/plain";
 
-		/* just render text */
-		if (is_array($template) && array_key_exists("text", $template))
 			print $template["text"];
+		}
+
+		/* just render json with no layout */
+		elseif (is_array($template) && array_key_exists("json", $template)) {
+			if (!$this->content_type_set())
+				$this->content_type = "application/json";
+
+			/* there's no way to know if we were passed a json-encoded string,
+			 * or a string that needs to be encoded, so just encode everything
+			 * and hope the user figures it out */
+			print json_encode($template["json"]);
+		}
 
 		/* assume we're dealing with files */
 		else {
@@ -219,8 +230,12 @@ class ApplicationController {
 
 			/* regular php/html */
 			if (file_exists($full_file = HALFMOON_ROOT . "/views/"
-			. $tf . ".phtml"))
+			. $tf . ".phtml")) {
+				if (!$this->content_type_set())
+					$this->content_type = "text/html";
+
 				$this->_really_render_file($full_file, $vars);
+			}
 
 			/* xml */
 			elseif (file_exists($xml_file = HALFMOON_ROOT . "/views/"
@@ -242,6 +257,18 @@ class ApplicationController {
 
 			else
 				throw new MissingTemplate("no template file " . $full_file);
+		}
+
+		if (!$this->in_view) {
+			if (is_array($template) && array_key_exists("layout", $template))
+				$this::$layout = $template["layout"];
+
+			elseif ($this->content_type_set() &&
+			$this->content_type != static::$DEFAULT_CONTENT_TYPE)
+				/* if we were called from the controller, we're not outputting
+				 * html, and no layout was explicitly specified, we probably
+				 * don't want a layout */
+				$this::$layout = false;
 		}
 
 		$this->did_render = true;
@@ -414,10 +441,14 @@ class ApplicationController {
 		ob_clean();
 
 		$tlayout = null;
-		$opts = Utils::options_for_key_from_options_hash($action,
-			$this::$layout);
-		if (!empty($opts[0]))
-			$tlayout = $opts[0];
+		if ($this::$layout === false)
+			$tlayout = false;
+		else {
+			$opts = Utils::options_for_key_from_options_hash($action,
+				$this::$layout);
+			if (!empty($opts[0]))
+				$tlayout = $opts[0];
+		}
 
 		/* if we don't want a layout at all, just print the content */
 		if ($tlayout === false || $tlayout === "false") {
