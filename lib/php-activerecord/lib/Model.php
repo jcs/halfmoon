@@ -247,9 +247,12 @@ class Model
 	 * @param boolean $new_record Set to true if this should be considered a new record
 	 * @return Model
 	 */
-	public function __construct(array $attributes=array(), $guard_attributes=true, $instantiating_via_find=false, $new_record=true)
+	public function __construct($attributes=array(), $guard_attributes=true, $instantiating_via_find=false, $new_record=true)
 	{
 		$this->__new_record = $new_record;
+
+		if (!is_array($attributes))
+			$attributes = array($attributes);
 
 		// initialize attributes applying defaults
 		if (!$instantiating_via_find)
