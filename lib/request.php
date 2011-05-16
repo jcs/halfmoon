@@ -97,6 +97,35 @@ class Request {
 		$this->path = trim(preg_replace("/^\/*/", "", preg_replace("/\/$/", "",
 			trim($this->path))));
 
+		/* if this looks like a request from ie's castrated XDomainRequest()
+		 * then it didn't send a proper content-type, so try to read and parse
+		 * it to put it into $_POST ourselves */
+		if (empty($post_vars) && !empty($headers["REQUEST_METHOD"]) &&
+		$headers["REQUEST_METHOD"] == "POST" &&
+		!empty($headers["HTTP_ORIGIN"])) {
+			if (empty($HTTP_RAW_POST_DATA))
+				$HTTP_RAW_POST_DATA = file_get_contents("php://input");
+
+			if (!empty($HTTP_RAW_POST_DATA)) {
+				$pairs = explode("&", $HTTP_RAW_POST_DATA);
+				foreach ($pairs as $pair) {
+					if (!empty($pair)) {
+						list($k, $v) = explode('=', $pair);
+						$k = urldecode($k);
+						$v = urldecode($v);
+
+						if (preg_match("/^([^\[]+)\[([^\]]+)\]?$/", $k, $m)) {
+							if (!is_array($post_vars[$m[1]]))
+								$post_vars[$m[1]] = array();
+
+							$post_vars[$m[1]][$m[2]] = $v;
+						} else
+							$post_vars[$k] = $v;
+					}
+				}
+			}
+		}
+
 		/* store get and post vars in $params first according to php's
 		   variables_order setting (EGPCS by default) */
 		foreach (str_split(ini_get("variables_order")) as $vtype) {
@@ -231,6 +260,22 @@ class Request {
 		return ($this->_remote_ip = $this->headers["REMOTE_ADDR"]);
 	}
 
+	/* whether this was a request received over ssl */
+	private $_ssl;
+	public function ssl() {
+		if (isset($this->_ssl))
+			return $this->_ssl;
+
+		return ($this->_ssl =
+			(!empty($this->headers["HTTPS"]) &&
+				$this->headers["HTTPS"] == "on") ||
+			(!empty($this->headers["HTTP_X_FORWARDED_PROTO"]) &&
+				$this->headers["HTTP_X_FORWARDED_PROTO"] == "https") ||
+			(!empty($this->headers["SCRIPT_URI"]) && preg_match("/^https:/",
+				$this->headers["SCRIPT_URI"]))
+			);
+	}
+
 	/* "GET", "PUT", etc. */
 	public function request_method() {
 		return strtoupper($this->headers["REQUEST_METHOD"]);
@@ -238,7 +283,7 @@ class Request {
 
 	/* the user's browser as reported by the server */
 	public function user_agent() {
-		return $_SERVER["HTTP_USER_AGENT"];
+		return $this->headers["HTTP_USER_AGENT"];
 	}
 
 	private function etag_matches_inm() {

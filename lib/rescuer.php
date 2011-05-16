@@ -6,6 +6,8 @@
 namespace HalfMoon;
 
 class Rescuer {
+	static $already_rescued = false;
+
 	/* exceptions that won't trigger an email in notify_of_exception() */
 	static $exceptions_to_suppress = array(
 		'\HalfMoon\RoutingException',
@@ -107,6 +109,9 @@ class Rescuer {
 		if (HALFMOON_ENV != "production")
 			return;
 
+		if (static::$already_rescued)
+			return;
+
 		foreach (static::$exceptions_to_suppress as $e)
 			if ($exception instanceof $e)
 				return;
@@ -126,6 +131,8 @@ class Rescuer {
 		@mail($config->exception_notification_recipient,
 			$config->exception_notification_subject . " " . $title,
 			$mail_body);
+
+		static::$already_rescued = true;
 
 		return;
 	}
@@ -224,6 +231,8 @@ class Rescuer {
 				}
 			}
 		}
+
+		static::$already_rescued = true;
 
 		/* that's it, end of the line */
 		exit;
