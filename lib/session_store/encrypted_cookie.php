@@ -73,6 +73,8 @@ class EncryptedCookieSessionStore {
 
 			list($hmac, $data) = explode("--", $data_and_hmac, 2);
 
+			$hmac = base64_decode($hmac);
+
 			if (!strlen($hmac))
 				throw new \HalfMoon\InvalidCookieData("no HMAC");
 
@@ -98,7 +100,7 @@ class EncryptedCookieSessionStore {
 
 		/* encrypt the hmac and data with aes-256-cfb, using the random iv */
 		$e_data = mcrypt_encrypt(MCRYPT_RIJNDAEL_256, $this->key,
-			$hmac . "--" . $data, MCRYPT_MODE_CFB, $iv);
+			base64_encode($hmac) . "--" . $data, MCRYPT_MODE_CFB, $iv);
 
 		$cookie = base64_encode($e_iv) . "--" . base64_encode($e_data);
 
@@ -116,6 +118,9 @@ class EncryptedCookieSessionStore {
 			$cparams["secure"],
 			$cparams["httponly"]
 		);
+
+		/* just to help in debugging */
+		$_COOKIE[$this->cookie_name] = $cookie;
 
 		return true;
 	}
