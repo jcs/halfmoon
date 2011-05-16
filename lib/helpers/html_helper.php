@@ -17,6 +17,23 @@ class HtmlHelper extends Helper {
 			. " />";
 	}
 
+	public function button_to_function($label, $options = array()) {
+		if (!is_array($options))
+			$options = array("onclick" => $options);
+
+		if (!isset($options["html_options"]))
+			$options["html_options"] = array();
+
+		if (!isset($options["html_options"]["type"]))
+			$options["html_options"]["type"] = "button";
+
+		return "<input"
+			. " value=\"" . $label . "\""
+			. " onclick=\"" . $options["onclick"] . "\""
+			. $this->options_for_link($options["html_options"])
+			. " />";
+	}
+
 	/* summarize errors for an activerecord object */
 	public function error_messages_for($obj, $obj_name = "", $obj_prefix = "") {
 		if ($obj->errors && $obj->errors->size()) {

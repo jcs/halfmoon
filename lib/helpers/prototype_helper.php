@@ -7,20 +7,7 @@ namespace HalfMoon;
 
 class PrototypeHelper extends FormHelper {
 	public function button_to_function($label, $options = array()) {
-		if (!is_array($options))
-			$options = array("onclick" => $options);
-
-		if (!isset($options["html_options"]))
-			$options["html_options"] = array();
-
-		if (!isset($options["html_options"]["type"]))
-			$options["html_options"]["type"] = "button";
-
-		return "<input"
-			. " value=\"" . $label . "\""
-			. " onclick=\"" . $options["onclick"] . "\""
-			. $this->html_helper->options_for_link($options["html_options"])
-			. " />";
+		return $this->html_helper->button_to_function($label, $options);
 	}
 
 	public function form_remote_tag($options = array(),
