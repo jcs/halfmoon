@@ -182,6 +182,9 @@ class ApplicationController {
 			if (!$this->content_type_set())
 				$this->content_type = "text/plain";
 
+			if (Config::log_level_at_least("full"))
+				Log::info("Rendering text");
+
 			print $template["text"];
 		}
 
@@ -189,6 +192,9 @@ class ApplicationController {
 		elseif (is_array($template) && array_key_exists("json", $template)) {
 			if (!$this->content_type_set())
 				$this->content_type = "application/json";
+
+			if (Config::log_level_at_least("full"))
+				Log::info("Rendering json");
 
 			/* there's no way to know if we were passed a json-encoded string,
 			 * or a string that needs to be encoded, so just encode everything
@@ -575,10 +581,13 @@ class ApplicationController {
 			if (!call_user_func_array(array($this, $filter), array())) {
 				if (Config::log_level_at_least("short"))
 					Log::info("Filter chain halted as " . $filter
-						. " returned false.");
+						. " did not return true.");
 
 				return false;
 			}
+		
+			if (isset($this->redirected_to))
+				return false;
 		}
 
 		return true;
