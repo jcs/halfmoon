@@ -419,10 +419,11 @@ class ApplicationController {
 		/* end session first so it can write the cookie */
 		session_write_close();
 
-		if (!$this->content_type_set()) {
+		if (!$this->content_type_set())
 			$this->content_type = static::$DEFAULT_CONTENT_TYPE;
+
+		if (!$this->content_type_sent())
 			header("Content-type: " . $this->content_type);
-		}
 
 		/* flush out everything, we're done playing with buffers */
 		ob_end_flush();
@@ -633,11 +634,18 @@ class ApplicationController {
 
 	private function content_type_set() {
 		if (empty($this->content_type))
-			foreach ((array)headers_list() as $header)
-				if (preg_match("/^Content-type: (.+)/i", $header, $m))
-					$this->content_type = $m[1];
+			if ($ct = $this->content_type_sent())
+				$this->content_type = $ct;
 
 		return !empty($this->content_type);
+	}
+
+	private function content_type_sent() {
+		foreach ((array)headers_list() as $header)
+			if (preg_match("/^Content-type: (.+)/i", $header, $m))
+				return $m[1];
+
+		return null;
 	}
 }
 
