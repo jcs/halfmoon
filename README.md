@@ -106,7 +106,8 @@ by the controller.  There are other helpers available like `$time`,
 
 			CustomLog logs/example_access combined
 
-			# halfmoon will log a few lines for each request with some
+			# halfmoon will log a few lines for each request (or one
+			# line, or nothing - see config/boot.php) with some
 			# useful information about routing, timing, etc., but
 			# because of a php/apache bug that prevents stderr output
 			# from going into the proper log file for virtual hosts,
@@ -146,6 +147,10 @@ by the controller.  There are other helpers available like `$time`,
 5.	(Optional) Create the database and its tables and grant permissions.
 	Put those settings in the `config/db.ini` file under the development
 	section.
+
+	If you are not using a database, or just don't want to use php-
+	activerecord, remove config/db.ini and php-ar will not be initialized,
+	saving you some minor processing time on each request.
 
 	By default, halfmoon runs in development mode unless the
 	HALFMOON_ENV environment variable is set to something else (such as
