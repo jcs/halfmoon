@@ -34,7 +34,8 @@ class Request {
 			$app_time = (float)($end_time - $req->start_times["app"]);
 		$total_time = (float)($end_time - $req->start_times["init"]);
 
-		if (\ActiveRecord\ConnectionManager::connection_count()) {
+		if (class_exists('\ActiveRecord\ConnectionManager') &&
+		\ActiveRecord\ConnectionManager::connection_count()) {
 			$db_time = (float)\ActiveRecord\ConnectionManager::
 				get_connection()->reset_database_time();
 
