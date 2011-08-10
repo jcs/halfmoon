@@ -284,12 +284,18 @@ class ApplicationController {
 	public function render_to_string($template, $vars = array()) {
 		$old_did_render = $this->did_render;
 
+		/* store current content-type in case render() changes it */
+		$ct = $this->content_type;
+		
 		ob_start();
 		$this->render($template, $vars);
 		$output = ob_get_contents();
 		ob_clean();
 
 		$this->did_render = $old_did_render;
+
+		/* restore old content-type */
+		$this->content_type = $ct;
 
 		return $output;
 	}
