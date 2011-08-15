@@ -335,10 +335,12 @@ class ApplicationController {
 		foreach ($this->_helper_refs as $__hn => $__hk) {
 			$$__hn = $__hk;
 			$$__hn->controller = $this;
+			$$__hn->C = $this;
 		}
 
-		/* define $controller where $this can't be used */
+		/* define $controller and $C where $this can't be used */
 		$controller = $this;
+		$C = $this;
 
 		if (Config::log_level_at_least("full"))
 			Log::info("Rendering " . $__file);
