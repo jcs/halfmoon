@@ -188,6 +188,17 @@ class ApplicationController {
 			print $template["text"];
 		}
 
+		/* just render html with no layout */
+		elseif (is_array($template) && array_key_exists("html", $template)) {
+			if (!$this->content_type_set())
+				$this->content_type = "text/html";
+
+			if (Config::log_level_at_least("full"))
+				Log::info("Rendering HTML");
+
+			print $template["text"];
+		}
+
 		/* just render json with no layout */
 		elseif (is_array($template) && array_key_exists("json", $template)) {
 			if (!$this->content_type_set())
