@@ -53,10 +53,13 @@ class FormHelper extends FormTagHelper {
 	}
 
 	/* return the value of the particular field for the form object */
-	protected function value_for_field($field) {
+	protected function value_for_field($field, $options) {
+		/* value is being statically overridden */
+		if (isset($options["value"]))
+			return $options["value"];
 		/* if we have an array-looking name of field[var], use an AR getter of
 		 * field(var) */
-		if (preg_match("/^(.+)\[([^\]]+)\]$/", $field, $m))
+		elseif (preg_match("/^(.+)\[([^\]]+)\]$/", $field, $m))
 			return $this->form_object->{"get_" . $m[1]}($m[2]);
 		else
 			return $this->form_object->$field;
@@ -92,7 +95,7 @@ class FormHelper extends FormTagHelper {
 			. " />"
 			. $this->wrap_field_with_errors($field,
 				$this->check_box_tag($field, $checked_value, 
-					(bool)$this->value_for_field($field), $options)
+					(bool)$this->value_for_field($field, $options), $options)
 			);
 	}
 
@@ -117,8 +120,8 @@ class FormHelper extends FormTagHelper {
 
 		$options = $this->set_field_id_and_name($field, $options);
 
-		return $this->hidden_field_tag($field, $this->value_for_field($field),
-			$options);
+		return $this->hidden_field_tag($field, $this->value_for_field($field,
+			$options), $options);
 	}
 
 	/* create a <label> that references a field */
@@ -156,7 +159,7 @@ class FormHelper extends FormTagHelper {
 
 		return $this->wrap_field_with_errors($field,
 			$this->radio_button_tag($field, $value,
-				($this->value_for_field($field) == $value), $options)
+				($this->value_for_field($field, $options) == $value), $options)
 		);
 	}
 
@@ -169,8 +172,8 @@ class FormHelper extends FormTagHelper {
 		$options = $this->set_field_id_and_name($field, $options);
 
 		return $this->wrap_field_with_errors($field,
-			$this->select_tag($field, $choices, $this->value_for_field($field),
-				$options)
+			$this->select_tag($field, $choices, $this->value_for_field($field,
+				$options), $options)
 		);
 	}
 
@@ -192,8 +195,8 @@ class FormHelper extends FormTagHelper {
 		$options = $this->set_field_id_and_name($field, $options);
 
 		return $this->wrap_field_with_errors($field,
-			$this->text_area_tag($field, $this->value_for_field($field),
-				$options)
+			$this->text_area_tag($field, $this->value_for_field($field,
+				$options), $options)
 		);
 	}
 
@@ -206,8 +209,8 @@ class FormHelper extends FormTagHelper {
 		$options = $this->set_field_id_and_name($field, $options);
 
 		return $this->wrap_field_with_errors($field,
-			$this->text_field_tag($field, $this->value_for_field($field),
-				$options)
+			$this->text_field_tag($field, $this->value_for_field($field,
+				$options), $options)
 		);
 	}
 }
