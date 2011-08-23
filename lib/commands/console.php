@@ -1,7 +1,7 @@
 <?php
 /*
-	based on halfmoon_console by David Phillips <david@acz.org>
-	http://david.acz.org/halfmoon_console/ says "This software is public domain."
+	based on phpa by David Phillips <david@acz.org>
+	http://david.acz.org/phpa/ says "This software is public domain."
 */
 
 namespace HalfMoon;
