@@ -319,7 +319,8 @@ design changes.
 
 	This is due to the [design of closures in php](http://wiki.php.net/rfc/closures/removal-of-this).
 
-	It is recommended to just always use `$controller` in views.
+	It is recommended to just always use `$C` (or the more verbose
+	`$controller`) throughout views and closures.
 
 2.	`list` and `new` are reserved keywords in PHP, so these cannot be
 	used as the controller actions like Rails sets up by default.
