@@ -195,7 +195,7 @@ by the controller.  There are other helpers available like `$time`,
 	visible to the view template php file.
 
 	The index action will be called by default when a route does
-    not specify an action.
+	not specify an action.
 
 	Defining a `$before_filter` array of functions will call them before
 	processing the action.  If any of them return false (such as one
@@ -205,21 +205,21 @@ by the controller.  There are other helpers available like `$time`,
 
 3.	Create views in the `views/` directory.  By default, controller
 	actions will try to render `views/*controller*/*action*.phtml`.
-    For example, these URLs:
+	For example, these URLs:
 
 		/posts
 		/posts/index
 
-	will both call the index action in the posts controller, which
-	will render `views/posts/index.phtml`.
+	will both call the `index` action in `PostsController`, which will
+	render `views/posts/index.phtml`.
 
 	A URL of:
 
-		/posts/view/1
+		/posts/show/1
 
 	would map (using the default catch-all route) to the posts
-	controller, calling the `view` action with `$id` set to 1, and then
-	render `views/posts/view.phtml`.
+	controller, calling the `show` action with `$id` set to 1, and then
+	render `views/posts/show.phtml`.
 
 	Partial views are snippets of HTML that are shared among views and
 	can be included in a view template with render function.  Their
@@ -238,7 +238,7 @@ by the controller.  There are other helpers available like `$time`,
 
 	After a controller renders its view file, it is stored in the
 	`$content_for_layout` variable and the `views/layouts/application.phtml`
-	file is rendered.  be sure to print `$content_for_layout` somewhere in
+	file is rendered.  Be sure to print `$content_for_layout` somewhere in
 	that file.
 
 4.	(Optional) Configure a root route to specify which controller/action
@@ -307,8 +307,8 @@ design changes.
 1.	The body of the `form_for()` will be executed in a different context,
 	so `$this` will not point to the controller as it does elsewhere in
 	the view.  To get around this, `$controller` is defined (as well as
-	a `$C` alias) and (along with any other local variables needed) can
-	be passed into the `form_for()` body like so:
+	a `$C` shortcut alias) and (along with any other local variables
+	needed) can be passed into the `form_for()` body like so:
 
 		<h1><?= $this->title() ?></h1>
 
@@ -355,6 +355,5 @@ design changes.
 	form and XSRF protection is enabled, sessions will be explicitly
 	enabled to allow storing the token in the session pre-`POST` and then
 	retrieving it on the `POST`.
-
 
 ### vim:ts=4:tw=72:ft=markdown
