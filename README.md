@@ -1,4 +1,3 @@
-
 	 .-.
 	( (  halfmoon
 	 `-`
@@ -307,9 +306,9 @@ design changes.
 
 1.	The body of the `form_for()` will be executed in a different context,
 	so `$this` will not point to the controller as it does elsewhere in
-	the view.  To get around this, `$controller` is defined and (along
-	with any other local variables needed) can be passed into the
-	`form_for()` body like so:
+	the view.  To get around this, `$controller` is defined (as well as
+	a `$C` alias) and (along with any other local variables needed) can
+	be passed into the `form_for()` body like so:
 
 		<h1><?= $this->title() ?></h1>
 
@@ -326,9 +325,8 @@ design changes.
 	used as the controller actions like Rails sets up by default.
 
 	It is suggested to use `build` instead of `new`, and `index` instead
-	of `list`.  Of course, `list` and `new` can still be used in the URL
-	by adding a specific route to map them to different controller
-	actions:
+	of `list`.  Of course, `list` and `new` can still be used in URLs by
+	adding a specific route to map them to different controller actions:
 
 		HalfMoon\Router::addRoute(array(
 			"url" => ":controller/list",
