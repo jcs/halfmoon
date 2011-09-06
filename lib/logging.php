@@ -7,20 +7,36 @@ namespace HalfMoon;
 
 class Log {
 	static function error($string) {
-		error_log($string);
+		if (isset(Config::instance()->log_handler))
+			call_user_func(Config::instance()->log_handler . "::error",
+				$string);
+		else
+			error_log($string);
 	}
 
 	static function info($string) {
-		error_log($string);
+		if (isset(Config::instance()->log_handler))
+			call_user_func(Config::instance()->log_handler . "::info",
+				$string);
+		else
+			error_log($string);
 	}
 
 	static function warn($string) {
-		error_log($string);
+		if (isset(Config::instance()->log_handler))
+			call_user_func(Config::instance()->log_handler . "::warn",
+				$string);
+		else
+			error_log($string);
 	}
 
 	/* print_r() to the error log */
 	static function error_log_r($param) {
-		array_map("error_log", explode("\n", print_r($param, true)));
+		if (isset(Config::instance()->log_handler))
+			call_user_func(Config::instance()->log_handler . "::error_log_r",
+				$param);
+		else
+			array_map("error_log", explode("\n", print_r($param, true)));
 	}
 }
 

@@ -17,10 +17,11 @@ class Config extends Singleton {
 	public $activerecord;
 	public $db_config;
 
+	public $activerecord_log_level;
 	public $exception_notification_recipient;
 	public $exception_notification_subject;
+	public $log_handler;
 	public $log_level;
-	public $activerecord_log_level;
 
 	public function __construct() {
 		$this->log_level = static::$LOG_LEVELS[static::$DEFAULT_LOG_LEVEL];
@@ -130,6 +131,14 @@ class Config extends Singleton {
 
 	public static function set_exception_notification_subject($subject) {
 		Config::instance()->exception_notification_subject = $subject;
+	}
+
+	public static function set_log_handler($class) {
+		if (!class_exists($class, false))
+			throw new \HalfMoon\HalfMoonException("log handler class \""
+				. $class . "\" does not exist");
+
+		Config::instance()->log_handler = $class;
 	}
 
 	public static function set_log_level($level) {
