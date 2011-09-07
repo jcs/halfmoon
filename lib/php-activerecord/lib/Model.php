@@ -785,7 +785,7 @@ class Model
 		$this->verify_not_readonly('insert');
 
 		$table = static::table();
-		$obj = &$this;
+		$obj = $this;
 
 		$ret = self::transaction(function() use ($obj, $table, $validate) {
 			if (($validate && !$obj->_validate() || !$obj->invoke_callback('before_create',false)))
@@ -866,7 +866,7 @@ class Model
 				throw new ActiveRecordException("Cannot update, no primary key defined for: " . get_called_class());
 
 			$table = static::table();
-			$obj = &$this;
+			$obj = $this;
 
 			$ret = self::transaction(function() use ($obj, $table, $pk) {
 				if (!$obj->invoke_callback('before_update',false))
@@ -1017,7 +1017,7 @@ class Model
 			throw new ActiveRecordException("Cannot delete, no primary key defined for: " . get_called_class());
 
 		$table = static::table();
-		$obj = &$this;
+		$obj = $this;
 
 		$ret = self::transaction(function() use ($obj, $table, $pk) {
 			if (!$obj->invoke_callback('before_destroy',false))
