@@ -33,49 +33,57 @@ class Config extends Singleton {
 			$this->activerecord_log_level = static::$LOG_LEVELS["full"];
 	}
 
+	/* load an ini file, make sure each environment's config has some proper
+	 * defaults, and then cache it */
 	public static function load_db_config() {
 		if (Config::instance()->db_config)
 			return Config::instance()->db_config;
 
 		$db_config = parse_ini_file(HALFMOON_ROOT . "/config/db.ini", true);
 
-		if (!isset($db_config[HALFMOON_ENV]))
-			throw new HalfMoon\ConfigException("no database configuration "
-				. "found for \"" . HALFMOON_ENV . "\" environment");
+		/* set some reasonable defaults */
+		$ar_config = array();
+		foreach ($db_config as $henv => $db)
+			$ar_config[$henv] = array_merge(array(
+				"adapter"  => "mysql",
+				"username" => "username",
+				"password" => "password",
+				"hostname" => "localhost",
+				"database" => "database",
+				"socket"   => "",
+				"port"     => 3306,
+			), $db);
 
-		Config::instance()->db_config = array_merge(array(
-			"adapter"  => "mysql",
-			"username" => "username",
-			"password" => "password",
-			"hostname" => "localhost",
-			"database" => "database",
-			"socket"   => "",
-			"port" => 3306,
-		), $db_config[HALFMOON_ENV]);
-
-		return Config::instance()->db_config;
+		return Config::instance()->db_config = $ar_config;
 	}
 
 	public static function initialize_activerecord() {
-		$db = Config::instance()->load_db_config();
-
 		Config::instance()->activerecord = \ActiveRecord\Config::instance();
 		Config::instance()->activerecord->set_model_directory(realpath(HALFMOON_ROOT
 			. "/models/"));
 
-		if ($db["socket"] == "")
-			$host = $db["hostname"] . ":" . $db["port"];
-		else
-			$host = "unix(" . $db["socket"] . ")";
+		/* turn our array of db configs (from the ini file) into php-ar
+		 * connection strings */
+		$dbs = Config::instance()->load_db_config();
+		$ar_dbs = array();
+		foreach ($dbs as $henv => $db) {
+			if ($db["socket"] == "")
+				$host = $db["hostname"] . ":" . $db["port"];
+			else
+				$host = "unix(" . $db["socket"] . ")";
 
-		/* we aren't using php-ar's environments, only "development" which
-		 * corresponds to whatever HALFMOON_ENV is set to */
-		Config::instance()->activerecord->set_connections(array(
-			"development" => $db["adapter"] . "://" . $db["username"] . ":"
-				. $db["password"] . "@" . $host . "/" . $db["database"]
-		));
+			$ar_dbs[$henv] = $db["adapter"] . "://" . $db["username"] . ":"
+					. $db["password"] . "@" . $host . "/" . $db["database"];
+		}
 
-		Config::initialize_activerecord_logger();
+		if (!isset($ar_dbs[HALFMOON_ENV]))
+			throw new \HalfMoon\HalfMoonException("no database configuration "
+				. "found for \"" . HALFMOON_ENV . "\" environment");
+
+		Config::instance()->activerecord->set_connections($ar_dbs);
+		Config::instance()->activerecord->set_default_connection(HALFMOON_ENV);
+
+		Config::instance()->initialize_activerecord_logger();
 	}
 
 	private static function initialize_activerecord_logger() {

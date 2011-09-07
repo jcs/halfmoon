@@ -48,7 +48,7 @@ class DBConsole {
 	public function run_db_utility() {
 		require_once(__DIR__ . "/../halfmoon.php");
 
-		$db_config = Config::instance()->db_config;
+		$db_config = Utils::A(Config::instance()->db_config, HALFMOON_ENV);
 
 		switch ($db_config["adapter"]) {
 		case "mysql":
