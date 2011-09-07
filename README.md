@@ -107,12 +107,15 @@ by the controller.  There are other helpers available like `$time`,
 
 			# halfmoon will log a few lines for each request (or one
 			# line, or nothing - see config/boot.php) with some
-			# useful information about routing, timing, etc., but
-			# because of a php/apache bug that prevents stderr output
-			# from going into the proper log file for virtual hosts,
-			# halfmoon has to use error_log() to log these things so
-			# messages are prefixed with '[error]' just like proper
-			# errors.  http://bugs.php.net/bug.php?id=51304
+			# useful information about routing, timing, etc.
+			#
+			# by default these will use php's error_log(), which will
+			# log to the file specified below, but prefixed with
+			# '[error]' and other junk.  to log information to a
+			# separate file, create a class that extends and overrides
+			# error(), info(), and warn() methods of \HalfMoon\Log and
+			# use HalfMoon\Config::set_log_handler("YourClass") in your
+			# boot.php file.
 			ErrorLog logs/example_info
 
 			# this should point to your public directory where index.php
