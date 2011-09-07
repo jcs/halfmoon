@@ -10,6 +10,12 @@ class PrototypeHelper extends FormHelper {
 		return $this->html_helper->button_to_function($label, $options);
 	}
 
+	public function button_to_remote($text, $options = array(),
+	$html_options = array()) {
+		return $this->button_to_function($text,
+			$this->remote_function($options), $html_options);
+	}
+
 	public function form_remote_tag($options = array(),
 	\Closure $form_content) {
 		return $this->output_remote_form_around_closure($options["url"],
