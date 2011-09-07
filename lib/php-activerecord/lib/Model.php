@@ -801,7 +801,7 @@ class Model
 
 			if ($table->sequence && !isset($attributes[$pk]))
 			{
-				if (($conn = static::connection()) instanceof OciAdapter)
+				if (($conn = $obj::connection()) instanceof OciAdapter)
 				{
 					// terrible oracle makes us select the nextval first
 					$attributes[$pk] = $conn->get_next_sequence_value($table->sequence);
