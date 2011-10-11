@@ -226,7 +226,7 @@ class Request {
 			return $this->_remote_ip;
 
 		$remote_addr_list = array();
-		if (isset($this->headers["REMOTE_ADDR"]))
+		if (!empty($this->headers["REMOTE_ADDR"]))
 			$remote_addr_list = explode(",", $this->headers["REMOTE_ADDR"]);
 
 		foreach ($remote_addr_list as $addr)
@@ -235,11 +235,11 @@ class Request {
 
 		$forwarded_for = array();
 
-		if (isset($this->headers["HTTP_X_FORWARDED_FOR"]))
+		if (!empty($this->headers["HTTP_X_FORWARDED_FOR"]))
 			$forwarded_for = explode(",",
 				$this->headers["HTTP_X_FORWARDED_FOR"]);
 
-		if (isset($this->headers["HTTP_CLIENT_IP"])) {
+		if (!empty($this->headers["HTTP_CLIENT_IP"])) {
 			if (!in_array($this->headers["HTTP_CLIENT_IP"], $forwarded_for))
 				throw new HalfMoonException("IP spoofing attack? "
 					. "HTTP_CLIENT_IP="
@@ -284,7 +284,7 @@ class Request {
 
 	/* the user's browser as reported by the server */
 	public function user_agent() {
-		return $this->headers["HTTP_USER_AGENT"];
+		return @$this->headers["HTTP_USER_AGENT"];
 	}
 
 	private function etag_matches_inm() {
