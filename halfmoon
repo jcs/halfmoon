@@ -4,7 +4,7 @@ prog=`basename "$0"`
 hmdir=`dirname "$0"`
 
 usage () {
-	echo "usage: $prog \"create\" <dir>"
+	echo "usage: $prog \"create\" [-d] <dir>"
 	exit 1
 }
 
@@ -13,45 +13,57 @@ create () {
 		usage
 	fi
 
-	APP_NAME=`basename $1`
+	DEV_COPY=0
+	if [ X"$1" = X"-d" ]; then
+		DEV_COPY=1
+		shift
+	fi
 
-	if ! [ -d $1 ]; then
-		/bin/echo -n "creating $APP_NAME in $1... " && \
-			(mkdir $1 || exit) && \
+	DIR=$1
+	APP_NAME=`basename $DIR`
+
+	if ! [ -d $DIR ]; then
+		/bin/echo -n "creating $APP_NAME in $DIR... " && \
+			(mkdir $DIR || exit) && \
 			echo "done."
 	fi
 
-	if ! [ -d $1 ]; then
+	if ! [ -d $DIR ]; then
 		echo "couldn't make directory, exiting"
 		exit 1
 	fi
 
 	/bin/echo -n "copying halfmoon framework... " && \
-		mkdir $1/halfmoon && \
-		cp -rp $hmdir/. $1/halfmoon/ && \
+		mkdir $DIR/halfmoon && \
+		cp -rp $hmdir/. $DIR/halfmoon/ && \
 		echo "done."
 
 	/bin/echo -n "creating skeleton directory structure... " && \
-		cp -rp $1/halfmoon/skel/. $1/ && \
-		mkdir $1/models && \
-		rm -rf $1/halfmoon/.git && \
+		cp -rp $DIR/halfmoon/skel/. $DIR/ && \
+		mkdir $DIR/models && \
 		echo "done."
+
+	if [ X"$DEV_COPY" != X"1" ]; then
+		rm -rf $DIR/halfmoon/.git
+	fi
 
 	/bin/echo -n "creating random encryption key for session storage... "
 		RANDKEY=`openssl rand 16 -hex`
 		sed -e "s/%%COOKIE_ENCRYPTION_KEY%%/${RANDKEY}/" \
 			-e "s/%%APP_NAME%%/${APP_NAME}/g" \
-			$1/config/boot.php > $1/config/boot.php.tmp && \
-		mv -f $1/config/boot.php.tmp $1/config/boot.php && \
+			$DIR/config/boot.php > $DIR/config/boot.php.tmp && \
+		mv -f $DIR/config/boot.php.tmp $DIR/config/boot.php && \
 		echo "done."
 
 	sed -e "s/%%APP_NAME%%/${APP_NAME}/g" \
-		$1/views/layouts/application.phtml > $1/views/layouts/application.phtml.tmp && \
-		mv -f $1/views/layouts/application.phtml.tmp $1/views/layouts/application.phtml
+		$DIR/views/layouts/application.phtml > \
+			$DIR/views/layouts/application.phtml.tmp && \
+		mv -f $DIR/views/layouts/application.phtml.tmp \
+			$DIR/views/layouts/application.phtml
 
 	echo ""
-	echo "   $1:"
-	ls -lF $1 | sed 's/^/   /'
+	echo "   $DIR:"
+	ls -lF $DIR | sed 's/^/   /'
 	echo ""
 
 	echo "welcome to halfmoon!"
@@ -59,7 +71,7 @@ create () {
 
 case $1 in
 "create")
-	create $2
+	create $2 $3
 	;;
 *)
 	usage
