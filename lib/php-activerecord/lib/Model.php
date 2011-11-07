@@ -1413,7 +1413,7 @@ class Model
 		}
 		
 		/* XXX: this is a php bug */
-		elseif (preg_match('/^find/', $method))
+		elseif (preg_match('/^(find|count)/', $method))
 			return self::__callStatic($method, $args);
 
 		throw new ActiveRecordException("Call to undefined method: $method");
