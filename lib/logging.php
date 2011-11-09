@@ -62,6 +62,8 @@ class ActiveRecordLogger {
 		if (!$this->logging_queries)
 			return;
 
+		$sql = trim(preg_replace("/[\t\n]+/", " ", $sql));
+
 		if ($this->logging_values) {
 			$x = 0;
 			$sql = preg_replace_callback("/(\?)/", function($s)
@@ -70,7 +72,7 @@ class ActiveRecordLogger {
 					if ($values[$x] === NULL)
 						$r = "NULL";
 					else
-						$r = "[" . $values[$x] . "]";
+						$r = "'" . str_replace("'", "\\'", $values[$x]) . "'";
 
 					$x++;
 					return $r;
