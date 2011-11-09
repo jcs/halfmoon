@@ -287,7 +287,7 @@ by the controller.  There are other helpers available like `$time`,
 2.	Verify that your static 404 and 500 pages (in `public/`) have useful
 	content.
 
-	You may wish to turn HalfMoon's logging off completely, instead of
+	You may wish to turn halfmoon's logging off completely, instead of
 	the "short" style used by default in production which will only log
 	one line logging the processing time for each request.  This can be
 	adjusted in `config/boot.php`:
@@ -300,6 +300,74 @@ by the controller.  There are other helpers available like `$time`,
 
 		HalfMoon\Config::set_exception_notification_recipient("you@example.com");
 		HalfMoon\Config::set_exception_notification_subject("[your app]");
+
+
+## Using halfmoon with FastCGI ##
+
+Newer versions of PHP include optional [FPM](http://php.net/manual/en/install.fpm.php) support which makes
+it easy to run halfmoon applications in a secure environment and, when
+combined with [APC](http://php.net/manual/en/book.apc.php), can increase performance by caching PHP code
+between requests.  The halfmoon framework and models will not need to be
+reloaded and re-parsed on every request.
+
+After installing PHP with FPM support and the APC PECL module, FPM can
+be configured to chroot to your halfmoon application's root directory,
+and run the application as a specific user.  To extend the configuration
+of the example Apache configuration above, the relevant lines of the
+php-fpm.conf file might look like:
+
+		[yourapp]
+		prefix = /var/www
+		listen = /var/www/fpm/example.sock
+		user = _exampleuser
+		group = _exampleuser
+		chroot = /var/www/example
+		env[HALFMOON_ENV] = production
+		php_admin_value[error_log] = /log/production_log
+
+Note that your halfmoon application must still live in a directory where
+Apache can see it if Apache is chrooted, or at least the application's
+/public directory.  This lets Apache directly serve requests for static
+files.
+
+Overriding the PHP error log (which halfmoon uses to log stats about
+each request) is recommended to avoid having each line prefixed with
+even more junk under FastCGI:
+
+		[error] [client x.x.x.x] FastCGI: server "/public/index.php/" stderr:
+
+This also lets the FastCGI daemonized process directly log stats, rather
+than having to send each line back through the FastCGI socket for Apache
+to log.  Note that the log file referenced will be appended to by the
+user running the daemonized FastCGI process, so create the /log
+directory in your halfmoon root and chown it to that user.
+
+Once your halfmoon application's php-fpm process is started and working,
+the web server configuration will need to be modified to send requests
+to the FPM socket rather than processing them with its internal PHP
+module.  For Apache, relevant lines might look like this (for a chrooted
+Apache setup, paths relative to the chroot):
+
+		AddHandler php-fastcgi .php
+		Action php-fastcgi /example/fcgi
+		Alias /example/fcgi /public/index.php
+		FastCGIExternalServer /public/index.php -socket /fpm/example.sock
+		
+		RewriteEngine on
+		RewriteCond %{DOCUMENT_ROOT}/%{REQUEST_FILENAME} !-f
+		RewriteCond %{REQUEST_URI} !^/example/fcgi
+		RewriteRule ^(.*)$ /index.php [QSA,L]
+
+The first 4 lines tell Apache to handle .php files with php-fastcgi,
+declare an action for those requests and route that action to the
+/public/index.php file (which interfaces to halfmoon), and send that
+request over to the FastCGI socket setup by php-fpm.
+
+The previously used mod_rewrite rules are used to send requests for all
+URLs that don't match local files (such as images, stylesheets, etc.)
+through halfmoon, with an additional rule added to avoid infinitely
+looping on requests destined for the FastCGI socket.
+
 
 ## Caveats ##
 
