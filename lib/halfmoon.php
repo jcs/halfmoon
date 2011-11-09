@@ -14,9 +14,13 @@ define("HALFMOON_ROOT", realpath(__DIR__ . "/../../"));
 date_default_timezone_set("UTC");
 session_name("_halfmoon_session");
 
-/* we assume to be in the development environment unless told otherwise */
-if (!defined("HALFMOON_ENV"))
-    define("HALFMOON_ENV", "development");
+if (!defined("HALFMOON_ENV")) {
+	if (getenv("HALFMOON_ENV"))
+		define("HALFMOON_ENV", getenv("HALFMOON_ENV"));
+	else
+		/* we assume to be in the development environment unless told otherwise */
+		define("HALFMOON_ENV", "development");
+}
 
 require_once(HALFMOON_ROOT . "/halfmoon/lib/exceptions.php");
 
