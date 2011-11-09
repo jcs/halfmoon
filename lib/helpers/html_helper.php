@@ -111,21 +111,26 @@ class HtmlHelper extends Helper {
 			$files = array($files);
 
 		foreach ($files as $file) {
-			$file_value = $file;
+			if (preg_match("/^(https?:)?\/\//", $file))
+				$out .= "<script type=\"text/javascript\" src=\"" . $file
+					. "\"></script>\n";
+			else {
+				$file_value = $file;
 
-			if (!strpos($file_value, "?")) {
-				if (!preg_match("/\.js$/i", $file_value))
-					$file_value .= ".js";
+				if (!strpos($file_value, "?")) {
+					if (!preg_match("/\.js$/i", $file_value))
+						$file_value .= ".js";
 
-				$mtime = 0;
-				if (file_exists(HALFMOON_ROOT . "/public/javascripts/"
-				. $file_value))
-					$file_value .= "?" . filemtime(HALFMOON_ROOT
-						. "/public/javascripts/" . $file_value);
+					$mtime = 0;
+					if (file_exists(HALFMOON_ROOT . "/public/javascripts/"
+					. $file_value))
+						$file_value .= "?" . filemtime(HALFMOON_ROOT
+							. "/public/javascripts/" . $file_value);
+				}
+
+				$out .= "<script type=\"text/javascript\" src=\"/javascripts/"
+					. $file_value . "\"></script>\n";
 			}
-
-			$out .= "<script type=\"text/javascript\" src=\"/javascripts/"
-				. $file_value . "\"></script>\n";
 		}
 
 		return $out;
@@ -249,26 +254,31 @@ class HtmlHelper extends Helper {
 			$files = array($files);
 
 		foreach ($files as $file) {
-			$file_value = $file;
+			if (preg_match("/^(https?:)?\/\//", $file))
+				$out .= "<link href=\"" . $file . "\" media=\"screen\" "
+					. "rel=\"stylesheet\" type=\"text/css\"/>\n";
+			else {
+				$file_value = $file;
 
-			if (!strpos($file_value, "?")) {
-				if (!preg_match("/\.css$/i", $file_value))
-					$file_value .= ".css";
+				if (!strpos($file_value, "?")) {
+					if (!preg_match("/\.css$/i", $file_value))
+						$file_value .= ".css";
 
-				$mtime = 0;
-				if (file_exists(HALFMOON_ROOT . "/public/stylesheets/"
-				. $file_value))
-					$file_value .= "?" . filemtime(HALFMOON_ROOT
-						. "/public/stylesheets/" . $file_value);
+					$mtime = 0;
+					if (file_exists(HALFMOON_ROOT . "/public/stylesheets/"
+					. $file_value))
+						$file_value .= "?" . filemtime(HALFMOON_ROOT
+							. "/public/stylesheets/" . $file_value);
+				}
+
+				if (isset($options["xml"]))
+					$out .= "<?xml-stylesheet type=\"text/css\" "
+						. "href=\"/stylesheets/" . $file_value . "\" ?" . ">\n";
+				else
+					$out .= "<link href=\"/stylesheets/" . $file_value . "\" "
+						. "media=\"screen\" rel=\"stylesheet\" "
+						. "type=\"text/css\"/>\n";
 			}
-
-			if (isset($options["xml"]))
-				$out .= "<?xml-stylesheet type=\"text/css\" "
-					. "href=\"/stylesheets/" . $file_value . "\" ?" . ">\n";
-			else
-				$out .= "<link href=\"/stylesheets/" . $file_value . "\" "
-					. "media=\"screen\" rel=\"stylesheet\" "
-					. "type=\"text/css\"/>\n";
 		}
 
 		return $out;
