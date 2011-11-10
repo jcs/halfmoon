@@ -288,7 +288,7 @@ class Request {
 	}
 
 	private function etag_matches_inm() {
-		if (isset($this->headers["HTTP_IF_NONE_MATCH"])) {
+		if (!empty($this->headers["HTTP_IF_NONE_MATCH"])) {
 			$this->calculate_etag();
 			if ($this->etag === $this->headers["HTTP_IF_NONE_MATCH"])
 				return true;
