@@ -71,17 +71,20 @@ class EncryptedCookieSessionStore {
 			$data_and_hmac = @mcrypt_decrypt(MCRYPT_RIJNDAEL_256, $this->key,
 				$e_data, MCRYPT_MODE_CFB, $iv);
 
-			list($hmac, $data) = explode("--", $data_and_hmac, 2);
+			$pieces = explode("--", $data_and_hmac, 2);
 
-			$hmac = base64_decode($hmac);
+			if (count($pieces) == 2) {
+				list($hmac, $data) = $pieces;
 
-			if (!strlen($hmac))
-				throw new \HalfMoon\InvalidCookieData("no HMAC");
+				$hmac = base64_decode($hmac);
 
-			if (hash_hmac("sha1", $data, $this->key, $raw = true) !== $hmac)
-				throw new \HalfMoon\InvalidCookieData("invalid HMAC");
+				if (!strlen($hmac))
+					throw new \HalfMoon\InvalidCookieData("no HMAC");
 
-			return $data;
+				if (hash_hmac("sha1", $data, $this->key, $raw = true) === $hmac)
+					return $data;
+				/* else throw new \HalfMoon\InvalidCookieData("invalid HMAC"); */
+			}
 		}
 
 		return "";
