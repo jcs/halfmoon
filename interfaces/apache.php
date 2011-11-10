@@ -10,11 +10,12 @@ if (isset($_SERVER["HALFMOON_ENV"]))
 
 require_once(__DIR__ . "/../lib/halfmoon.php");
 
-$req = new HalfMoon\Request(
+global $_HALFMOON_REQUEST;
+$_HALFMOON_REQUEST = new HalfMoon\Request(
 	$_SERVER["SCRIPT_URI"] . (empty($_SERVER["QUERY_STRING"]) ? ""
 		: "?" . $_SERVER["QUERY_STRING"]),
 	$_GET, $_POST, $_SERVER, $start_time
 );
-$req->process();
+$_HALFMOON_REQUEST->process();
 
 ?>

@@ -24,7 +24,9 @@ print str_repeat("-", 75) . "\n";
 print "\n";
 print " HALFMOON_ROOT:  " . HALFMOON_ROOT . "\n";
 
-if (!is_null($request)) {
+if (!is_null($GLOBALS["_HALFMOON_REQUEST"])) {
+	$request = $GLOBALS["_HALFMOON_REQUEST"];
+
 	print " URL:            " . $request->url . "\n";
 	print " Remote IP:      " . $request->remote_ip() . "\n";
 	print "\n";
