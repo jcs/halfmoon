@@ -26,7 +26,7 @@ namespace HalfMoon;
 
 class EncryptedCookieSessionStore {
 	/* the most amount of data we can store in the cookie (post-encryption) */
-	static $MAX_COOKIE_LENGTH = 4096;
+	public static $MAX_COOKIE_LENGTH = 4096;
 
 	private $cookie_name = "";
 	private $key = null;
