@@ -28,6 +28,9 @@ class EncryptedCookieSessionStore {
 	/* the most amount of data we can store in the cookie (post-encryption) */
 	public static $MAX_COOKIE_LENGTH = 4096;
 
+	/* cookie parameters */
+	private static $settings = array();
+
 	private $cookie_name = "";
 	private $key = null;
 
@@ -43,7 +46,31 @@ class EncryptedCookieSessionStore {
 		 * conflict with what we're generating here */
 		ini_set("session.use_cookies", "off");
 
+		/* load settings as they are from boot, since controllers may change
+		 * them */
+		static::$settings = session_get_cookie_params();
+
 		$this->key = pack("H*", $key);
+	}
+
+	public static function set_lifetime($secs) {
+		static::$settings["lifetime"] = $secs;
+	}
+
+	public static function set_path($path) {
+		static::$settings["path"] = $path;
+	}
+
+	public static function set_domain($domain) {
+		static::$settings["domain"] = $domain;
+	}
+
+	public static function set_secure($secure) {
+		static::$settings["secure"] = $secure;
+	}
+
+	public static function set_httponly($httponly) {
+		static::$settings["httponly"] = $httponly;
 	}
 
 	public function open($savepath, $name) {
@@ -107,19 +134,20 @@ class EncryptedCookieSessionStore {
 
 		$cookie = base64_encode($e_iv) . "--" . base64_encode($e_data);
 
-		if (strlen($cookie) > static::$MAX_COOKIE_LENGTH)
+		if (strlen($cookie) > \HalfMoon\EncryptedCookieSessionStore::$MAX_COOKIE_LENGTH)
 			throw new \HalfMoon\InvalidCookieData("cookie data too long ("
-				. strlen($cookie) . " > " . static::$MAX_COOKIE_LENGTH . ")");
+				. strlen($cookie) . " > "
+				. \HalfMoon\EncryptedCookieSessionStore::$MAX_COOKIE_LENGTH . ")");
 
-		$cparams = session_get_cookie_params();
 		@setcookie(
 			$this->cookie_name,
 			$cookie,
-			($cparams["lifetime"] ? time() + $cparams["lifetime"] : 0),
-			$cparams["path"],
-			$cparams["domain"],
-			$cparams["secure"],
-			$cparams["httponly"]
+			(static::$settings["lifetime"] ?
+				time() + static::$settings["lifetime"] : 0),
+			static::$settings["path"],
+			static::$settings["domain"],
+			static::$settings["secure"],
+			static::$settings["httponly"]
 		);
 
 		/* just to help in debugging */
@@ -129,15 +157,15 @@ class EncryptedCookieSessionStore {
 	}
 
     public function destroy($id) {
-		$cparams = session_get_cookie_params();
 		@setcookie(
 			$this->cookie_name,
 			"",
-			($cparams["lifetime"] ? time() + $cparams["lifetime"] : 0),
-			$cparams["path"],
-			$cparams["domain"],
-			$cparams["secure"],
-			$cparams["httponly"]
+			(static::$settings["lifetime"] ?
+				time() + $settings["lifetime"] : 0),
+			static::$settings["path"],
+			static::$settings["domain"],
+			static::$settings["secure"],
+			static::$settings["httponly"]
 		);
 
 		return true;
