@@ -177,6 +177,26 @@ class ApplicationController {
 		if (isset($template["status"]))
 			Request::send_status_header($template["status"]);
 
+		$collection = array();
+		if (isset($template["collection"]) &&
+		is_array($template["collection"])) {
+			if (isset($template["as"]))
+				$collection = array($template["as"] =>
+					$template["collection"]);
+			else {
+				/* figure out the type of things in the collection */
+				$cl = strtolower(get_class($template["collection"][0]));
+				if ($cl != "")
+					$cl = \ActiveRecord\Utils::singularize($cl);
+
+				if ($cl == "")
+					throw new HalfMoonException("could not figure out type of "
+						. "collection");
+
+				$collection = array($cl => $template["collection"]);
+			}
+		}
+
 		/* just render text with no layout */
 		if (is_array($template) && array_key_exists("text", $template)) {
 			if (!$this->content_type_set())
@@ -244,36 +264,46 @@ class ApplicationController {
 				$tf = dirname($tf) . "/_" . basename($tf);
 
 			/* do the actual renders */
+			$filename = null;
 
 			/* regular php/html */
-			if (file_exists($full_file = HALFMOON_ROOT . "/views/"
+			if (file_exists($filename = HALFMOON_ROOT . "/views/"
 			. $tf . ".phtml")) {
 				if (!$this->content_type_set())
 					$this->content_type = "text/html";
-
-				$this->_really_render_file($full_file, $vars);
 			}
 
 			/* xml */
-			elseif (file_exists($xml_file = HALFMOON_ROOT . "/views/"
+			elseif (file_exists($filename = HALFMOON_ROOT . "/views/"
 			. $tf . ".pxml")) {
 				if (!$this->content_type_set())
 					$this->content_type = "application/xml";
-
-				$this->_really_render_file($xml_file, $vars);
 			}
 
 			/* php-javascript */
-			elseif (file_exists($js_file = HALFMOON_ROOT . "/views/"
+			elseif (file_exists($filename = HALFMOON_ROOT . "/views/"
 			. $tf . ".pjs")) {
 				if (!$this->content_type_set())
 					$this->content_type = "text/javascript";
-
-				$this->_really_render_file($js_file, $vars);
 			}
 
 			else
-				throw new MissingTemplate("no template file " . $full_file);
+				throw new MissingTemplate("no template file " . HALFMOON_ROOT
+					. "/views/" . $tf . ".p{html,xml,js}");
+
+			if (count($collection)) {
+				$ck = Utils::A(array_keys($collection), 0);
+
+				/* it would be nice to be able to just read the template
+				 * into a string and eval() it each time to save on i/o,
+				 * but php won't let us catch parse errors properly and
+				 * there may be some other fallout */
+				foreach ($collection[$ck] as $cobj) {
+					$vars[$ck] = $cobj;
+					$this->_really_render_file($filename, $vars);
+				}
+			} else
+				$this->_really_render_file($filename, $vars);
 		}
 
 		if (!$this->in_view) {
@@ -313,7 +343,6 @@ class ApplicationController {
 	 * require() */
 	private function _really_render_file($__file, $__vars) {
 		/* XXX: should this be checking for more special variable names? */
-
 		$__special_vars = array("__special_vars", "__vars", "__file",
 			"controller");
 
