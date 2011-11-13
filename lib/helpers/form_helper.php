@@ -90,7 +90,7 @@ class FormHelper extends FormTagHelper {
 
 		return "<input"
 			. " type=\"hidden\" "
-			. " name=\"" . $options["name"] . "\""
+			. " name=\"" . h($options["name"]) . "\""
 			. " value=\"" . h($unchecked_value) . "\""
 			. " />"
 			. $this->wrap_field_with_errors($field,

@@ -11,7 +11,7 @@ class HtmlHelper extends Helper {
 		if (!isset($options["method"]))
 			$options["method"] = "post";
 
-		return "<input type=\"button\" value=\"" . $text . "\" "
+		return "<input type=\"button\" value=\"" . raw_or_h($text) . "\" "
 			. $this->options_for_link($options,
 				$this->link_from_obj_or_string($obj_or_url))
 			. " />";
@@ -28,8 +28,8 @@ class HtmlHelper extends Helper {
 			$options["html_options"]["type"] = "button";
 
 		return "<input"
-			. " value=\"" . $label . "\""
-			. " onclick=\"" . $options["onclick"] . "\""
+			. " value=\"" . raw_or_h($label) . "\""
+			. " onclick=\"" . raw_or_h($options["onclick"]) . "\""
 			. $this->options_for_link($options["html_options"])
 			. " />";
 	}
@@ -52,14 +52,15 @@ class HtmlHelper extends Helper {
 			$html = "<p>"
 				. "<div class=\"flash-error\">"
 				. "<strong>" . $obj->errors->size() . " "
-				. \ActiveRecord\Utils::pluralize_if($obj->errors->size(),
-					"error")
-				. " prohibited " . $obj_prefix . " " . $obj_name . " from "
-				. "being " . ($obj->is_new_record() ? "created" : "saved")
+				. h(\ActiveRecord\Utils::pluralize_if($obj->errors->size(),
+					"error"))
+				. " prohibited " . raw_or_h($obj_prefix) . " "
+				. raw_or_h($obj_name) . " from being "
+				. ($obj->is_new_record() ? "created" : "saved")
 				. ":</strong><br />\n";
 
 			foreach ($obj->errors as $err)
-				$html .= $err . "<br />";
+				$html .= raw_or_h($err) . "<br />";
 
 			$html .= "</div>"
 				. "</p>";
@@ -75,7 +76,9 @@ class HtmlHelper extends Helper {
 		if (isset($_SESSION["flash_errors"]) &&
 		count((array)$_SESSION["flash_errors"])) {
 			$html = "<div class=\"flash-error\">"
-				. implode("<br />\n", (array)$_SESSION["flash_errors"])
+				. implode("<br />\n", array_map(function($e) {
+					return raw_or_h($e); },
+					(array)$_SESSION["flash_errors"]))
 				. "</div>";
 
 			/* clear out for the next view */
@@ -91,8 +94,11 @@ class HtmlHelper extends Helper {
 
 		if (isset($_SESSION["flash_notices"]) &&
 		count((array)$_SESSION["flash_notices"])) {
+			/* not escaped */
 			$html = "<div class=\"flash-notice\">"
-				. implode("<br />\n", (array)$_SESSION["flash_notices"])
+				. implode("<br />\n", array_map(function($e) {
+					return raw_or_h($e); },
+					(array)$_SESSION["flash_notices"]))
 				. "</div>";
 
 			/* clear out for the next view */
@@ -128,8 +134,9 @@ class HtmlHelper extends Helper {
 							. "/public/javascripts/" . $file_value);
 				}
 
-				$out .= "<script type=\"text/javascript\" src=\"/javascripts/"
-					. $file_value . "\"></script>\n";
+				$out .= "<script type=\"text/javascript\" src=\""
+					. h("/javascripts/" . $file_value)
+					. "\"></script>\n";
 			}
 		}
 
@@ -191,8 +198,10 @@ class HtmlHelper extends Helper {
 	/* create an <a href> tag for a given url or object (defaulting to
 	 * the (table)/show/(id) */
 	public function link_to($text, $obj_or_url, $options = array()) {
-		return "<a href=\"" . $this->link_from_obj_or_string($obj_or_url)
-			. "\"" . $this->options_for_link($options) . ">" . $text . "</a>";
+		return "<a href=\""
+			. raw_or_h($this->link_from_obj_or_string($obj_or_url)) . "\""
+			. $this->options_for_link($options) . ">" . raw_or_h($text)
+			. "</a>";
 	}
 
 	public function options_for_link($options = array(),
@@ -273,11 +282,12 @@ class HtmlHelper extends Helper {
 
 				if (isset($options["xml"]))
 					$out .= "<?xml-stylesheet type=\"text/css\" "
-						. "href=\"/stylesheets/" . $file_value . "\" ?" . ">\n";
+						. "href=\"" . h("/stylesheets/" . $file_value)
+						. "\" ?" . ">\n";
 				else
-					$out .= "<link href=\"/stylesheets/" . $file_value . "\" "
-						. "media=\"screen\" rel=\"stylesheet\" "
-						. "type=\"text/css\"/>\n";
+					$out .= "<link href=\"/" . h("stylesheets/"
+						. $file_value) . "\" media=\"screen\" "
+						. "rel=\"stylesheet\" type=\"text/css\"/>\n";
 			}
 		}
 

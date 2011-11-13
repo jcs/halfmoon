@@ -39,7 +39,7 @@ class PrototypeHelper extends FormHelper {
 		if (!isset($options["href"]))
 			$options["href"] = "#";
 
-		return "<a href=\"" . $options["href"] . "\""
+		return "<a href=\"" . raw_or_h($options["href"]) . "\""
 			. $this->html_helper->options_for_link($options) . ">" . $text
 			. "</a>";
 	}

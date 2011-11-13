@@ -34,7 +34,8 @@ class FormHelperCommon extends Helper {
 		print "<form"
 			. $this->options_to_s($options)
 			. " action=\""
-				. $this->html_helper->link_from_obj_or_string($url_or_obj) . "\""
+				. h($this->html_helper->link_from_obj_or_string($url_or_obj))
+				. "\""
 			. ">";
 
 		if (strtolower($options["method"]) != "get")
@@ -45,7 +46,7 @@ class FormHelperCommon extends Helper {
 					. "\""
 				. " />";
 
-		print Utils::to_s($this, $form_content);
+		print Utils::to_s($this, $form_content, $this->controller);
 
 		print "</form>";
 
@@ -81,9 +82,9 @@ class FormHelperCommon extends Helper {
 			else
 				$is_selected = false;
 
-			$str .= "<option value=\"" . h($key) . "\""
+			$str .= "<option value=\"" . raw_or_h($key) . "\""
 				. ($is_selected ? " selected" : "")
-				. ">" . h($val) . "</option>";
+				. ">" . raw_or_h($val) . "</option>";
 		}
 
 		return $str;
@@ -97,23 +98,23 @@ class FormHelperCommon extends Helper {
 
 		$opts_s = "";
 		foreach ($options as $k => $v)
-			$opts_s .= " " . $k . "=\"" . $v . "\"";
+			$opts_s .= " " . $k . "=\"" . raw_or_h($v) . "\"";
 
 		return $opts_s;
 	}
 
 	/* for each attribute in a form_for() object that has errors, output a div
 	 * around it that should be styled to stand out */
-	protected function wrap_field_with_errors($field, $html) {
+	protected function wrap_field_with_errors($field, $field_html) {
 		if (!$this->form_object)
 			throw new HalfMoonExceptions("wrap_field_with_errors called when "
 				. "no form object");
 
 		if ($this->form_object->errors &&
 		$this->form_object->errors->on($field))
-			return "<div class=\"fieldWithErrors\">" . $html . "</div>";
+			return "<div class=\"fieldWithErrors\">" . $field_html . "</div>";
 		else
-			return $html;
+			return $field_html;
 	}
 }
 

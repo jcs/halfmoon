@@ -44,7 +44,7 @@ class FormTagHelper extends FormHelperCommon {
 			$options["type"] = "checkbox";
 
 		if (!isset($options["value"]))
-			$options["value"] = h($value);
+			$options["value"] = $value;
 
 		if ($checked)
 			$options["checked"] = "checked";
@@ -112,12 +112,12 @@ class FormTagHelper extends FormHelperCommon {
 			$options["type"] = "radio";
 
 		if (!isset($options["value"]))
-			$options["value"] = h($value);
+			$options["value"] = $value;
 
 		if ($checked)
 			$options["checked"] = "checked";
 
-		return "<input " . $this->options_to_s($options) . " />";
+		return "<input" . $this->options_to_s($options) . " />";
 	}
 
 	/* create a <select> box with options */
@@ -155,7 +155,7 @@ class FormTagHelper extends FormHelperCommon {
 		}
 
 		return "<textarea " . $this->options_to_s($options) . ">"
-			. h($content)
+			. raw_or_h($content)
 			. "</textarea>";
 	}
 
@@ -166,7 +166,7 @@ class FormTagHelper extends FormHelperCommon {
 		if (!isset($options["type"]))
 			$options["type"] = "text";
 
-		$options["value"] = h($value);
+		$options["value"] = $value;
 
 		return "<input" . $this->options_to_s($options) . " />";
 	}
