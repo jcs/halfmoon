@@ -147,6 +147,16 @@ class ApplicationController {
 		array_push($_SESSION["flash_notices"], $string);
 	}
 
+	/* store a success message in the session to be printed on the next view
+	 * with the flash_success() helper */
+	public function add_flash_success($string) {
+		if (!isset($_SESSION["flash_successes"]) ||
+		!is_array($_SESSION["flash_successes"]))
+			$_SESSION["flash_successes"] = array();
+
+		array_push($_SESSION["flash_successes"], $string);
+	}
+
 	/* cancel all buffered output, send a location: header and stop processing */
 	public function redirect_to($obj_or_url) {
 		$link = HTMLHelper::link_from_obj_or_string($obj_or_url);

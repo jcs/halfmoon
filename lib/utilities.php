@@ -143,9 +143,16 @@ class Utils {
 
 	/* when passed a closure containing print/<?=?> code, execute it, capture the
 	 * output, and return it as a string */
-	static function to_s($obj, $closure) {
+	static function to_s($obj, $closure, $bind = null) {
 		ob_start();
+
+		if (version_compare(PHP_VERSION, "5.4.0") >= 0)
+			/* setup $this */
+			if (!empty($bind))
+				$closure->bindTo($bind);
+
 		$closure($obj);
+
 		$str = ob_get_contents();
 		ob_end_clean();
 

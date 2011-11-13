@@ -108,6 +108,25 @@ class HtmlHelper extends Helper {
 		return $html;
 	}
 
+	/* print the successes stored in the session and then reset the array */
+	public function flash_successes() {
+		$html = "";
+
+		if (isset($_SESSION["flash_successes"]) &&
+		count((array)$_SESSION["flash_successes"])) {
+			$html = "<div class=\"flash-success\">"
+				. implode("<br />\n", array_map(function($e) {
+					return raw_or_h($e); },
+					(array)$_SESSION["flash_successes"]))
+				. "</div>";
+
+			/* clear out for the next view */
+			$_SESSION["flash_successes"] = array();
+		}
+
+		return $html;
+	}
+
 	/* create a link to a javascript file, appending its modification time to
 	 * force clients to reload it when it's modified */
 	public function javascript_include_tag($files) {

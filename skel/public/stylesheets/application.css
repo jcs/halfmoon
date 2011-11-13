@@ -1,15 +1,12 @@
 /* application css */
 
-/* for flash_notices() and flash_errors() */
-div.flash-notice, div.flash-error {
+/* for flash_errors(), flash_notices() and flash_successes() */
+div.flash-error,
+div.flash-notice,
+div.flash-success {
 	border: 2px solid;
 	margin: 5px 5px 10px 5px;
 	padding: 5px 10px;
-}
-
-div.flash-notice {
-	background-color: #e8ffe7;
-	border-color: green;
 }
 
 div.flash-error {
@@ -17,12 +14,24 @@ div.flash-error {
 	border-color: red;
 }
 
+div.flash-success {
+	background-color: #e8ffe7;
+	border-color: green;
+}
+
+div.flash-success {
+	background-color: #e0e2fc;
+	border-color: blue;
+}
+
 /* for error_messages_for() */
 div.fieldWithErrors {
 	display: inline;
 }
 
-div.fieldWithErrors input, div.fieldWithErrors select {
+div.fieldWithErrors input,
+div.fieldWithErrors select,
+div.fieldWithErrors textarea {
 	border: 2px solid red;
 	padding: 2px;
 }
