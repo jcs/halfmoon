@@ -103,6 +103,18 @@ class FormHelperCommon extends Helper {
 		return $opts_s;
 	}
 
+	/* generate <option> tags for each identifier in php's timezone list */
+	protected function time_zone_options_for_select($selected) {
+		$str = "";
+
+		foreach (\DateTimeZone::listIdentifiers() as $tz)
+			$str .= "<option value=\"" . $tz . "\""
+				. (strtolower($selected) === strtolower($tz) ?
+				" selected" : "") . ">" . h($tz) . "</option>";
+
+		return $str;
+	}
+ 
 	/* for each attribute in a form_for() object that has errors, output a div
 	 * around it that should be styled to stand out */
 	protected function wrap_field_with_errors($field, $field_html) {

@@ -170,6 +170,16 @@ class FormTagHelper extends FormHelperCommon {
 
 		return "<input" . $this->options_to_s($options) . " />";
 	}
+
+	/* create a <select> of grouped time zones */
+	public function time_zone_select_tag($field, $selected = null,
+	$options = array()) {
+		$options = FormTagHelper::set_field_id_and_name($field, $options);
+
+		return "<select" . $this->options_to_s($options) . ">"
+			. $this->time_zone_options_for_select($selected)
+			. "</select>";
+	}
 }
 
 ?>

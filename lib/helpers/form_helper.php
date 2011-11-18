@@ -213,6 +213,20 @@ class FormHelper extends FormTagHelper {
 				$options), $options)
 		);
 	}
+
+	/* create a <select> of grouped time zones */
+	public function time_zone_select($field, $options = array()) {
+		if (!$this->form_object)
+			throw new HalfMoonException("no form object; you probably wanted "
+				. "time_zone_select_tag");
+
+		$options = $this->set_field_id_and_name($field, $options);
+
+		return $this->wrap_field_with_errors($field,
+			$this->time_zone_select_tag($field,
+				$this->value_for_field($field, $options), $options)
+		);
+	}
 }
 
 ?>
