@@ -226,7 +226,7 @@ class ApplicationController {
 			if (Config::log_level_at_least("full"))
 				Log::info("Rendering HTML");
 
-			print $template["text"];
+			print $template["html"];
 		}
 
 		/* just render json with no layout */
