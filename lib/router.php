@@ -53,7 +53,9 @@ class Router extends Singleton {
 	}
 
 	public static function routeRequest($request) {
-		$path_pieces = explode("/", $request->path);
+		$path_pieces = array_map(function($piece) {
+			return urldecode($piece);
+		}, explode("/", $request->path));
 
 		$chosen_route = null;
 
