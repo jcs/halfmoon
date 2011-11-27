@@ -32,6 +32,10 @@ class ApplicationController {
 	/* specify a different layout than controller name or application */
 	static $layout = array();
 
+	/* helpers to bring in (as "ref" => "filename"), other than
+	 * application_helper and a controller-specific helper (if each exists) */
+	static $helpers = array();
+
 	/* protect all (or specific actions passed as an array) actions from
 	 * forgery */
 	static $protect_from_forgery = true;
@@ -402,34 +406,48 @@ class ApplicationController {
 	 * application_helper and controller-specific helper to be $helper */
 	private $_helper_refs = null;
 	private function bring_in_helpers() {
-		if (!$this->_helper_refs) {
-			$this->_helper_refs = array();
+		if ($this->_helper_refs)
+			return;
 
-			foreach (get_declared_classes() as $class) {
-				if (preg_match("/^HalfMoon\\\\(.+)Helper$/", $class, $m))
-					$this->_helper_refs[strtolower($m[1])] = new $class;
-			}
+		$this->_helper_refs = array();
 
-			/* bring in the application-wide helpers */
-			if (file_exists($__f = HALFMOON_ROOT . "/helpers/"
-			. "application_helper.php")) {
-				require_once($__f);
+		foreach (get_declared_classes() as $class)
+			if (preg_match("/^HalfMoon\\\\(.+)Helper$/", $class, $m))
+				$this->_helper_refs[strtolower($m[1])] = new $class;
 
-				/* and a controller-specific one if it exists */
-				$controller = preg_replace("/Controller$/", "",
-					Utils::current_controller_name());
+		/* bring in the application-wide helpers */
+		if (file_exists($f = HALFMOON_ROOT . "/helpers/"
+		. "application_helper.php")) {
+			require_once($f);
+			$this->_helper_refs["helper"] = new \ApplicationHelper;
+		}
 
-				if (file_exists($__f = HALFMOON_ROOT . "/helpers/"
-				. strtolower($controller . "_controller.php"))) {
-					require_once($__f);
+		/* if a controller-specific helper exists, hopefully it descends from
+		 * ApplicationHelper so the $helper ref we're going to point at it will
+		 * still have access to methods in ApplicationHelper */
+		$controller = preg_replace("/Controller$/", "",
+			Utils::current_controller_name());
 
-					$n = $controller . "Helper";
-					$this->_helper_refs["helper"] = new $n;
-				}
+		if (file_exists($f = HALFMOON_ROOT . "/helpers/"
+		. strtolower($controller . "_controller.php"))) {
+			require_once($f);
 
-				/* otherwise just make it the app-wide one */
-				else
-					$this->_helper_refs["helper"] = new \ApplicationHelper;
+			$n = $controller . "Helper";
+			$this->_helper_refs["helper"] = new $n;
+		}
+
+		/* bring in any extra helpers requested by the static $helpers */
+		foreach (static::$helpers as $ref => $file) {
+			require_once($f = HALFMOON_ROOT . "/helpers/" . $file
+				. "_helper.php");
+
+			$c = "\\" . $file . "Helper";
+
+			try {
+				$this->_helper_refs[$ref] = new $c;
+			} catch (Exception $e) {
+				throw new HalfMoonException("loaded helper " . $f . " which "
+					. "did not define " . $c);
 			}
 		}
 	}
