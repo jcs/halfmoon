@@ -118,6 +118,9 @@ class EncryptedCookieSessionStore {
 	}
 
     public function write($id, $data) {
+		if (headers_sent())
+			return false;
+
 		/* generate random iv for aes-256-cfb */
 		$iv = mcrypt_create_iv(mcrypt_get_iv_size(MCRYPT_RIJNDAEL_256,
 			MCRYPT_MODE_CFB), MCRYPT_RAND);
@@ -139,7 +142,7 @@ class EncryptedCookieSessionStore {
 				. strlen($cookie) . " > "
 				. \HalfMoon\EncryptedCookieSessionStore::$MAX_COOKIE_LENGTH . ")");
 
-		@setcookie(
+		setcookie(
 			$this->cookie_name,
 			$cookie,
 			(static::$settings["lifetime"] ?
