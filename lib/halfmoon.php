@@ -18,7 +18,7 @@ if (!defined("HALFMOON_ENV")) {
 	if (getenv("HALFMOON_ENV"))
 		define("HALFMOON_ENV", getenv("HALFMOON_ENV"));
 	else
-		/* we assume to be in the development environment unless told otherwise */
+		/* assume to be in the development environment unless told otherwise */
 		define("HALFMOON_ENV", "development");
 }
 
@@ -26,7 +26,7 @@ require_once(HALFMOON_ROOT . "/halfmoon/lib/exceptions.php");
 
 /* install error handlers as soon as possible if we're not running on the
  * command line */
-if (!defined("STDOUT") || !posix_isatty(STDOUT))
+if (php_sapi_name() != "cli")
 	require_once(HALFMOON_ROOT . "/halfmoon/lib/rescuer.php");
 
 /* set some sane defaults */
@@ -54,7 +54,8 @@ require_once(HALFMOON_ROOT . "/halfmoon/lib/router.php");
 require_once(HALFMOON_ROOT . "/halfmoon/lib/config.php");
 
 if (file_exists(HALFMOON_ROOT . "/config/db.ini"))
-	require_once(HALFMOON_ROOT . "/halfmoon/lib/php-activerecord/ActiveRecord.php");
+	require_once(HALFMOON_ROOT . "/halfmoon/lib/php-activerecord/"
+		. "ActiveRecord.php");
 
 /* append our root to the include path to pick up user-installed code */
 set_include_path(get_include_path() . PATH_SEPARATOR . HALFMOON_ROOT);
@@ -83,6 +84,6 @@ if (defined("PHP_ACTIVERECORD_ROOT"))
 if (file_exists(HALFMOON_ROOT . "/config/routes.php"))
 	HalfMoon\Router::initialize(function($router) {
 		require_once(HALFMOON_ROOT . "/config/routes.php");
-});
+	});
 
 ?>
