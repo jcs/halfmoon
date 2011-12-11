@@ -175,6 +175,11 @@ class Router extends Singleton {
 		if ($chosen_route["controller"] == "")
 			throw new RoutingException("no controller specified");
 
+		/* and a valid controller name */
+		if (!preg_match("/^[a-zA-Z_][a-zA-Z0-9_]*$/",
+		$chosen_route["controller"]))
+			throw new RoutingException("invalid controller matched");
+
 		/* but we can deal with no action by calling the index action */
 		if (!isset($chosen_route["action"]) || $chosen_route["action"] == "")
 			$chosen_route["action"] = static::$DEFAULT_ACTION;
