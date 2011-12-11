@@ -247,6 +247,17 @@ class ApplicationController {
 			print json_encode($template["json"]);
 		}
 
+		/* just render javascript with no layout */
+		elseif (is_array($template) && array_key_exists("js", $template)) {
+			if (!$this->content_type_set())
+				$this->content_type = "text/javascript";
+
+			if (Config::log_level_at_least("full"))
+				Log::info("Rendering javascript");
+
+			print $template["js"];
+		}
+
 		/* assume we're dealing with files */
 		else {
 			$tf = "";
