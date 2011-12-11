@@ -172,6 +172,11 @@ class Request {
 		$this->referrer = @$headers["HTTP_REFERER"];
 	}
 
+	public function __toString() {
+		return $this->request_method() . " " . $this->url . " ("
+			. $this->remote_ip() . ")";
+	}
+
 	/* pass ourself to the router and handle the url.  if it fails, try to
 	 * handle it gracefully.  */
 	public function process() {
