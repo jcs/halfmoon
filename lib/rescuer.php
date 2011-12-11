@@ -114,6 +114,9 @@ class Rescuer {
 				$out .= "    ";
 
 			if (isset($call["file"])) {
+				$call["file"] = preg_replace("/^" . preg_quote(HALFMOON_ROOT,
+					"/") . "\/?/", "", $call["file"]);
+
 				if ($html) {
 					$fileparts = explode("/", $call["file"]);
 
