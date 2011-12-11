@@ -72,8 +72,11 @@ class Config extends Singleton {
 			else
 				$host = "unix(" . $db["socket"] . ")";
 
-			$ar_dbs[$henv] = $db["adapter"] . "://" . $db["username"] . ":"
-					. $db["password"] . "@" . $host . "/" . $db["database"];
+			/* masked strings will be shown in rescue messages */
+			$ar_dbs[$henv] = new StringMaskedDuringRescue($db["adapter"]
+				. "://" . $db["username"] . ":" . $db["password"] . "@"
+				. $host . "/" . $db["database"],
+				$db["adapter"] . "://****/" . $db["database"]);
 		}
 
 		if (!isset($ar_dbs[HALFMOON_ENV]))

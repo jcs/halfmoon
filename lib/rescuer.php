@@ -5,6 +5,20 @@
 
 namespace HalfMoon;
 
+class StringMaskedDuringRescue {
+	private $string;
+	public $masked;
+
+	public function __construct($s, $mask = "[hidden]") {
+		$this->string = $s;
+		$this->masked = $mask;
+	}
+
+	public function __toString() {
+		return $this->string;
+	}
+}
+
 class Rescuer {
 	static $already_rescued = false;
 
@@ -73,7 +87,10 @@ class Rescuer {
 
 		Rescuer::notify_of_exception($exception, $title, $request);
 
-		return Rescuer::rescue_in_public($exception, $title, $request);
+		if (php_sapi_name() == "cli")
+			exit(1);
+		else
+			return Rescuer::rescue_in_public($exception, $title, $request);
 	}
 
 	/* log an exception, mail it, try to show the user something */
@@ -81,27 +98,106 @@ class Rescuer {
 		Log::error($title . ":");
 
 		if (!is_null($exception) && is_object($exception))
-			foreach ($exception->getTrace() as $call) {
-				$out = "    ";
-
-				if (isset($call["file"]))
-					$out .= $call["file"];
-				elseif (isset($call["class"]))
-					$out .= $call["class"];
-				else
-					$out .= "unknown";
-
-				$out .= ":";
-
-				if (isset($call["line"]))
-					$out .= $call["line"];
-
-				$out .= " in " . $call["function"] . "()";
-
-				Log::error($out);
-			}
+			foreach (static::masked_stack_trace($exception) as $line)
+				Log::error($line);
 
 		return;
+	}
+
+	static function masked_stack_trace($exception, $html = false) {
+		$trace = array();
+
+		foreach ($exception->getTrace() as $call) {
+			$out = "";
+
+			if (!$html)
+				$out .= "    ";
+
+			if (isset($call["file"])) {
+				if ($html) {
+					$fileparts = explode("/", $call["file"]);
+
+					for ($x = 0; $x < count($fileparts); $x++) {
+						$fileparts[$x] = h($fileparts[$x]);
+
+						if ($x == count($fileparts) - 1)
+							$fileparts[$x] = "<strong>" . $fileparts[$x]
+								. "</strong>";
+					}
+
+					$out .= join("/", $fileparts);
+				} else
+					$out .= $call["file"];
+			}
+
+			elseif (isset($call["class"]))
+				$out .= $call["class"];
+
+			else
+				$out .= "unknown";
+
+			$out .= ":";
+
+			if (isset($call["line"]))
+				$out .= $call["line"];
+
+			$out .= " in ";
+			
+			if ($html)
+				$out .= "<strong>" . h($call["function"]) . "(</strong>";
+			else
+				$out .= $call["function"] . "(";
+
+			foreach ($call["args"] as $x => $arg) {
+				if ($x)
+					$out .= ", ";
+
+				$m = static::_mask_object($arg);
+				if ($html)
+					$out .= h($m);
+				else
+					$out .= $m;
+			}
+
+			$out .= ($html ? "<strong>)</strong>" : ")");
+
+			array_push($trace, $out);
+		}
+
+		return $trace;
+	}
+
+	static function _mask_object($obj) {
+		$out = null;
+
+		if (is_object($obj) &&
+		get_class($obj) == "HalfMoon\\StringMaskedDuringRescue")
+			$out = "'" . $obj->masked . "'";
+
+		elseif (is_object($obj))
+			$out = get_class($obj) . (method_exists($obj, "__toString") ?
+				"(" . (string)$obj . ")" : "");
+
+		elseif (is_string($obj))
+			$out = "'" . $obj . "'";
+
+		elseif (is_array($obj)) {
+			$out = "[";
+
+			$assoc = \HalfMoon\Utils::is_assoc($obj);
+
+			$t = array();
+			foreach ($obj as $k => $v)
+				array_push($t, ($assoc ? $k . ":" : "")
+					. static::_mask_object($v));
+
+			$out .= join(", ", $t) . "]";
+		}
+
+		else
+			$out = (string)$obj;
+
+		return $out;
 	}
 
 	/* mail off the details of the exception */
@@ -165,8 +261,8 @@ class Rescuer {
 					</head>
 					<body>
 					<h1>File Not Found</h1>
-					The file you requested could not be found.  An additional error
-					occured while processing the error document.
+					The file you requested could not be found.  An additional
+					error occured while processing the error document.
 					</body>
 					</html>
 					<?php
@@ -223,8 +319,8 @@ class Rescuer {
 					<body>
 					<h1>Application Error</h1>
 					An internal application error occured while processing your
-					request.  Additionally, an error occured while processing the
-					error document.
+					request.  Additionally, an error occured while processing
+					the error document.
 					</body>
 					</html>
 					<?php
@@ -244,7 +340,8 @@ class Rescuer {
 set_error_handler(array("\\HalfMoon\\Rescuer", "error_handler"));
 
 /* catch errors on the cleanup that we couldn't handle at runtime */
-register_shutdown_function(array("\\HalfMoon\\Rescuer", "shutdown_error_handler"));
+register_shutdown_function(array("\\HalfMoon\\Rescuer",
+	"shutdown_error_handler"));
 
 /* and catch all exceptions */
 set_exception_handler(array("\\HalfMoon\\Rescuer", "rescue_exception"));

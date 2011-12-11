@@ -7,15 +7,7 @@
 
 print $title . "\n";
 
-foreach ($exception->getTrace() as $call) {
-	if (isset($call["file"]))
-		print "  " . $call["file"];
-	else
-		print "  " . $call["class"];
-
-	print ":" . (isset($call["line"]) ? $call["line"] : "") . " in "
-		. $call["function"] . "()\n";
-}
+print join("\n", \HalfMoon\Rescuer::masked_stack_trace($exception));
 
 print "\n";
 print str_repeat("-", 75) . "\n";

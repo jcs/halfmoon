@@ -24,10 +24,8 @@ if (!defined("HALFMOON_ENV")) {
 
 require_once(HALFMOON_ROOT . "/halfmoon/lib/exceptions.php");
 
-/* install error handlers as soon as possible if we're not running on the
- * command line */
-if (php_sapi_name() != "cli")
-	require_once(HALFMOON_ROOT . "/halfmoon/lib/rescuer.php");
+/* install error handlers as soon as possible */
+require_once(HALFMOON_ROOT . "/halfmoon/lib/rescuer.php");
 
 /* set some sane defaults */
 date_default_timezone_set("UTC");
