@@ -68,14 +68,17 @@ class PrototypeHelper extends FormHelper {
 		elseif (isset($options["with"]))
 			$js_options["parameters"] = $options["with"];
 
-		if (isset($js_options["parameters"]))
-			$js_options["parameters"] .= " + '&";
-		else
-			$js_options["parameters"] = "'";
+		if (isset($options["method"]) &&
+		strtolower($options["method"]) != "get") {
+			if (isset($js_options["parameters"]))
+				$js_options["parameters"] .= " + '&";
+			else
+				$js_options["parameters"] = "'";
 
-		$js_options["parameters"] .= "authenticity_token=' + "
-			. "encodeURIComponent('"
-			. $this->controller->form_authenticity_token() . "')";
+			$js_options["parameters"] .= "authenticity_token=' + "
+				. "encodeURIComponent('"
+				. $this->controller->form_authenticity_token() . "')";
+		}
 
 		/* support onCreate, onSuccess, etc. */
 		foreach ($options as $k => $v)
@@ -124,7 +127,11 @@ class PrototypeHelper extends FormHelper {
 		$options["html"]["onsubmit"] .= $this->remote_function($options)
 			. "; return false;";
 
-		return $this->output_form_around_closure($url_or_obj, $options["html"],
+		$h_options = $options["html"];
+		if (isset($options["method"]))
+			$h_options["method"] = $options["method"];
+
+		return $this->output_form_around_closure($url_or_obj, $h_options,
 			$form_content);
 	}
 
