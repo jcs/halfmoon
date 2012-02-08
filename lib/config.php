@@ -75,7 +75,8 @@ class Config extends Singleton {
 			/* masked strings will be shown in rescue messages */
 			$ar_dbs[$henv] = new StringMaskedDuringRescue($db["adapter"]
 				. "://" . $db["username"] . ":" . $db["password"] . "@"
-				. $host . "/" . $db["database"],
+				. $host . "/" . $db["database"] . (empty($db["charset"]) ? "" :
+				"?charset=" . $db["charset"]),
 				$db["adapter"] . "://****/" . $db["database"]);
 		}
 
