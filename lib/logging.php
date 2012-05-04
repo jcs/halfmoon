@@ -76,7 +76,7 @@ class ActiveRecordLogger {
 
 					$x++;
 					return $r;
-				}, $sql);
+				}, trim(preg_replace("/[\t\n]+/", " ", $sql)));
 
 			reset($values);
 		}
