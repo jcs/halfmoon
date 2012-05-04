@@ -198,7 +198,10 @@ class Router extends Singleton {
 		foreach ($route as $k => $v)
 			$request->params[$k] = $v;
 
-		$c = ucfirst($route["controller"]) . "Controller";
+		/* camel_case -> CamelCaseController */
+		$c = str_replace(" ", "",
+			ucwords(str_replace("_", " ", $route["controller"])))
+			. "Controller";
 
 		if (!class_exists($c))
 			throw new RoutingException("controller " . $c . " does not exist");

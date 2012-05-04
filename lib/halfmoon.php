@@ -65,8 +65,15 @@ if (file_exists(HALFMOON_ROOT . "/config/boot.php"))
 /* autoload controllers and helpers as needed */
 function halfmoon_autoload($class_name) {
 	if (preg_match("/^([A-Za-z0-9_]+)(Controller|Helper)$/", $class_name, $m)) {
-		$file = HALFMOON_ROOT . "/" . (strtolower($m[2]) . "s") . "/"
-			. strtolower($m[1]) . "_" . strtolower($m[2]) . ".php";
+		$file = HALFMOON_ROOT . "/";
+
+		/* Controller -> controllers/ */
+		$file .= strtolower($m[2]) . "s/";
+
+		/* CamelCase -> camel_case_controller.php */
+		$words = preg_split('/(?<=\\w)(?=[A-Z])/', $m[1]);
+		$file .= strtolower(join("_", $words)) . "_" . strtolower($m[2])
+			. ".php";
 
 		if (file_exists($file))
 			require_once($file);
