@@ -110,7 +110,8 @@ class EncryptedCookieSessionStore {
 
 				if (hash_hmac("sha1", $data, $this->key, $raw = true) === $hmac)
 					return $data;
-				/* else throw new \HalfMoon\InvalidCookieData("invalid HMAC"); */
+				else
+					throw new \HalfMoon\InvalidCookieData("invalid HMAC");
 			}
 		}
 
