@@ -280,9 +280,13 @@ class ApplicationController {
 
 			/* if we have no directory, assume it's the in the current
 			 * controller's views */
-			if (!strpos($tf, "/"))
-				$tf = strtolower(preg_replace("/Controller$/", "",
-					Utils::current_controller_name())) . "/" . $tf;
+			if (!strpos($tf, "/")) {
+				/* AdminSomethingController -> admin_something */
+				$words = preg_split('/(?<=\\w)(?=[A-Z])/',
+					preg_replace("/Controller$/", "",
+					Utils::current_controller_name()));
+				$tf = strtolower(join("_", $words)) . "/" . $tf;
+			}
 
 			/* partial template files start with _ */
 			if (is_array($template) && isset($template["partial"]))
@@ -673,7 +677,7 @@ class ApplicationController {
 
 				return false;
 			}
-		
+
 			if (isset($this->redirected_to))
 				return false;
 		}
