@@ -675,13 +675,14 @@ class ApplicationController {
 		}
 	}
 
-	/* xsrf protection: verify the passed authenticity token for non-GET
+	/* xsrf protection: verify the passed authenticity token for non-GET/HEAD
 	 * requests */
 	private function protect_from_forgery($action) {
 		if (!$this::$protect_from_forgery)
 			return;
 
-		if (strtoupper($this->request->request_method()) == "GET")
+		if (strtoupper($this->request->request_method()) == "GET" ||
+		strtoupper($this->request->request_method()) == "HEAD")
 			return;
 
 		if (Utils::option_applies_for_key($action,
