@@ -40,6 +40,9 @@ class ApplicationController {
 	 * forgery */
 	static $protect_from_forgery = true;
 
+	/* simple array of action names which will perform full page caching */
+	static $caches_page = array();
+
 	public $request = array();
 	public $params = array();
 	public $locals = array();
@@ -506,6 +509,13 @@ class ApplicationController {
 		if (!$this->content_type_sent())
 			header("Content-type: " . $this->content_type);
 
+		/* if we're caching this action as a full page, write out what we've
+		 * buffered so far */
+		if (!Utils::is_blank(Config::instance()->cache_store_path) &&
+		is_array($this::$caches_page) &&
+		in_array($action, $this::$caches_page))
+			$this->write_cache_output();
+
 		/* flush out everything, we're done playing with buffers */
 		ob_end_flush();
 	}
@@ -598,6 +608,24 @@ class ApplicationController {
 			$path = HALFMOON_ROOT . "/views/" . $path;
 
 		return $path;
+	}
+
+	public function expire_page($p) {
+		if (!isset($p["action"]))
+			throw new HalfMoonException("cannot expire page cache without "
+				. "at least an action");
+
+		$path = Config::instance()->cache_store_path . "/" .
+			$this->view_template_path($abs = false) . "/" . $p["action"];
+
+		if (isset($p["id"]))
+			$path .= "/" . $p["id"];
+
+		$path .= ".html";
+		if (file_exists($path)) {
+			unlink($path);
+			Log::info("Expired cached file " . $path);
+		}
 	}
 
 	/* enable or disable sessions according to $session */
@@ -741,6 +769,47 @@ class ApplicationController {
 				return $m[1];
 
 		return null;
+	}
+
+	private function write_cache_output() {
+		/* request path is already sanitized of .. and such, so we must
+		 * assume it is safe to use relative to our cache store path */
+		$rp = $this->request->path;
+		if ($rp == "")
+			$rp = "index";
+
+		$path = Config::instance()->cache_store_path . "/" . $rp;
+
+		/* use .html as the default extension unless it looks like our url
+		 * already had a format */
+		if (!preg_match('/\.[^\/]+/', $rp))
+			$path .= ".html";
+
+		/* append .html to our temporary file as a precaution in case it gets
+		 * left around, we don't want it being interpreted by the web server as
+		 * anything else */
+		$tmppath = $path . "." . bin2hex(openssl_random_pseudo_bytes(10))
+			. ".html";
+
+		if (!is_writable($path))
+			@mkdir(dirname($path), 0755, $recursive = true);
+
+		$fp = fopen($tmppath, "x");
+		if ($fp === false) {
+			Log::error("Error creating cache file " . $tmppath);
+			return;
+		}
+
+		fwrite($fp, ob_get_contents());
+		fclose($fp);
+
+		if (!rename($tmppath, $path)) {
+			Log::error("Error renaming " . $tmppath . " to " . $path);
+			unlink($tmppath);
+			return;
+		}
+
+		Log::info("Cached page output to " . realpath($path));
 	}
 }
 

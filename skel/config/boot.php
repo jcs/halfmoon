@@ -48,6 +48,10 @@ elseif (HALFMOON_ENV == "production") {
 	/* only log halfmoon processing times with urls */
 	HalfMoon\Config::set_log_level("short");
 
+	/* perform file caching for controllers that request it, and store files in
+	 * this directory (must be writable by web server user running halfmoon */
+	HalfMoon\Config::set_cache_store_path(HALFMOON_ROOT . "/public/cache");
+
 	/* uncomment to send emails of error backtraces and debugging info */
 	# HalfMoon\Config::set_exception_notification_recipient("you@example.com");
 	# HalfMoon\Config::set_exception_notification_subject("[%%APP_NAME%%]");

@@ -18,6 +18,7 @@ class Config extends Singleton {
 	public $db_config;
 
 	public $activerecord_log_level;
+	public $cache_store_path;
 	public $exception_notification_recipient;
 	public $exception_notification_subject;
 	public $log_handler;
@@ -159,6 +160,10 @@ class Config extends Singleton {
 				. $level);
 
 		Config::instance()->log_level = static::$LOG_LEVELS[$level];
+	}
+
+	public static function set_cache_store_path($path) {
+		Config::instance()->cache_store_path = $path;
 	}
 
 	public static function set_activerecord_log_level($level) {
