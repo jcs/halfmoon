@@ -280,13 +280,9 @@ class ApplicationController {
 
 			/* if we have no directory, assume it's the in the current
 			 * controller's views */
-			if (!strpos($tf, "/")) {
+			if (substr($tf, 0, 1) != "/")
 				/* AdminSomethingController -> admin_something */
-				$words = preg_split('/(?<=\\w)(?=[A-Z])/',
-					preg_replace("/Controller$/", "",
-					Utils::current_controller_name()));
-				$tf = strtolower(join("_", $words)) . "/" . $tf;
-			}
+				$tf = $this->view_template_path() . $tf;
 
 			/* partial template files start with _ */
 			if (is_array($template) && isset($template["partial"]))
@@ -296,29 +292,26 @@ class ApplicationController {
 			$filename = null;
 
 			/* regular php/html */
-			if (file_exists($filename = HALFMOON_ROOT . "/views/"
-			. $tf . ".phtml")) {
+			if (file_exists($filename = $tf . ".phtml")) {
 				if (!$this->content_type_set())
 					$this->content_type = "text/html";
 			}
 
 			/* xml */
-			elseif (file_exists($filename = HALFMOON_ROOT . "/views/"
-			. $tf . ".pxml")) {
+			elseif (file_exists($filename = $tf . ".pxml")) {
 				if (!$this->content_type_set())
 					$this->content_type = "application/xml";
 			}
 
 			/* php-javascript */
-			elseif (file_exists($filename = HALFMOON_ROOT . "/views/"
-			. $tf . ".pjs")) {
+			elseif (file_exists($filename = $tf . ".pjs")) {
 				if (!$this->content_type_set())
 					$this->content_type = "text/javascript";
 			}
 
 			else
-				throw new MissingTemplate("no template file " . HALFMOON_ROOT
-					. "/views/" . $tf . ".p{html,xml,js}");
+				throw new MissingTemplate("no template file " . $tf
+					. ".p{html,xml,js}");
 
 			if (count($collection)) {
 				$ck = Utils::A(array_keys($collection), 0);
@@ -497,8 +490,7 @@ class ApplicationController {
 		}
 
 		if (!$this->did_render)
-			$this->render(array("action" => $this->params["controller"] . "/"
-				. $action), $this->locals);
+			$this->render(array("action" => $action), $this->locals);
 
 		if (!$this->did_layout)
 			$this->render_layout($action);
@@ -594,6 +586,18 @@ class ApplicationController {
 			$_SESSION["_csrf_token"] = Utils::random_hash();
 
 		return $_SESSION["_csrf_token"];
+	}
+
+	public function view_template_path($absolute = true) {
+		$words = preg_split('/(?<=\\w)(?=[A-Z])/',
+			preg_replace("/Controller$/", "",
+			Utils::current_controller_name()));
+
+		$path = strtolower(join("_", $words)) . "/";
+		if ($absolute)
+			$path = HALFMOON_ROOT . "/views/" . $path;
+
+		return $path;
 	}
 
 	/* enable or disable sessions according to $session */
