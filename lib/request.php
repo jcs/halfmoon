@@ -63,10 +63,10 @@ class Request {
 			. "%)";
 
 		$log .= " | " . $status . " [" . $req->url . "]";
-		
+
 		if (isset($req->redirected_to))
 			$log .= " -> [" . $req->redirected_to . "]";
-	
+
 		Log::info($log);
 	}
 
@@ -86,17 +86,48 @@ class Request {
 
 		$url_parts = parse_url($url);
 
-		$this->url = $url;
 		$this->scheme = @$url_parts["scheme"];
+		if (empty($this->scheme))
+			$this->scheme = "http";
+
 		$this->host = @$url_parts["host"];
+
 		$this->port = @$url_parts["port"];
+		if (empty($this->port)) {
+			if (strtolower($this->scheme) == "https")
+				$this->port = 443;
+			else
+				$this->port = 80;
+		}
+
+		/* normalize path, strip leading and trailing slashes */
 		$this->path = @$url_parts["path"];
+		if ($this->path == "")
+			$this->path = "/";
+		$path_dirs = explode("/", $this->path);
+		$tpath = array();
+		foreach ($path_dirs as $tdir) {
+			if ($tdir == "" || $tdir == ".")
+				continue;
+			elseif ($tdir == "..") {
+				array_pop($tpath);
+				continue;
+			}
+
+			array_push($tpath, $tdir);
+		}
+		$this->path = join("/", $tpath);
+
 		$this->query = @$url_parts["query"];
 
-		/* strip leading and trailing slashes, then again in case some were
-		 * hiding */
-		$this->path = trim(preg_replace("/^\/*/", "", preg_replace("/\/$/", "",
-			trim($this->path))));
+		$this->url = $this->scheme . "://" . $this->host;
+		if ($this->port != 80 && $this->port != 443)
+			$this->url .= ":" . $this->port;
+
+		$this->url .= "/" . $this->path;
+
+		if ($this->query != "")
+			$this->url .= "?" . $this->query;
 
 		/* if this looks like a request from ie's castrated XDomainRequest()
 		 * then it didn't send a proper content-type, so try to read and parse
