@@ -104,7 +104,8 @@ class Router extends Singleton {
 
 						if ($regex_or_string == NULL ||
 						Utils::strcasecmp_or_preg_match($regex_or_string,
-						empty($path_pieces[$x]) ? "" : $path_pieces[$x])) {
+						Utils::is_blank($path_pieces[$x]) ? "" :
+						$path_pieces[$x])) {
 							if (isset($route[$m[1]]) &&
 							preg_match("/^(.*):(.+)$/", $route[$m[1]], $n))
 								/* route has a set parameter, but it wants to

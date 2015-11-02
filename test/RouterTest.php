@@ -45,6 +45,14 @@ class RouterTest extends PHPUnit_Framework_TestCase {
 		$added_routes++;
 
 		HalfMoon\Router::addRoute(array(
+			"url" => "zero_test/:id",
+			"controller" => "zero_test",
+			"action" => "show",
+			"conditions" => array("id" => "/^[0-9]+$/"),
+		));
+		$added_routes++;
+
+		HalfMoon\Router::addRoute(array(
 			"url" => ":tag/:message",
 			"controller" => "messages",
 			"action" => "show_tagged",
@@ -185,6 +193,19 @@ class RouterTest extends PHPUnit_Framework_TestCase {
 		$this->assertEquals("index", $route["action"]);
 		$this->assertEmpty($route["id"]);
     }
+
+	/**
+	 * @depends testSetupRoutes
+	 */
+    public function testZeroRouting() {
+		$route = HalfMoon\Router::routeRequest(
+			$this->request_for("http://www.example2.com/zero_test/0"));
+
+		$this->assertEquals("zero_test", $route["controller"]);
+		$this->assertEquals("show", $route["action"]);
+		$this->assertEquals("0", $route["id"]);
+    }
+
 
 	private function request_for($url) {
 		if (preg_match("/^\//", $url))
