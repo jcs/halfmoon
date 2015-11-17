@@ -28,6 +28,7 @@ class Rescuer {
 		'\HalfMoon\InvalidAuthenticityToken',
 		'\HalfMoon\UndefinedFunction',
 		'\HalfMoon\BadRequest',
+		'\ActiveRecord\RecordNotFound',
 	);
 
 	static function error_handler($errno, $errstr, $errfile, $errline) {
@@ -145,7 +146,7 @@ class Rescuer {
 				$out .= $call["line"];
 
 			$out .= " in ";
-			
+
 			if ($html)
 				$out .= "<strong>" . h($call["function"]) . "(</strong>";
 			else
@@ -249,7 +250,8 @@ class Rescuer {
 			/* production mode, try to handle gracefully */
 
 			if ($exception instanceof \HalfMoon\RoutingException ||
-			$exception instanceof \HalfMoon\UndefinedFunction) {
+			$exception instanceof \HalfMoon\UndefinedFunction ||
+			$exception instanceof \ActiveRecord\RecordNotFound) {
 				Request::send_status_header(404);
 
 				if (file_exists($f = HALFMOON_ROOT . "/public/404.html")) {
@@ -280,7 +282,7 @@ class Rescuer {
 					require_once($f);
 				}
 			}
-			
+
 			elseif ($exception instanceof \HalfMoon\InvalidAuthenticityToken) {
 				/* be like rails and give the odd 422 status */
 				Request::send_status_header(422);
@@ -305,7 +307,7 @@ class Rescuer {
 					<?php
 				}
 			}
-			
+
 			else {
 				Request::send_status_header(500);
 
