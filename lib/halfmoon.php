@@ -22,19 +22,12 @@ if (!defined("HALFMOON_ENV")) {
 		define("HALFMOON_ENV", "development");
 }
 
-require_once(HALFMOON_ROOT . "/halfmoon/lib/exceptions.php");
-
-/* install error handlers as soon as possible */
-require_once(HALFMOON_ROOT . "/halfmoon/lib/rescuer.php");
-
-/* set some sane defaults */
-date_default_timezone_set("UTC");
-session_name("_halfmoon_session");
-
-require_once(HALFMOON_ROOT . "/halfmoon/lib/logging.php");
-
-require_once(HALFMOON_ROOT . "/halfmoon/lib/utilities.php");
 require_once(HALFMOON_ROOT . "/halfmoon/lib/singleton.php");
+require_once(HALFMOON_ROOT . "/halfmoon/lib/config.php");
+require_once(HALFMOON_ROOT . "/halfmoon/lib/exceptions.php");
+require_once(HALFMOON_ROOT . "/halfmoon/lib/logging.php");
+require_once(HALFMOON_ROOT . "/halfmoon/lib/utilities.php");
+require_once(HALFMOON_ROOT . "/halfmoon/lib/rescuer.php");
 
 require_once(HALFMOON_ROOT . "/halfmoon/lib/helpers/global_helper.php");
 require_once(HALFMOON_ROOT . "/halfmoon/lib/helpers/helper.php");
@@ -48,8 +41,6 @@ require_once(HALFMOON_ROOT . "/halfmoon/lib/helpers/prototype_helper.php");
 require_once(HALFMOON_ROOT . "/halfmoon/lib/controller.php");
 require_once(HALFMOON_ROOT . "/halfmoon/lib/request.php");
 require_once(HALFMOON_ROOT . "/halfmoon/lib/router.php");
-
-require_once(HALFMOON_ROOT . "/halfmoon/lib/config.php");
 
 if (file_exists(HALFMOON_ROOT . "/config/db.ini"))
 	require_once(HALFMOON_ROOT . "/halfmoon/lib/php-activerecord/"
