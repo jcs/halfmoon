@@ -281,10 +281,15 @@ class ApplicationController {
 			else
 				$tf = $template;
 
-			/* if we have no directory, assume it's the in the current
-			 * controller's views */
-			if (substr($tf, 0, 1) != "/")
-				/* AdminSomethingController -> admin_something */
+			if (substr($tf, 0, 1) == "/")
+				/* full path, just use it */
+				;
+			elseif (strpos($tf, "/") !== false)
+				/* path relative to base view path */
+				$tf = HALFMOON_ROOT . "/views/" . $tf;
+			else
+				/* just a file in this controller's directory
+				 * (AdminSomethingController -> admin_something) */
 				$tf = $this->view_template_path() . $tf;
 
 			/* partial template files start with _ */
