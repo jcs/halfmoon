@@ -445,7 +445,7 @@ class ApplicationController {
 			Utils::current_controller_name());
 
 		if (file_exists($f = HALFMOON_ROOT . "/helpers/"
-		. strtolower($controller . "_controller.php"))) {
+		. strtolower($controller . "_helper.php"))) {
 			require_once($f);
 
 			$n = $controller . "Helper";
