@@ -1,8 +1,11 @@
 <?php
 /*
-	site-wide settings, loaded after framework
+	early initialization of site-wide settings, loaded after halfmoon framework
+	but before activerecord is initialized.
 
-	should do per-environment setup like logging, tweaking php settings, etc.
+	per-environment setup like logging, tweaking php settings, etc. can be done
+	here.  any code requiring activerecord or needing to be done after
+	everything is initialized should be done in config/application.php.
 */
 
 /* session settings, change according to your application requirements */

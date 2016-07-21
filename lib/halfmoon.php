@@ -76,6 +76,10 @@ spl_autoload_register("halfmoon_autoload", false, false);
 if (defined("PHP_ACTIVERECORD_ROOT"))
 	HalfMoon\Config::initialize_activerecord();
 
+/* bring in any post-framework but pre-route code */
+if (file_exists($f = HALFMOON_ROOT . "/config/application.php"))
+	require_once($f);
+
 /* bring in the route table and route our request */
 if (file_exists(HALFMOON_ROOT . "/config/routes.php"))
 	HalfMoon\Router::initialize(function($router) {
