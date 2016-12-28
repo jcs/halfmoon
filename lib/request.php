@@ -23,6 +23,15 @@ class Request {
 	public $etag = null;
 	public $redirected_to = null;
 
+	public function __get($name) {
+		if (method_exists($this, "get_" . $name)) {
+			$name = "get_" . $name;
+			return $this->$name();
+		}
+
+		throw new Exception("invalid property " . $name);
+	}
+
 	/* a register_shutdown function that will log some stats about the time it
 	 * took to process and the url */
 	public static function log_runtime($req) {
@@ -257,7 +266,7 @@ class Request {
 	 * list in the case of multiple chained proxies; the last address which is
 	 * not trusted is the originating IP. */
 	private $_remote_ip;
-	public function remote_ip() {
+	public function get_remote_ip() {
 		if ($this->_remote_ip)
 			return $this->_remote_ip;
 
@@ -299,7 +308,7 @@ class Request {
 
 	/* whether this was a request received over ssl */
 	private $_ssl;
-	public function ssl() {
+	public function get_ssl() {
 		if (isset($this->_ssl))
 			return $this->_ssl;
 
@@ -314,12 +323,12 @@ class Request {
 	}
 
 	/* "GET", "PUT", etc. */
-	public function request_method() {
+	public function get_request_method() {
 		return strtoupper($this->headers["REQUEST_METHOD"]);
 	}
 
 	/* the user's browser as reported by the server */
-	public function user_agent() {
+	public function get_user_agent() {
 		return @$this->headers["HTTP_USER_AGENT"];
 	}
 
@@ -341,6 +350,20 @@ class Request {
 	private function calculate_etag() {
 		if (empty($this->etag))
 			$this->etag = md5(ob_get_contents());
+	}
+
+	/* legacy functions that have been changed to pseudo-properties */
+	public function remote_ip() {
+		return $this->get_remote_ip();
+	}
+	public function ssl() {
+		return $this->get_ssl();
+	}
+	public function request_method() {
+		return $this->get_request_method();
+	}
+	public function user_agent() {
+		return $this->get_user_agent();
 	}
 }
 
