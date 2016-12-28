@@ -44,16 +44,20 @@ class Config extends Singleton {
 
 		/* set some reasonable defaults */
 		$ar_config = array();
-		foreach ($db_config as $henv => $db)
-			$ar_config[$henv] = array_merge(array(
-				"adapter"  => "mysql",
-				"username" => "username",
-				"password" => "password",
-				"hostname" => "localhost",
-				"database" => "database",
-				"socket"   => "",
-				"port"     => 3306,
-			), $db);
+		foreach ($db_config as $henv => $db) {
+			if ($db["adapter"] == "sqlite")
+				$ar_config[$henv] = $db;
+			else
+				$ar_config[$henv] = array_merge(array(
+					"adapter"  => "mysql",
+					"username" => "username",
+					"password" => "password",
+					"hostname" => "localhost",
+					"database" => "database",
+					"socket"   => "",
+					"port"     => 3306,
+				), $db);
+		}
 
 		return Config::instance()->db_config = $ar_config;
 	}
@@ -68,17 +72,24 @@ class Config extends Singleton {
 		$dbs = Config::instance()->load_db_config();
 		$ar_dbs = array();
 		foreach ($dbs as $henv => $db) {
-			if ($db["socket"] == "")
-				$host = $db["hostname"] . ":" . $db["port"];
-			else
-				$host = "unix(" . $db["socket"] . ")";
+			if ($db["adapter"] == "sqlite") {
+				$ar_dbs[$henv] = $db["adapter"] . "://unix(" . $db["database"]
+					. ")" . (empty($db["charset"]) ? "" :
+						"?charset=" . $db["charset"]);
+			} else {
+				if ($db["socket"] == "")
+					$host = $db["hostname"] . ":" . $db["port"];
+				else
+					$host = "unix(" . $db["socket"] . ")";
 
-			/* masked strings will be shown in rescue messages */
-			$ar_dbs[$henv] = new StringMaskedDuringRescue($db["adapter"]
-				. "://" . $db["username"] . ":" . $db["password"] . "@"
-				. $host . "/" . $db["database"] . (empty($db["charset"]) ? "" :
-				"?charset=" . $db["charset"]),
-				$db["adapter"] . "://****/" . $db["database"]);
+				/* masked strings will be shown in rescue messages */
+				$ar_dbs[$henv] = new StringMaskedDuringRescue($db["adapter"]
+					. "://" . $db["username"] . ":" . $db["password"] . "@"
+					. $host . "/" . $db["database"]
+					. (empty($db["charset"]) ? "" :
+						"?charset=" . $db["charset"]),
+					$db["adapter"] . "://****/" . $db["database"]);
+			}
 		}
 
 		if (!isset($ar_dbs[HALFMOON_ENV]))
