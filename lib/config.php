@@ -73,8 +73,12 @@ class Config extends Singleton {
 		$ar_dbs = array();
 		foreach ($dbs as $henv => $db) {
 			if ($db["adapter"] == "sqlite") {
-				$ar_dbs[$henv] = $db["adapter"] . "://unix(" . $db["database"]
-					. ")" . (empty($db["charset"]) ? "" :
+				$db_path = $db["database"];
+				if (substr($db_path, 0, 1) != "/")
+					$db_path = realpath(HALFMOON_ROOT . "/" . $db_path);
+
+				$ar_dbs[$henv] = $db["adapter"] . "://unix(" . $db_path . ")"
+					. (empty($db["charset"]) ? "" :
 						"?charset=" . $db["charset"]);
 			} else {
 				if ($db["socket"] == "")
