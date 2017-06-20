@@ -43,6 +43,9 @@ with `$form` being an alias to a FormHelper object automatically setup
 by the controller.  There are other helpers available like `$time`,
 `$html`, etc.
 
+`$C` is defined as the current controller object, to access its functions
+such as `render`.
+
 ## Requirements ##
 
 -	PHP 5.3 or higher with the PDO database extensions you wish to use
@@ -251,7 +254,7 @@ by the controller.  There are other helpers available like `$time`,
 	```php
 	<?php
 
-	$controller->render(array("partial" => "header_image"));
+	$C->render(array("partial" => "header_image"));
 	...
 
 	?>
@@ -408,9 +411,9 @@ design changes.
 
 1.	The body of the `form_for()` will be executed in a different context,
 	so `$this` will not point to the controller as it does elsewhere in
-	the view.  To get around this, `$controller` is defined (as well as
-	a `$C` shortcut alias) and (along with any other local variables
-	needed) can be passed into the `form_for()` body like so:
+	the view.  To get around this, `$C` is defined and (along with any
+	other local variables needed) can be passed into the `form_for()`
+	body like so:
 
 	```HTML+PHP
 	<h1><?= $C->title() ?></h1>
@@ -423,8 +426,8 @@ design changes.
 
 	This is due to the [design of closures in php](http://wiki.php.net/rfc/closures/removal-of-this).
 
-	It is recommended to just always use `$C` (or the more verbose
-	`$controller`) instead of `$this` throughout views and closures.
+	It is recommended to just always use `$C` instead of `$this`
+	throughout views and closures.
 
 2.	`list` and `new` are reserved keywords in PHP, so these cannot be
 	used as the controller actions like Rails sets up by default.
