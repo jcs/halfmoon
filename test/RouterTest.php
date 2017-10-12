@@ -96,7 +96,7 @@ class RouterTest extends PHPUnit_Framework_TestCase {
 
 		$this->assertEquals("login", $route["controller"]);
 		$this->assertEquals("logout", $route["action"]);
-		$this->assertEmpty($route["id"]);
+		$this->assertFalse(array_key_exists("id", $route));
     }
 
 	/**
@@ -127,7 +127,7 @@ class RouterTest extends PHPUnit_Framework_TestCase {
 
 		$this->assertEquals("messages", $route["controller"]);
 		$this->assertEquals("show_tagged", $route["action"]);
-		$this->assertEmpty($route["id"]);
+		$this->assertFalse(array_key_exists("id", $route));
 	}
 
 	/**
@@ -167,7 +167,7 @@ class RouterTest extends PHPUnit_Framework_TestCase {
 
 		$this->assertEquals("login", $route["controller"]);
 		$this->assertEquals("logout2", $route["action"]);
-		$this->assertEmpty($route["id"]);
+		$this->assertFalse(array_key_exists("id", $route));
     }
 
 	/**
@@ -179,7 +179,7 @@ class RouterTest extends PHPUnit_Framework_TestCase {
 
 		$this->assertEquals("root", $route["controller"]);
 		$this->assertEquals("index", $route["action"]);
-		$this->assertEmpty($route["id"]);
+		$this->assertFalse(array_key_exists("id", $route));
     }
 
 	/**
@@ -191,7 +191,34 @@ class RouterTest extends PHPUnit_Framework_TestCase {
 
 		$this->assertEquals("root2", $route["controller"]);
 		$this->assertEquals("index", $route["action"]);
-		$this->assertEmpty($route["id"]);
+		$this->assertFalse(array_key_exists("id", $route));
+
+		/* shouldn't raise exception */
+		HalfMoon\Router::addRootRoute(array(
+			"controller" => "root2",
+			"conditions" => array("hostname" => "www.example3.com"),
+		));
+    }
+
+	/**
+	 * @depends testSetupRoutes
+	 * @expectedException \HalfMoon\HalfMoonException
+	 */
+    public function testRootRoutingDuplicate() {
+		HalfMoon\Router::addRootRoute(array(
+			"controller" => "root3",
+		));
+    }
+
+	/**
+	 * @depends testSetupRoutes
+	 * @expectedException \HalfMoon\HalfMoonException
+	 */
+    public function testRootRoutingDuplicateConditions() {
+		HalfMoon\Router::addRootRoute(array(
+			"controller" => "root3",
+			"conditions" => array("hostname" => "www.example2.com"),
+		));
     }
 
 	/**

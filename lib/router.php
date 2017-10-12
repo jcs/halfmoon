@@ -30,11 +30,21 @@ class Router extends Singleton {
 			throw new HalfMoonException("invalid root route of "
 				. var_export($route, true));
 
-		/* only one root route can match a particular condition */
-		foreach (parent::instance()->rootRoutes as $rr)
-			if (!array_diff_assoc((array)$rr, (array)$route["conditions"]))
+		/* only one root route can have no conditions, and any additional root
+		 * routes must have different conditions */
+		$c = array_key_exists("conditions", $route) ? $route["conditions"] :
+			array();
+		foreach (parent::instance()->rootRoutes as $rr) {
+			$rrc = array_key_exists("conditions", $rr) ? $rr["conditions"] :
+				array();
+
+			if ((empty($c) && empty($rrc)) ||
+			(!empty($c) && !empty($rrc) && !array_diff_assoc($c, $rrc)))
 				throw new HalfMoonException("cannot add second root route "
-					. "with no conditions: " . var_export($route, true));
+					. "with no conditions: " . var_export($route, true)
+					. " with existing root route: "
+					. var_export($rr, true) . ")");
+		}
 
 		array_push(parent::instance()->rootRoutes, $route);
 	}
