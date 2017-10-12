@@ -99,6 +99,7 @@ class Router extends Singleton {
 					preg_replace("/\/$/", "", trim($route["url"])))));
 
 				$match = true;
+				$did_glob = false;
 				for ($x = 0; $x < count($route_pieces); $x++) {
 					/* look for a condition */
 					if (preg_match("/^:(.+)$/", $route_pieces[$x], $m)) {
@@ -109,8 +110,9 @@ class Router extends Singleton {
 						/* if the corresponding path piece isn't there and
 						 * there is either no condition, or a condition that
 						 * matches against a blank string, it's ok.  this lets
-						 * controller/:action/:id match when the route is just
-						 * "controller", assigning :action and :id to nothing */
+						 * a route of "controller/:action/:id" match when the
+						 * path is just "controller", assigning $DEFAULT_ACTION
+						 * to :action and nothing to :id */
 
 						if ($regex_or_string == NULL ||
 						Utils::strcasecmp_or_preg_match($regex_or_string,
@@ -146,8 +148,10 @@ class Router extends Singleton {
 							$u .= ($u == "" ? "" : "/") . $path_pieces[$j];
 
 						if ($regex_or_string == NULL ||
-						Utils::strcasecmp_or_preg_match($regex_or_string, $u))
+						Utils::strcasecmp_or_preg_match($regex_or_string, $u)) {
 							$route[$m[1]] = $u;
+							$did_glob = true;
+						}
 						else
 							$match = false;
 
@@ -161,6 +165,14 @@ class Router extends Singleton {
 
 					if (!$match)
 						break;
+				}
+
+				if ($match && !$did_glob && count($path_pieces) >
+				count($route_pieces)) {
+					/* path was /controller/action/id/something/else but this
+					 * route only matched /controller/action/id, consider this
+					 * a non-match */
+					$match = false;
 				}
 
 				if ($match) {

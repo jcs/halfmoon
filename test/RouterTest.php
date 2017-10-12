@@ -141,6 +141,15 @@ class RouterTest extends PHPUnit_Framework_TestCase {
 
 	/**
 	 * @depends testSetupRoutes
+     * @expectedException HalfMoon\RoutingException
+	 */
+    public function testPathCountMismatch() {
+		$route = HalfMoon\Router::routeRequest(
+			$this->request_for("/matchingtag/50/1/2/3/4"));
+	}
+
+	/**
+	 * @depends testSetupRoutes
 	 */
     public function testGlobRouting() {
 		$route = HalfMoon\Router::routeRequest(
